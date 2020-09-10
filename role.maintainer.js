@@ -37,12 +37,10 @@ var roleMaintainer= {
                 }
                 //if there are no containers to pull from, mine instead
             } else {
-                var sources = creep.room.find(FIND_SOURCES);
-                if(creep.harvest(sources[1]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sources[1], {visualizePathStyle: {stroke: '#ffaa00'}});
-                }
+                //logic for when there is no energy to put to use
             }
         } else {
+            //prioritize towers
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_TOWER) && 
@@ -55,22 +53,16 @@ var roleMaintainer= {
                 }
 
             } else {
-                //check for things to repair
+                //check if the spawn or extensions need to be filled
                 var targets = creep.room.find(FIND_STRUCTURES, {
-                        filter: (structure) => {
-                            return [STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART].includes(structure.structureType)  &&
-                                structure.hits < structure.hitsMax;
-                        }
+                    filter: (structure) => {
+                        return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    }
                 });
                 if(targets.length > 0) {
-                    if(creep.repair(targets[0]) == ERR_NOT_IN_RANGE) {
+                    if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
-
-                } else {
-                    //last resort is to start upgrading if there is nothing else to do
-                    if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                 }
             }

@@ -11,6 +11,31 @@ module.exports.loop = function () {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
+    //inits memory for sources
+    if (!Memory.sources) {
+        Memory.sources = {};
+    }
+    //inits memory for sources per room TODO: needs to work for more than just the one room
+    if (!Memory.sources[Game.spawns['French Armada From Spain'].room]) {
+        Memory.sources[Game.spawns['French Armada From Spain'].room] = {};
+
+        var sources = Game.spawns['French Armada From Spain'].room.find(FIND_SOURCES);
+        for (var i in sources) {
+            let openSpots = 0;
+            let terrain = Game.spawns['French Armada From Spain'].room.lookAtArea(sources[i].pos.y - 1, sources[i].pos.x - 1, sources[i].pos.y + 1, sources[i].pos.x + 1, true);
+            for (var j in terrain) {
+                if (terrain[j]["type"] == "terrain" && terrain[j]["terrain"] != "wall") {
+                    openSpots++;
+                }
+            }
+            Memory.sources[Game.spawns['French Armada From Spain'].room][sources[i]] = {};
+            Memory.sources[Game.spawns['French Armada From Spain'].room][sources[i]]["positions"] = openSpots;
+            console.log(openSpots);
+            
+            //Memory.sources[sources[i].id]["freeSpots"] = openSpots; 
+            //if (terrain.get(sources[i].pos.x + 1, sources[i].pos.y) != TERRAIN_MASK_WALL) openSpots++;
+        }
+    }
 
     var towerList = Game.rooms["E44N23"].find(FIND_MY_STRUCTURES, {
         filter: (structure) => {
@@ -20,9 +45,26 @@ module.exports.loop = function () {
 
     var tower = towerList[0]
     if(tower) {
+        // var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+        //     filter: (structure) => structure.hits < structure.hitsMax
+        // });
+        // if(closestDamagedStructure) {
+        //     tower.repair(closestDamagedStructure);
+        // }
+        //check for things to repair
         var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(closestHostile) {
             tower.attack(closestHostile);
+        }
+
+        var targets = tower.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return [STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART].includes(structure.structureType)  &&
+                        structure.hits < structure.hitsMax;
+                }
+        });
+        if(targets.length > 0 && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > tower.store.getCapacity(RESOURCE_ENERGY) / 2) {
+            tower.repair(targets[0]);
         }
     }
 
@@ -44,21 +86,21 @@ module.exports.loop = function () {
             {memory: {role: 'harvester'}});
     }
 
-    if(builders.length < 2) {
+    if(builders.length < 0) {
         var newName = 'Builder' + Game.time;
         console.log('Spawning new Builder: ' + newName);
         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
             {memory: {role: 'builder'}});
     }
 
-    if(upgraders.length < 3) {
+    if(upgraders.length < 0) {
         var newName = 'Upgrader' + Game.time;
         console.log('Spawning new Upgrader: ' + newName);
         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
             {memory: {role: 'upgrader'}});
     }
 
-    if(maintainers.length < 2) {
+    if(maintainers.length < 1) {
         var newName = 'Maintainer' + Game.time;
         console.log('Spawning new Maintainer: ' + newName);
         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
