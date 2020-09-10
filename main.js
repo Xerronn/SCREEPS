@@ -2,6 +2,7 @@ var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleMaintainer = require('role.maintainer');
+var roleTower = require('role.tower');
 
 module.exports.loop = function () {
     //clear memory of dead creeps
@@ -30,41 +31,6 @@ module.exports.loop = function () {
             }
             Memory.sources[Game.spawns['French Armada From Spain'].room][sources[i]] = {};
             Memory.sources[Game.spawns['French Armada From Spain'].room][sources[i]]["positions"] = openSpots;
-            console.log(openSpots);
-            
-            //Memory.sources[sources[i].id]["freeSpots"] = openSpots; 
-            //if (terrain.get(sources[i].pos.x + 1, sources[i].pos.y) != TERRAIN_MASK_WALL) openSpots++;
-        }
-    }
-
-    var towerList = Game.rooms["E44N23"].find(FIND_MY_STRUCTURES, {
-        filter: (structure) => {
-            return structure.structureType == STRUCTURE_TOWER;
-        }
-    });
-
-    var tower = towerList[0]
-    if(tower) {
-        // var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-        //     filter: (structure) => structure.hits < structure.hitsMax
-        // });
-        // if(closestDamagedStructure) {
-        //     tower.repair(closestDamagedStructure);
-        // }
-        //check for things to repair
-        var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        if(closestHostile) {
-            tower.attack(closestHostile);
-        }
-
-        var targets = tower.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return [STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART].includes(structure.structureType)  &&
-                        structure.hits < structure.hitsMax;
-                }
-        });
-        if(targets.length > 0 && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > tower.store.getCapacity(RESOURCE_ENERGY) / 2) {
-            tower.repair(targets[0]);
         }
     }
 
@@ -78,29 +44,33 @@ module.exports.loop = function () {
     Game.spawns['French Armada From Spain'].room.visual.text('Upgraders: ' + upgraders.length, Game.spawns['French Armada From Spain'].pos.x + 6, Game.spawns['French Armada From Spain'].pos.y + 2, {align: 'left', opacity: 0.8});
     Game.spawns['French Armada From Spain'].room.visual.text('Maintainers: ' + maintainers.length, Game.spawns['French Armada From Spain'].pos.x + 6, Game.spawns['French Armada From Spain'].pos.y + 3, {align: 'left', opacity: 0.8});
 
-    //current max is 800
-    if(harvesters.length < 4) {
-        var newName = 'Harvester' + Game.time;
-        console.log('Spawning new harvester: ' + newName);
-        Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
-            {memory: {role: 'harvester'}});
-    }
 
-    if(builders.length < 0) {
+    var sources = Game.spawns['French Armada From Spain'].room.find(FIND_SOURCES)
+    for (var i in sources) {
+        var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester' && creep.memory.assignedNode == sources[i].id);
+        if (assignedWorker.length < Memory.sources[Game.spawns['French Armada From Spain'].room][sources[i]]["positions"]) {
+            var newName = Game.spawns['French Armada From Spain'].room.name + '_Harvester_' + sources[i].id.slice(-4) + '_' + Game.time;
+            console.log('Spawning new harvester: ' + newName);
+            Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+            {memory: {role: 'harvester', assignedNode: sources[i].id}});
+        }
+    }   
+
+    if (builders.length < 0) {
         var newName = 'Builder' + Game.time;
         console.log('Spawning new Builder: ' + newName);
         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
             {memory: {role: 'builder'}});
     }
 
-    if(upgraders.length < 0) {
+    if (upgraders.length < 0) {
         var newName = 'Upgrader' + Game.time;
         console.log('Spawning new Upgrader: ' + newName);
         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
             {memory: {role: 'upgrader'}});
     }
 
-    if(maintainers.length < 1) {
+    if (maintainers.length < 1) {
         var newName = 'Maintainer' + Game.time;
         console.log('Spawning new Maintainer: ' + newName);
         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
@@ -108,7 +78,7 @@ module.exports.loop = function () {
     }
     
     
-    if(Game.spawns['French Armada From Spain'].spawning) { 
+    if (Game.spawns['French Armada From Spain'].spawning) { 
         var spawningCreep = Game.creeps[Game.spawns['French Armada From Spain'].spawning.name];
         Game.spawns['French Armada From Spain'].room.visual.text(
             '🛠️' + spawningCreep.memory.role,
@@ -117,7 +87,7 @@ module.exports.loop = function () {
             {align: 'left', opacity: 0.8});
     }
 
-    for(var name in Game.creeps) {
+    for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         switch (creep.memory.role) {
             case 'harvester':
@@ -134,4 +104,15 @@ module.exports.loop = function () {
                 break;
         }
     }
+
+    var towers = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return structure.structureType == STRUCTURE_TOWER;
+        }
+    });
+
+    for (var tower of towers) {
+        roleTower.run(tower);
+    }
+
 }

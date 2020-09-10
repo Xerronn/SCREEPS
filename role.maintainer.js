@@ -35,7 +35,6 @@ var roleMaintainer= {
                 if(creep.withdraw(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-                //if there are no containers to pull from, mine instead
             } else {
                 //logic for when there is no energy to put to use
             }

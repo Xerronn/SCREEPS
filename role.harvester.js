@@ -24,10 +24,16 @@ var roleHarvester = {
         }
 
 	    if(creep.memory.mining) {
-            var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ffaa00'}});
+            var source = Game.getObjectById(creep.memory.assignedNode);
+            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
             }
+            // var source = Game.getObjectById(creep.memory.assignedNode);
+            // if (creep.pos.inRangeTo(source, 1)) {
+            //     creep.harvest(source);
+            // } else {
+            //     creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+            // }
         }
         else {
             //check if the spawn or extensions need to be filled
