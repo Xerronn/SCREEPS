@@ -35,8 +35,8 @@ var roleUpgrader = {
             //check for any containers with resources to pull from
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return structure.structureType == STRUCTURE_CONTAINER &&
-                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > 100000000000;//creep.store.getCapacity(); I disabled this for now
+                    return [STRUCTURE_CONTAINER, STRUCTURE_STORAGE].includes(structure.structureType) &&
+                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
                 }
             });
             if(targets.length > 0) {
@@ -45,10 +45,7 @@ var roleUpgrader = {
                 }
                 //if there are no containers to pull from, mine instead
             } else {
-                var sources = creep.room.find(FIND_SOURCES);
-                if(creep.harvest(sources[1]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sources[1], {visualizePathStyle: {stroke: '#ffaa00'}});
-                }
+                //I don't want them to mine rn
             }
         }
 	}

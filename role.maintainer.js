@@ -27,7 +27,7 @@ var roleMaintainer= {
             //check for any containers with resources to pull from
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return structure.structureType == STRUCTURE_CONTAINER &&
+                    return [STRUCTURE_CONTAINER, STRUCTURE_STORAGE].includes(structure.structureType) &&
                     structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
                 }
             });
@@ -36,7 +36,7 @@ var roleMaintainer= {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             } else {
-                //logic for when there is no energy to put to use
+                //I don't want them to mine rn
             }
         } else {
             //prioritize towers

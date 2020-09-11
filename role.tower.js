@@ -15,14 +15,18 @@ var roleTower = {
                 tower.attack(closestHostile);
             }
     
-            var targets = tower.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return [STRUCTURE_ROAD, STRUCTURE_CONTAINER].includes(structure.structureType)  &&
-                            structure.hits < structure.hitsMax;
+            var target = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: function (structure) {
+                        let shouldHeal = true;
+                        if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(structure.structureType) && structure.hits > 100000) {
+                            shouldHeal = false;
+                        }
+                        return [STRUCTURE_RAMPART, STRUCTURE_ROAD, STRUCTURE_CONTAINER].includes(structure.structureType)  &&
+                            structure.hits < structure.hitsMax && shouldHeal;
                     }
             });
-            if(targets.length > 0 && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > tower.store.getCapacity(RESOURCE_ENERGY) / 2) {
-                tower.repair(targets[0]);
+            if(target && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > tower.store.getCapacity(RESOURCE_ENERGY) / 2) {
+                tower.repair(target);
             }
     }
 

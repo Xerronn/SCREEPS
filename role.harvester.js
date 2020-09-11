@@ -17,6 +17,8 @@ var roleHarvester = {
             } 
         }
         
+        //TODO: add in logic for what to do when their source is empty
+        
         if (creep.store.getUsedCapacity() == 0) {
             creep.memory.mining = true;
         } else if (creep.store.getFreeCapacity() == 0) {
@@ -51,7 +53,7 @@ var roleHarvester = {
                 //check if there are any empty containers to fill
                 var targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
-                        return structure.structureType == STRUCTURE_CONTAINER &&
+                        return [STRUCTURE_CONTAINER, STRUCTURE_STORAGE].includes(structure.structureType) &&
                             structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                     }
                 });
