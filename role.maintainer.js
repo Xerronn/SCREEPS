@@ -27,7 +27,7 @@ var roleMaintainer= {
             //check for any containers with resources to pull from
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return [STRUCTURE_CONTAINER, STRUCTURE_STORAGE].includes(structure.structureType) &&
+                    return [STRUCTURE_STORAGE].includes(structure.structureType) &&
                     structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
                 }
             });

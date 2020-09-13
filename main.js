@@ -2,7 +2,8 @@ var systemUI = require('system.ui');
 var systemSpawner = require('system.spawner');
 var systemMemory = require('system.memory');
 
-var roleHarvester = require('role.harvester');
+var roleTransporter = require('role.transporter');
+var roleMiner = require('role.miner');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleMaintainer = require('role.maintainer');
@@ -26,8 +27,8 @@ module.exports.loop = function () {
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         switch (creep.memory.role) {
-            case 'harvester':
-                roleHarvester.run(creep);
+            case 'miner':
+                roleMiner.run(creep);
                 break;
             case 'upgrader':
                 roleUpgrader.run(creep);
@@ -37,6 +38,9 @@ module.exports.loop = function () {
                 break;
             case 'maintainer':
                 roleMaintainer.run(creep);
+                break;
+            case 'transporter':
+                roleTransporter.run(creep);
                 break;
         }
     }

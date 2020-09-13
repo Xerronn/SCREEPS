@@ -1,35 +1,3 @@
-// var roleBuilder = {
-
-//     /** @param {Creep} creep **/
-//     run: function(creep) {
-
-// 	    if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
-//             creep.memory.building = false;
-//             creep.say('🔄 harvest');
-// 	    }
-// 	    if(!creep.memory.building && creep.store.getFreeCapacity() == 0) {
-// 	        creep.memory.building = true;
-// 	        creep.say('🚧 build');
-// 	    }
-
-// 	    if(creep.memory.building) {
-// 	        var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-//             if(targets.length) {
-//                 if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-//                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-//                 }
-//             }
-// 	    }
-// 	    else {
-// 	        var sources = creep.room.find(FIND_SOURCES);
-//             if(creep.harvest(sources[1]) == ERR_NOT_IN_RANGE) {
-//                 creep.moveTo(sources[1], {visualizePathStyle: {stroke: '#ffaa00'}});
-//             }
-// 	    }
-// 	}
-// };
-
-// module.exports = roleBuilder;
 
 var roleBuilder= {
 
@@ -60,7 +28,7 @@ var roleBuilder= {
             //check for any containers with resources to pull from
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return [STRUCTURE_CONTAINER, STRUCTURE_STORAGE].includes(structure.structureType) &&
+                    return [STRUCTURE_STORAGE].includes(structure.structureType) &&
                     structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
                 }
             });
@@ -74,23 +42,26 @@ var roleBuilder= {
             }
         }
         else {
-            var targets = creep.room.find(FIND_STRUCTURES, {
+            //first build things
+            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            if(targets.length > 0) {
+                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+            } else {
+                 //if there is nothing to build, refill extensions
+                var targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
                             structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                     }
-            });
-            if(targets.length > 0) {
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-            } else {
-                var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-                if(targets.length) {
-                    if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                });
+                if(targets.length > 0) {
+                    if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                 } else {
+                    //last ditch thing is to upgrade controller before death
                     if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                     }
