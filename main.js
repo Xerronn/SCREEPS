@@ -2,7 +2,6 @@ var systemUI = require('system.ui');
 var systemMemory = require('system.memory');
 var systemSpawner = require('system.spawner');
 
-
 var roleTransporter = require('role.transporter');
 var roleMaintainer = require('role.maintainer');
 var roleReserver = require('role.reserver');
@@ -14,8 +13,9 @@ var roleMiner = require('role.miner');
 var structureTower = require('structure.tower');
 var structureLink = require('structure.link');
 
-//remove this
-var newUpgrader = require('role.upgraderNEW');
+//remote roles for controllers without spawns
+var roleRemoteUpgrader = require('role.remoteUpgrader');
+var roleRemoteBuilder = require('role.remoteBuilder');
 
 module.exports.loop = function () {
     //clear memory of dead creeps
@@ -55,8 +55,11 @@ module.exports.loop = function () {
             case 'transporter':
                 roleTransporter.run(creep);
                 break;
-            case 'newUpgrader':
-                newUpgrader.run(creep);
+            case 'remoteBuilder':
+                roleRemoteBuilder.run(creep);
+                break;
+            case 'remoteUpgrader':
+                roleRemoteUpgrader.run(creep);
                 break;
         }
     }

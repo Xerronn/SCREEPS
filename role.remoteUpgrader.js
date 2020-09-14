@@ -1,4 +1,4 @@
-var roleUpgraderNEW = {
+var roleRemoteUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -16,9 +16,10 @@ var roleUpgraderNEW = {
                 creep.say('⚡ upgrade');
             }
 
-            var source = Game.getObjectById("5bbcafa49099fc012e63af27");
+            var source = controller.pos.findClosestByRange(FIND_SOURCES);
             if(creep.memory.upgrading) {
                 if (creep.pos.inRangeTo(controller, 1)) {
+                    //creep.signController(controller, "Born of God and Void. You shall seal the blinding light that plagues their dreams.")
                     creep.upgradeController(controller);
                 } else {
                     creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});
@@ -34,4 +35,4 @@ var roleUpgraderNEW = {
 	}
 };
 
-module.exports = roleUpgraderNEW;
+module.exports = roleRemoteUpgrader;

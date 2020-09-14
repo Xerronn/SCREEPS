@@ -1,13 +1,28 @@
 var systemSpawner = {
     run: function() {
         try {
-            //remove this
-            var newUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'newUpgrader');
-            if (newUpgraders.length < 1) {
-                var newName = 'newUpgrader' + Game.time;
-                console.log('Spawning new newUpgrader: ' + newName);
-                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
-                    {memory: {role: 'newUpgrader'}});
+            //handles the automatic creation of remote upgraders in case of a new territory being claimed
+            //first find any claimed controllers that do not have a spawn
+            var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER);
+            for (var controller of controllers) {
+                if (controller.room.find(FIND_MY_SPAWNS).length < 1) {
+                    //if the controller has no spawn, check to see if there are any remoteUpgraders assigned to it
+                    var remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedController == controller.id);
+                    if (remoteUpgraders.length < 1) {
+                        var newName = controller.room.name + '_remoteUpgrader_' + controller.id.slice(-4) + '_' + Game.time;
+                        console.log('Spawning new remoteUpgrader: ' + newName);
+                        Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                            {memory: {role: 'remoteUpgrader', assignedController: controller.id}});
+                    }
+
+                    var remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedController == controller.id);
+                    if (remoteUpgraders.length < 1) {
+                        var newName = controller.room.name + '_remoteBuilder_' + controller.id.slice(-4) + '_' + Game.time;
+                        console.log('Spawning new remoteUpgrader: ' + newName);
+                        Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                            {memory: {role: 'remoteBuilder', assignedController: controller.id}});
+                    }
+                } 
             }
 
             //managers miner spawns
@@ -35,7 +50,7 @@ var systemSpawner = {
                     //the container that the worker is assigned to
                     var assignedContainer = containers[i];
                     console.log('Spawning new Transporter: ' + newName);
-                    Game.spawns['French Armada From Spain'].spawnCreep([CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], newName, 
+                    Game.spawns['French Armada From Spain'].spawnCreep([CARRY, CARRY, CARRY, CARRY, MOVE, MOVE], newName, 
                     {memory: {role: 'transporter', assignedContainer: assignedContainer.id}});
                 }
             }
@@ -63,6 +78,7 @@ var systemSpawner = {
             var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
             var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
             var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer');
+
             //1300
             var constructionSites = Game.spawns['French Armada From Spain'].room.find(FIND_MY_CONSTRUCTION_SITES);
             if (builders.length < 1 && constructionSites.length > 0) {
@@ -75,16 +91,16 @@ var systemSpawner = {
             if (upgraders.length < 3) {
                 var newName = 'Upgrader' + Game.time;
                 console.log('Spawning new Upgrader: ' + newName);
-                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
-                    MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
+                    MOVE, MOVE, MOVE, MOVE], newName, 
                     {memory: {role: 'upgrader'}});
             }
 
             if (maintainers.length < 2) {
                 var newName = 'Maintainer' + Game.time;
                 console.log('Spawning new Maintainer: ' + newName);
-                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
-                    MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, 
+                    MOVE, MOVE, MOVE, MOVE], newName, 
                     {memory: {role: 'maintainer'}});
             }
             
