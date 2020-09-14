@@ -1,17 +1,21 @@
 var systemUI = require('system.ui');
-var systemSpawner = require('system.spawner');
 var systemMemory = require('system.memory');
+var systemSpawner = require('system.spawner');
+
 
 var roleTransporter = require('role.transporter');
-var roleMiner = require('role.miner');
+var roleMaintainer = require('role.maintainer');
+var roleReserver = require('role.reserver');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
-var roleMaintainer = require('role.maintainer');
 var roleLinker = require('role.linker');
+var roleMiner = require('role.miner');
 
 var structureTower = require('structure.tower');
 var structureLink = require('structure.link');
 
+//remove this
+var newUpgrader = require('role.upgraderNEW');
 
 module.exports.loop = function () {
     //clear memory of dead creeps
@@ -36,17 +40,23 @@ module.exports.loop = function () {
             case 'linker':
                 roleLinker.run(creep);
                 break;
-            case 'upgrader':
-                roleUpgrader.run(creep);
-                break;
             case 'builder':
                 roleBuilder.run(creep);
+                break;
+            case 'reserver':
+                roleReserver.run(creep);
+                break;
+            case 'upgrader':
+                roleUpgrader.run(creep);
                 break;
             case 'maintainer':
                 roleMaintainer.run(creep);
                 break;
             case 'transporter':
                 roleTransporter.run(creep);
+                break;
+            case 'newUpgrader':
+                newUpgrader.run(creep);
                 break;
         }
     }

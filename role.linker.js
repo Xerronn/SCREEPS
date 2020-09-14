@@ -5,7 +5,7 @@ var roleLinker = {
         var storage = Game.getObjectById(creep.memory.assignedStorage);
         var link = Game.getObjectById(creep.memory.assignedLink);
 
-        if (creep.store.getUsedCapacity() == 0){
+        if (creep.store.getUsedCapacity() == 0) {
             creep.memory.mining = true;
         } else if (creep.store.getFreeCapacity() == 0) {
             creep.memory.mining = false;

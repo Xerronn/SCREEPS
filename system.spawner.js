@@ -1,6 +1,15 @@
 var systemSpawner = {
     run: function() {
         try {
+            //remove this
+            var newUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'newUpgrader');
+            if (newUpgraders.length < 1) {
+                var newName = 'newUpgrader' + Game.time;
+                console.log('Spawning new newUpgrader: ' + newName);
+                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                    {memory: {role: 'newUpgrader'}});
+            }
+
             //managers miner spawns
             //checks each source to make sure they have the proper number of assignments
             var sources = Game.spawns['French Armada From Spain'].room.find(FIND_SOURCES)
@@ -62,8 +71,8 @@ var systemSpawner = {
                 Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
                     {memory: {role: 'builder'}});
             }
-            //was 4, disabled for now
-            if (upgraders.length < 1) {
+
+            if (upgraders.length < 3) {
                 var newName = 'Upgrader' + Game.time;
                 console.log('Spawning new Upgrader: ' + newName);
                 Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
