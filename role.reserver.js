@@ -1,8 +1,8 @@
 var roleReserver = {
-
     /** @param {Creep} creep **/
     run: function(creep) {
         //figure out how to not hardcode this
+        //I guess it really doesn't need to be not hardcoded. IDK I'll think about it
         if (creep.room.name != "E45N22") {
             creep.moveTo(new RoomPosition(25,20, "E45N22"), {visualizePathStyle: {stroke: '#ffffff'}});
         } else {

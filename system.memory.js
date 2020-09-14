@@ -1,29 +1,9 @@
 var systemMemory = {
     run: function() {
-        //refresh memory every x ticks
-        if (!Memory.lastUpdate || Memory.lastUpdate + 1000 < Game.time) {
-            Memory.lastUpdate = Game.time;
-            delete Memory.structures;
-            console.log("Memory Updated");            
-        };
-
-        //the start of refreshing memory on construction site death
-        // var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES, {
-        //     filter: (structure) => {
-        //         return structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
-        //     }
-        // });
-        // if(targets.length > 0) {
-        //     if(creep.withdraw(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-        //         creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-        //     }
-        //     //if there are no containers to pull from, mine instead
-        // }
-
         //if the room memory doesn't exist, fill it up with data
         if (!Memory.rooms) {
             Memory.rooms = {};
-        
+            console.log("Room Memory reset");
             myRooms = Object.keys(Game.rooms);
             for (var room of myRooms) {
                 //init a room memory for each room
@@ -97,6 +77,13 @@ var systemMemory = {
                 }
             }
         }
+
+        //refresh memory every x ticks
+        if (!Memory.lastUpdate || Memory.lastUpdate + 1000 < Game.time) {
+            Memory.lastUpdate = Game.time;
+            delete Memory.rooms;
+            console.log("Memory Updated");            
+        };
     }
 };
 

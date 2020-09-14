@@ -33,9 +33,9 @@ var systemSpawner = {
                 if (assignedWorker.length < 1) {
                     var newName = Game.spawns['French Armada From Spain'].room.name + '_Miner_' + sources[i].id.slice(-4) + '_' + Game.time;
                     //the container that the worker is assigned to
-                    var assignedContainer = Memory.sources[Game.spawns['French Armada From Spain'].room][sources[i]]["container"];
+                    var assignedContainer = Memory.rooms[Game.spawns['French Armada From Spain'].room.name]["sources"][sources[i]]["container"];
                     console.log('Spawning new Miner: ' + newName);
-                    Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], newName, 
+                    Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], newName, 
                     {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer.id}});
                 }
             }
@@ -88,11 +88,11 @@ var systemSpawner = {
                     {memory: {role: 'builder'}});
             }
 
-            if (upgraders.length < 3) {
+            if (upgraders.length < 2) {
                 var newName = 'Upgrader' + Game.time;
                 console.log('Spawning new Upgrader: ' + newName);
-                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
-                    MOVE, MOVE, MOVE, MOVE], newName, 
+                Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY,
+                    MOVE, MOVE, MOVE], newName, 
                     {memory: {role: 'upgrader'}});
             }
 

@@ -63,21 +63,25 @@ module.exports.loop = function () {
                 break;
         }
     }
-
-    var structures = creep.room.find(FIND_STRUCTURES, {
-        filter: (structure) => {
-            return [STRUCTURE_TOWER, STRUCTURE_LINK].includes(structure.structureType);
-        }
-    });
-
-    for (var structure of structures) {
-        switch (structure.structureType) {
-            case STRUCTURE_TOWER:
-                structureTower.run(structure);
-                break;
-            case STRUCTURE_LINK:
-                structureLink.run(structure);
-                break;
+    //loop through all rooms
+    myRooms = Object.keys(Game.rooms);
+    for (var room of myRooms) {
+        //find all structures in each room that have something to execute
+        var structures = Game.rooms[room].find(FIND_STRUCTURES, {
+            filter: (structure) => {
+                return [STRUCTURE_TOWER, STRUCTURE_LINK].includes(structure.structureType);
+            }
+        });
+        //execute for each structure
+        for (var structure of structures) {
+            switch (structure.structureType) {
+                case STRUCTURE_TOWER:
+                    structureTower.run(structure);
+                    break;
+                case STRUCTURE_LINK:
+                    structureLink.run(structure);
+                    break;
+            }
         }
     }
 
