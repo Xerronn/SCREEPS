@@ -7,7 +7,10 @@ var roleMiner = require('role.miner');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleMaintainer = require('role.maintainer');
-var roleTower = require('role.tower');
+var roleLinker = require('role.linker');
+
+var structureTower = require('structure.tower');
+var structureLink = require('structure.link');
 
 
 module.exports.loop = function () {
@@ -30,6 +33,9 @@ module.exports.loop = function () {
             case 'miner':
                 roleMiner.run(creep);
                 break;
+            case 'linker':
+                roleLinker.run(creep);
+                break;
             case 'upgrader':
                 roleUpgrader.run(creep);
                 break;
@@ -45,14 +51,21 @@ module.exports.loop = function () {
         }
     }
 
-    var towers = creep.room.find(FIND_STRUCTURES, {
+    var structures = creep.room.find(FIND_STRUCTURES, {
         filter: (structure) => {
-            return structure.structureType == STRUCTURE_TOWER;
+            return [STRUCTURE_TOWER, STRUCTURE_LINK].includes(structure.structureType);
         }
     });
 
-    for (var tower of towers) {
-        roleTower.run(tower);
+    for (var structure of structures) {
+        switch (structure.structureType) {
+            case STRUCTURE_TOWER:
+                structureTower.run(structure);
+                break;
+            case STRUCTURE_LINK:
+                structureLink.run(structure);
+                break;
+        }
     }
 
 }

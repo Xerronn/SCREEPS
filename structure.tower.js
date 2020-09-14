@@ -1,4 +1,4 @@
-var roleTower = {
+var structureTower = {
 
     /** @param {Turret} tower **/
     run: function(tower) {
@@ -32,4 +32,4 @@ var roleTower = {
 
 };
 
-module.exports = roleTower;
+module.exports = structureTower;

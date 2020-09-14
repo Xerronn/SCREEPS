@@ -2,21 +2,20 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        //if creep is about to die, transfer its energy to a container
-        if (creep.ticksToDecay < 25) {
-            var targets = creep.room.find(FIND_STRUCTURES, {
+
+        var spawn = creep.room.controller;
+        if (spawn) {
+            var targets = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
-                    return structure.structureType == STRUCTURE_CONTAINER &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    return [STRUCTURE_LINK].includes(structure.structureType);
                 }
             });
             if(targets.length > 0) {
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
+                var link = spawn.pos.findInRange(targets,6)[0];
             }
         }
-
+        //WORKING ON REWORKING THE UPGRADER
+        //console.log(link);
         if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
             creep.memory.upgrading = false;
             creep.say('🔄 harvest');
@@ -32,20 +31,10 @@ var roleUpgrader = {
             }
         }
         else {
-            //check for any containers with resources to pull from
-            var targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return [STRUCTURE_STORAGE].includes(structure.structureType) &&
-                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
-                }
-            });
-            if(targets.length > 0) {
-                if(creep.withdraw(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-                //if there are no containers to pull from, mine instead
+            if (creep.pos.inRangeTo(link, 1)) {
+                creep.withdraw(link, RESOURCE_ENERGY);
             } else {
-                //I don't want them to mine rn
+                creep.moveTo(link);
             }
         }
 	}
