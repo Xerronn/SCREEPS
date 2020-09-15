@@ -26,10 +26,11 @@ var roleRemoteUpgrader = {
                 //first build things
                 var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
                 if(targets.length > 0) {
-                    if (creep.pos.inRangeTo(targets[0], 1)) {
-                        creep.build(targets[0]);
+                    var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                    if (creep.pos.inRangeTo(target, 1)) {
+                        creep.build(target);
                     } else {
-                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                 } else {
                     //once done building, upgrade things instead

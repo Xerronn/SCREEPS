@@ -16,6 +16,7 @@ var structureLink = require('structure.link');
 //remote roles for controllers without spawns
 var roleRemoteUpgrader = require('role.remoteUpgrader');
 var roleRemoteBuilder = require('role.remoteBuilder');
+var roleRemoteDefender = require('role.remoteDefender');
 
 module.exports.loop = function () {
     //clear memory of dead creeps
@@ -57,7 +58,10 @@ module.exports.loop = function () {
                 break;
             case 'remoteBuilder':
                 roleRemoteBuilder.run(creep);
-                break;
+				break;
+			case 'remoteDefender':
+				roleRemoteDefender.run(creep);
+				break;
             case 'remoteUpgrader':
                 roleRemoteUpgrader.run(creep);
                 break;
