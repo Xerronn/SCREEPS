@@ -44,26 +44,27 @@ var systemSpawner = {
                             {memory: {role: 'earlyCreep'}});
                     }
                     //remove this later. Figure out a more optimal approach
-                    var remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedController == controller.id);
+                    var remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedRoom == room);
                     if (remoteUpgraders.length < 1) {
-                        var newName = controller.room.name + '_remoteUpgrader_' + controller.id.slice(-4) + '_' + Game.time;
+                        var newName = room + '_remoteUpgrader_' + Game.time;
                         console.log('Spawning new remoteUpgrader: ' + newName);
                         Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
-                            {memory: {role: 'remoteUpgrader', assignedController: controller.id}});
+                            {memory: {role: 'remoteUpgrader', assignedRoom: room}});
                     }
-                    var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedController == controller.id);
+                    var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == room);
                     if (remoteBuilders.length < 2) {
-                        var newName = controller.room.name + '_remoteBuilder_' + controller.id.slice(-4) + '_' + Game.time;
+                        var newName = room + '_remoteBuilder_' + Game.time;
                         console.log('Spawning new remoteBuilder: ' + newName);
-                        Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
-                            {memory: {role: 'remoteBuilder', assignedController: controller.id}});
+                        Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                            {memory: {role: 'remoteBuilder', assignedRoom: room}});
                     }
-                    var remoteDefenders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteDefender' && creep.memory.assignedController == controller.id);
+                    var remoteDefenders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteDefender' && creep.memory.assignedRoom == room);
+                    console.log(remoteDefenders);
                     if (remoteDefenders.length < 1) {
-                        var newName = controller.room.name + '_remoteDefender_' + controller.id.slice(-4) + '_' + Game.time;
-                        console.log('Spawning new remoteBuilder: ' + newName);
+                        var newName = room + '_remoteDefender_' + Game.time;
+                        console.log('Spawning new remoteDefender: ' + newName);
                         Game.spawns['French Armada From Spain'].spawnCreep([TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, HEAL], newName, 
-                            {memory: {role: 'remoteDefender', assignedController: controller.id}});
+                            {memory: {role: 'remoteDefender', assignedRoom: room}});
                     }
 
                 } else {

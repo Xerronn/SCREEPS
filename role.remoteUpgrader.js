@@ -2,10 +2,10 @@ var roleRemoteUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (creep.room.name != "E45N22") {
-            creep.moveTo(new RoomPosition(25,20, "E45N22"), {visualizePathStyle: {stroke: '#ffffff'}});
+        if (creep.room.name != creep.memory.assignedRoom) {
+            creep.moveTo(new RoomPosition(25,20, creep.memory.assignedRoom, {reusePath: 50}), {visualizePathStyle: {stroke: '#ffffff'}});
         } else {
-            var controller = Game.getObjectById("5bbcafa49099fc012e63af26");
+            var controller = Game.rooms[creep.memory.assignedRoom].controller;
 
             if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
                 creep.memory.upgrading = false;
