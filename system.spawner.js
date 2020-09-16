@@ -71,11 +71,13 @@ var systemSpawner = {
                                 var newName = Game.rooms[room].name + '_Miner_' + sources[i].id.slice(-4) + '_' + Game.time;
                                 //the container that the worker is assigned to
                                 var assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][sources[i]]["container"];
+                                //if it has a container, it doesn't need many move parts
                                 if (assignedContainer != "none") {
                                     console.log('Spawning new Miner: ' + newName);
                                     roomSpawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], newName, 
                                     {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer.id}});
                                 } else {
+                                    //if it doesn't have a container it needs more carry and move
                                     console.log('Spawning new Miner: ' + newName);
                                     roomSpawn.spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE], newName, 
                                     {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer.id}});

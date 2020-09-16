@@ -8,7 +8,7 @@ var roleMiner = {
         if (container) {
             
             //if it has a container, just sit on it bruh
-            if (creep.pos.inRangeTo(source, 1)) {
+            if (creep.pos.inRangeTo(source, 1) && creep.pos.inRangeTo(container, 0)) {
                 creep.harvest(source);
             } else {
                 creep.moveTo(container);
@@ -43,7 +43,7 @@ var roleMiner = {
                         creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                 } else {
-                    //fill turret if nothing else
+                    //fill container
                     var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                         filter: (structure) => {
                             return structure.structureType == STRUCTURE_CONTAINER &&

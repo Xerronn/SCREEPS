@@ -14,6 +14,13 @@ var roleUpgrader = {
                 var link = spawn.pos.findInRange(targets,6)[0];
             }
         }
+
+        var storage = creep.room.find(FIND_STRUCTURES, {
+            filter: (structure) => {
+                return structure.structureType == STRUCTURE_STORAGE;
+            }
+        });
+
         //console.log(link);
         if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
             creep.memory.upgrading = false;
@@ -25,10 +32,35 @@ var roleUpgrader = {
 	    }
 
 	    if(creep.memory.upgrading) {
-            if (creep.pos.inRangeTo(creep.room.controller, 3)) {
-                creep.upgradeController(creep.room.controller);
+            // if there is a link, just worry about the controller
+            if (link) {
+                if (creep.pos.inRangeTo(creep.room.controller, 3)) {
+                    creep.upgradeController(creep.room.controller);
+                } else {
+                    creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                }
             } else {
-                creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                //if there isn't a link, fill spawns/extensions first
+                var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
+                        });
+        
+                if(target) {
+                    if (creep.pos.inRangeTo(target, 1)) {
+                        creep.transfer(target, RESOURCE_ENERGY);
+                    } else {
+                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                } else {
+                    //upgrade second
+                    if (creep.pos.inRangeTo(creep.room.controller, 3)) {
+                        creep.upgradeController(creep.room.controller);
+                    } else {
+                        creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                }
             }
         }
         else {
@@ -39,18 +71,35 @@ var roleUpgrader = {
                     creep.moveTo(link);
                 }
             } else {
-                var targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
-                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
-                    }
-                });           
-                if(targets.length > 0) {
-                    var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
-                    if (creep.pos.inRangeTo(targets[0], 1)) {
-                        creep.withdraw(target, RESOURCE_ENERGY);
+                if (storage.length > 0) {
+                    if (creep.pos.inRangeTo(storage[0], 1)) {
+                        creep.withdraw(storage[0], RESOURCE_ENERGY);
                     } else {
-                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                        creep.moveTo(storage[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                } else {
+                    //find container to pull from if no link exists
+                    var targets = creep.room.find(FIND_STRUCTURES, {
+                        filter: (structure) => {
+                            return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
+                            structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
+                        }
+                    });           
+                    if(targets.length > 0) {
+                        var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                        if (creep.pos.inRangeTo(targets[0], 1)) {
+                            creep.withdraw(target, RESOURCE_ENERGY);
+                        } else {
+                            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                        }
+                    } else {
+                        //if there is no containers to pull from
+                        var source = creep.pos.findClosestByPath(FIND_SOURCES);
+                        if (creep.pos.inRangeTo(source, 1)) {
+                            creep.harvest(source);
+                        } else {
+                            creep.moveTo(source);
+                        }
                     }
                 }
             }

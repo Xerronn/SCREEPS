@@ -35,7 +35,11 @@ module.exports.loop = function () {
     }
     systemMemory.run();
     systemUI.run();
-    systemSpawner.run();
+    if (Memory.rooms) {
+        systemSpawner.run();
+    } else {
+        console.log("Spawner tasks skipped due to absence of memory");
+    }
 
     //task assignment:
     for (var name in Game.creeps) {
