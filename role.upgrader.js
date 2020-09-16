@@ -14,7 +14,6 @@ var roleUpgrader = {
                 var link = spawn.pos.findInRange(targets,6)[0];
             }
         }
-        //WORKING ON REWORKING THE UPGRADER
         //console.log(link);
         if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
             creep.memory.upgrading = false;
@@ -33,10 +32,27 @@ var roleUpgrader = {
             }
         }
         else {
-            if (creep.pos.inRangeTo(link, 1)) {
-                creep.withdraw(link, RESOURCE_ENERGY);
+            if (link) {
+                if (creep.pos.inRangeTo(link, 1)) {
+                    creep.withdraw(link, RESOURCE_ENERGY);
+                } else {
+                    creep.moveTo(link);
+                }
             } else {
-                creep.moveTo(link);
+                var targets = creep.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
+                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
+                    }
+                });           
+                if(targets.length > 0) {
+                    var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                    if (creep.pos.inRangeTo(targets[0], 1)) {
+                        creep.withdraw(target, RESOURCE_ENERGY);
+                    } else {
+                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                }
             }
         }
 	}

@@ -79,7 +79,7 @@ var systemMemory = {
         }
 
         //refresh memory every x ticks
-        if (!Memory.lastUpdate || Memory.lastUpdate + 1000 < Game.time) {
+        if (!Memory.lastUpdate || Memory.lastUpdate + 250 < Game.time) {
             Memory.lastUpdate = Game.time;
             delete Memory.rooms;
             console.log("Memory Updated");            

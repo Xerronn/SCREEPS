@@ -25,7 +25,7 @@ var structureTower = {
                             structure.hits < structure.hitsMax && shouldHeal;
                     }
             });
-            if(target && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > tower.store.getCapacity(RESOURCE_ENERGY) / 2) {
+            if(target && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > 750) {
                 tower.repair(target);
             }
     }

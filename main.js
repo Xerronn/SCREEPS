@@ -26,7 +26,13 @@ module.exports.loop = function () {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
-
+    var spawns = Object.keys(Game.spawns);
+    for (var spawn of spawns) {
+        if (Game.spawns[spawn].hits < Game.spawns[spawn].hitsMax) {
+            console.log("EMERGENCY ACTIVATING SAFE MODE");
+            Game.spawns[spawn].room.controller.activateSafeMode();
+        }
+    }
     systemMemory.run();
     systemUI.run();
     systemSpawner.run();

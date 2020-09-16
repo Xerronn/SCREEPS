@@ -10,11 +10,10 @@ var roleBuilder= {
         }
 
 	    if(creep.memory.mining) {
-            //check for any containers with resources to pull from
+            //check for a storage
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return [STRUCTURE_STORAGE].includes(structure.structureType) &&
-                    structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
+                    return structure.structureType == STRUCTURE_STORAGE;
                 }
             });
             if(targets.length > 0) {
@@ -23,19 +22,32 @@ var roleBuilder= {
                 } else {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
-                //if there are no containers to pull from, mine instead
+                //pull from containers if there is no storage
             } else {
-                //I don't want them to mine rn
+                var targets = creep.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
+                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getFreeCapacity();
+                    }
+                });           
+                if(targets.length > 0) {
+                    var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                    if (creep.pos.inRangeTo(targets[0], 1)) {
+                        creep.withdraw(target, RESOURCE_ENERGY);
+                    } else {
+                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                }
             }
-        }
-        else {
+        } else {
             //first build things
             var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
             if(targets.length > 0) {
-                if (creep.pos.inRangeTo(targets[0], 1)) {
-                    creep.build(targets[0]);
+                var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                if (creep.pos.inRangeTo(target, 1)) {
+                    creep.build(target);
                 } else {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             } else {
                  //if there is nothing to build, refill extensions

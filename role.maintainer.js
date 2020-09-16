@@ -24,19 +24,35 @@ var roleMaintainer= {
         }
 
 	    if(creep.memory.mining) {
-            //check for any containers with resources to pull from
+            //check if a storage exists
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return [STRUCTURE_STORAGE].includes(structure.structureType) &&
-                    structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
+                    return structure.structureType == STRUCTURE_STORAGE;
                 }
             });
+            //if it does exist try to pull from it
             if(targets.length > 0) {
-                if(creep.withdraw(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                if (creep.pos.inRangeTo(targets[0], 1)) {
+                    creep.withdraw(targets[0], RESOURCE_ENERGY);
+                } else {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             } else {
-                //I don't want them to mine rn
+                //pull from containers if there is no storage
+                var targets = creep.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
+                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getFreeCapacity();
+                    }
+                });           
+                if(targets.length > 0) {
+                    var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                    if (creep.pos.inRangeTo(targets[0], 1)) {
+                        creep.withdraw(target, RESOURCE_ENERGY);
+                    } else {
+                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                }
             }
         } else {
             //prioritize towers

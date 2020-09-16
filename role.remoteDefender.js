@@ -4,7 +4,7 @@ var roleRemoteDefender = {
     run: function(creep) {
         //move creep to room first
         if (creep.room.name != creep.memory.assignedRoom) {
-            creep.moveTo(new RoomPosition(25,20, creep.memory.assignedRoom, {reusePath: 50}), {visualizePathStyle: {stroke: '#ffffff'}});
+            creep.moveTo(new RoomPosition(25,20, creep.memory.assignedRoom), {visualizePathStyle: {stroke: '#ffffff'}});
         } else {
             var controller = Game.rooms[creep.memory.assignedRoom].controller;
             var closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
