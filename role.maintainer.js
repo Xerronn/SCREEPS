@@ -48,7 +48,7 @@ var roleMaintainer= {
                 });           
                 if(targets.length > 0) {
                     var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
-                    if (creep.pos.inRangeTo(targets[0], 1)) {
+                    if (creep.pos.inRangeTo(target, 1)) {
                         creep.withdraw(target, RESOURCE_ENERGY);
                     } else {
                         creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});

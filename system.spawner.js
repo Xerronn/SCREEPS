@@ -110,7 +110,7 @@ var systemSpawner = {
                                 {memory: {role: 'builder'}});
                         }
 
-                        if (upgraders.length < 1) {
+                        if (upgraders.length < 2) {
                             var newName = Game.rooms[room].name + '_Upgrader_' + Game.time;
                             console.log('Spawning new Upgrader: ' + newName);
                             roomSpawn.spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY,
