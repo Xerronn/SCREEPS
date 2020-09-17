@@ -5,8 +5,7 @@ var roleMiner = {
         var source = Game.getObjectById(creep.memory.assignedSource);
         var container = Game.getObjectById(creep.memory.assignedContainer);
 
-        if (container) {
-            
+        if (container) {  
             //if it has a container, just sit on it bruh
             if (creep.pos.inRangeTo(source, 1) && creep.pos.inRangeTo(container, 0)) {
                 creep.harvest(source);

@@ -6,6 +6,7 @@ var roleTransporter = require('role.transporter');
 var roleMaintainer = require('role.maintainer');
 var roleReserver = require('role.reserver');
 var roleUpgrader = require('role.upgrader');
+var roleAttacker = require('role.attacker')
 var roleBuilder = require('role.builder');
 var roleLinker = require('role.linker');
 var roleMiner = require('role.miner');
@@ -14,8 +15,8 @@ var structureTower = require('structure.tower');
 var structureLink = require('structure.link');
 
 //remote roles for controllers without spawns
-var roleRemoteUpgrader = require('role.remoteUpgrader');
 var roleRemoteBuilder = require('role.remoteBuilder');
+var roleRemoteUpgrader = require('role.remoteUpgrader');
 var roleRemoteDefender = require('role.remoteDefender');
 
 module.exports.loop = function () {
@@ -33,6 +34,7 @@ module.exports.loop = function () {
             Game.spawns[spawn].room.controller.activateSafeMode();
         }
     }
+
     systemMemory.run();
     systemUI.run();
     if (Memory.rooms) {
@@ -54,6 +56,8 @@ module.exports.loop = function () {
             case 'builder':
                 roleBuilder.run(creep);
                 break;
+            case 'attacker':
+                roleAttacker.run(creep);
             case 'reserver':
                 roleReserver.run(creep);
                 break;

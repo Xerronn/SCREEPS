@@ -2,26 +2,22 @@ var roleBuilder= {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-		
+        
+        //state control over gathering/working
         if (creep.store.getUsedCapacity() == 0){
             creep.memory.mining = true;
         } else if (creep.store.getFreeCapacity() == 0) {
             creep.memory.mining = false;
         }
 
-        var storage = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return structure.structureType == STRUCTURE_STORAGE;
-            }
-        });
-
+        var storage = creep.room.storage
 	    if(creep.memory.mining) {
             //if there is a storage, operations as normal
-            if(storage.length > 0) {
-                if (creep.pos.inRangeTo(storage[0], 1)) {
-                    creep.withdraw(storage[0], RESOURCE_ENERGY);
+            if(storage) {
+                if (creep.pos.inRangeTo(storage, 1)) {
+                    creep.withdraw(storage, RESOURCE_ENERGY);
                 } else {
-                    creep.moveTo(storage[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    creep.moveTo(storage, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             } else {
                 // if there isn't a storage, use early game mode and prioritization
@@ -33,7 +29,7 @@ var roleBuilder= {
                 });           
                 if(targets.length > 0) {
                     var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
-                    if (creep.pos.inRangeTo(targets[0], 1)) {
+                    if (creep.pos.inRangeTo(target, 1)) {
                         creep.withdraw(target, RESOURCE_ENERGY);
                     } else {
                         creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
@@ -50,7 +46,7 @@ var roleBuilder= {
             }
         } else {
             //if there is a storage, operations as normal
-            if (storage.length > 0) {
+            if (storage) {
                 //first build things
                 var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
                 if(targets.length > 0) {

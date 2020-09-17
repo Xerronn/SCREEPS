@@ -2,7 +2,6 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-
         var spawn = creep.room.controller;
         if (spawn) {
             var targets = creep.room.find(FIND_MY_STRUCTURES, {

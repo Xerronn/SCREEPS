@@ -36,7 +36,7 @@ var systemSpawner = {
                 let roomExtensions = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => {return structure.structureType == STRUCTURE_EXTENSION}});
                 //early game setup
-                if (roomController.level < 4 && roomController.level != 0) {
+                if (roomController.level < 5 && roomController.level != 0) {
                     if (roomExtensions.length < 10) {
                         let remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedRoom == room);
                         if (remoteUpgraders.length < 1) {
@@ -101,7 +101,7 @@ var systemSpawner = {
                         var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
                         var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room);
                         var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
-                        //1300
+
                         var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
                         if (builders.length < 1 && constructionSites.length > 0) {
                             var newName = Game.rooms[room].name + '_Builder_' + Game.time;
@@ -110,7 +110,7 @@ var systemSpawner = {
                                 {memory: {role: 'builder'}});
                         }
 
-                        if (upgraders.length < 2) {
+                        if (upgraders.length < 3) {
                             var newName = Game.rooms[room].name + '_Upgrader_' + Game.time;
                             console.log('Spawning new Upgrader: ' + newName);
                             roomSpawn.spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY,
@@ -192,7 +192,7 @@ var systemSpawner = {
                     var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
                     //1300
                     var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
-                    if (builders.length < 1 && constructionSites.length > 0) {
+                    if (builders.length < 2 && constructionSites.length > 0) {
                         var newName = Game.rooms[room].name + '_Builder_' + Game.time;
                         console.log('Spawning new Builder: ' + newName);
                         roomSpawn.spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
