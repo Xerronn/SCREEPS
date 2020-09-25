@@ -10,15 +10,18 @@ var roleBuilder= {
             creep.memory.mining = false;
         }
 
-        var storage = creep.room.storage
+        var storage = creep.room.storage;
 	    if(creep.memory.mining) {
             //if there is a storage, operations as normal
             if(storage) {
-                if (creep.pos.inRangeTo(storage, 1)) {
-                    creep.withdraw(storage, RESOURCE_ENERGY);
-                } else {
-                    creep.moveTo(storage, {visualizePathStyle: {stroke: '#ffffff'}});
-                }
+                //only move there if there is energy to grab
+                if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getFreeCapacity()) {
+                    if (creep.pos.inRangeTo(storage, 1)) {
+                        creep.withdraw(storage, RESOURCE_ENERGY);
+                    } else {
+                        creep.moveTo(storage, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                } 
             } else {
                 // if there isn't a storage, use early game mode and prioritization
                 var targets = creep.room.find(FIND_STRUCTURES, {
@@ -37,10 +40,12 @@ var roleBuilder= {
                 } else {
                     //if there is no containers to pull from
                     var source = creep.pos.findClosestByPath(FIND_SOURCES);
-                    if (creep.pos.inRangeTo(source, 1)) {
-                        creep.harvest(source);
-                    } else {
-                        creep.moveTo(source);
+                    if (source) {
+                        if (creep.pos.inRangeTo(source, 1)) {
+                            creep.harvest(source);
+                        } else {
+                            creep.moveTo(source);
+                        }
                     }
                 }
             }

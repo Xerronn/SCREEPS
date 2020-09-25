@@ -10,17 +10,34 @@ var roleLinker = {
         } else if (creep.store.getFreeCapacity() == 0) {
             creep.memory.mining = false;
         }
+
         if (creep.memory.mining) {
-            if (creep.pos.inRangeTo(storage, 1)) {
+            if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= link.store.getCapacity(RESOURCE_ENERGY) / 2) {
+                if (creep.pos.inRangeTo(link, 1)) {
+                    creep.withdraw(link, RESOURCE_ENERGY);
+                } else {
+                    creep.moveTo(link);
+                }
+            } else {
+                if (creep.pos.inRangeTo(storage, 1)) {
                 creep.withdraw(storage, RESOURCE_ENERGY);
-            } else {
-                creep.moveTo(storage);
-            }
+                } else {
+                    creep.moveTo(storage);
+                }
+            }            
         } else {
-            if (creep.pos.inRangeTo(link, 1)) {
-                creep.transfer(link, RESOURCE_ENERGY);
+            if (link.store.getUsedCapacity(RESOURCE_ENERGY) <= link.store.getCapacity(RESOURCE_ENERGY) / 2) {
+                if (creep.pos.inRangeTo(link, 1)) {
+                    creep.transfer(link, RESOURCE_ENERGY);
+                } else {
+                    creep.moveTo(link);
+                }
             } else {
-                creep.moveTo(link);
+                if (creep.pos.inRangeTo(storage, 1)) {
+                    creep.transfer(storage, RESOURCE_ENERGY);
+                } else {
+                    creep.moveTo(storage);
+                }
             }
         }
     }

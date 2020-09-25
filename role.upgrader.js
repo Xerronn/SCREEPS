@@ -94,10 +94,12 @@ var roleUpgrader = {
                     } else {
                         //if there is no containers to pull from
                         var source = creep.pos.findClosestByPath(FIND_SOURCES);
-                        if (creep.pos.inRangeTo(source, 1)) {
-                            creep.harvest(source);
-                        } else {
-                            creep.moveTo(source);
+                        if (source) {
+                            if (creep.pos.inRangeTo(source, 1)) {
+                                creep.harvest(source);
+                            } else {
+                                creep.moveTo(source);
+                            }
                         }
                     }
                 }

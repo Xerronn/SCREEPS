@@ -18,11 +18,7 @@ var roleMaintainer= {
         }
 
         //check if storage exists
-        var storage = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return structure.structureType == STRUCTURE_STORAGE;
-            }
-        });
+        var storage = creep.room.storage;
 
         if (creep.store.getUsedCapacity() == 0){
             creep.memory.mining = true;
@@ -32,11 +28,11 @@ var roleMaintainer= {
 
 	    if(creep.memory.mining) {
             //if it does exist try to pull from it
-            if(storage.length > 0) {
-                if (creep.pos.inRangeTo(storage[0], 1)) {
-                    creep.withdraw(storage[0], RESOURCE_ENERGY);
+            if(storage) {
+                if (creep.pos.inRangeTo(storage, 1)) {
+                    creep.withdraw(storage, RESOURCE_ENERGY);
                 } else {
-                    creep.moveTo(storage[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                    creep.moveTo(storage, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             } else {
                 //pull from containers if there is no storage
@@ -65,7 +61,7 @@ var roleMaintainer= {
             }
         } else {
             // if there is a storage, prioritize this way
-            if (storage.length < 1) {
+            if (!storage) {
                 //prioritize towers
                 var targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
