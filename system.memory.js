@@ -55,6 +55,9 @@ var systemMemory = {
                     var currentRoom = Memory.rooms[room]["structures"];
                     var walls = Game.rooms[room].find(FIND_STRUCTURES, {
                         filter: (structure) => structure.structureType == STRUCTURE_WALL});
+                    
+                    var ramparts = Game.rooms[room].find(FIND_STRUCTURES, {
+                        filter: (structure) => structure.structureType == STRUCTURE_RAMPART});
         
                     var containers = Game.rooms[room].find(FIND_STRUCTURES, {
                         filter: (structure) => structure.structureType == STRUCTURE_CONTAINER});
@@ -70,6 +73,13 @@ var systemMemory = {
                             currentRoom["walls"] = [];
                         }
                         currentRoom["walls"].push(walls[i].id);
+                    }
+
+                    for (var i in ramparts) {
+                        if (!currentRoom["ramparts"]) {
+                            currentRoom["ramparts"] = [];
+                        }
+                        currentRoom["ramparts"].push(ramparts[i].id);
                     }
         
                     for (var i in containers) {

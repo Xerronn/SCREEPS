@@ -26,8 +26,8 @@ var structureLink = {
                 break;
             case "container":
             case "none":
-                if (link.store.getFreeCapacity(RESOURCE_ENERGY) >= link.store.getCapacity(RESOURCE_ENERGY) / 2 && storageLinks[0]) {
-                    if (storageLinks[0].store.getFreeCapacity != 0) {
+                if (link.store.getFreeCapacity(RESOURCE_ENERGY) >= link.store.getCapacity() / 2 && storageLinks[0]) {
+                    if (storageLinks[0].store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
                         link.transferEnergy(storageLinks[0]);
                     }
                 }

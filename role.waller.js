@@ -24,15 +24,20 @@ var roleWaller= {
             }
         } else {
             if (creep.memory.target == "none") {
-                var walls = Memory.rooms[creep.room.name]["structures"]["walls"].map(
+                var walls = Memory.rooms[creep.room.name]["structures"]["walls"].concat(
+                    Memory.rooms[creep.room.name]["structures"]["ramparts"]).map(
                     (struc) => {return Game.getObjectById(struc)});
                 creep.memory.target = _.sortBy(walls, (wall) => wall.hits/wall.hitsMax)[0].id;
             }
-            var target = Game.getObjectById(creep.memory.target);
-            if (creep.pos.inRangeTo(target, 1)) {
-                creep.repair(target, RESOURCE_ENERGY);
-            } else {
-                creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+            try {
+                var target = Game.getObjectById(creep.memory.target);
+                if (creep.pos.inRangeTo(target, 1)) {
+                    creep.repair(target, RESOURCE_ENERGY);
+                } else {
+                    creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+            } catch (err) {
+                creep.memory.target = "none";
             }
         }      
 	}

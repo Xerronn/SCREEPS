@@ -203,6 +203,7 @@ var systemSpawner = {
                         }
                         
                         //DISABLED
+                        //extractor spawner
                         var extractors = _.filter(Game.creeps, (creep) => creep.memory.role == 'extractor' && creep.room.name == room);
                         var mineralExtractors = Game.rooms[room].find(FIND_STRUCTURES, {
                             filter: (structure) => {
