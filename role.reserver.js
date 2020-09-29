@@ -4,7 +4,7 @@ var roleReserver = {
         //figure out how to not hardcode this
         //I guess it really doesn't need to be not hardcoded. IDK I'll think about it
         if (creep.room.name != creep.memory.assignedRoom) {
-            creep.moveTo(new RoomPosition(25,20, creep.memory.assignedRoom), {visualizePathStyle: {stroke: '#ffffff'}});
+            creep.moveTo(new RoomPosition(25,20, creep.memory.assignedRoom), {reusePath: 50, serializeMemory: true, maxOps: 1000, visualizePathStyle: {stroke: '#ffffff'}});
         } else {
             var controller = Game.rooms[creep.memory.assignedRoom].controller;
             if (creep.pos.inRangeTo(controller, 1)) {

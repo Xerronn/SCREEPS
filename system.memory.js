@@ -5,11 +5,17 @@ var systemMemory = {
         if (!Memory.rooms) {
             Memory.rooms = {};
             console.log("Room Memory reset");
-            myRooms = Object.keys(Game.rooms);
+            var myRooms = Object.keys(Game.rooms);
             for (var room of myRooms) {
                 //init a room memory for each room
                 if (!Memory.rooms[room]) {
                     Memory.rooms[room] = {};
+                }
+                //STATISTICS
+                if (!Memory.rooms[room]["stats"]) {
+                    Memory.rooms[room]["stats"] = {};
+                    Memory.rooms[room]["stats"].lastUpdate = Game.time;
+                    Memory.rooms[room]["stats"].storedEnergy = Game.rooms[room].storage.store.getUsedCapacity(RESOURCE_ENERGY);
                 }
                 //SOURCE MEMORY
                 if (!Memory.rooms[room]["sources"]) {

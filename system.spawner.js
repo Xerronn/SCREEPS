@@ -1,6 +1,7 @@
 var systemSpawner = {
     run: function() {
         try {
+            //THIS WHOLE FILE NEEDS TO BE REMADE, ALSO CONFIGURE SPAWNS BASED ON ATTACK STATUS
             //handles the automatic creation of remote upgraders in case of a new territory being claimed
             //first find any claimed controllers that do not have a spawn
             //ONLY SPAWNS USING THE FRENCH ARMADA SPAWN
@@ -217,7 +218,7 @@ var systemSpawner = {
                         }  
                         
                         var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
-                        var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room);
+                        var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room && creep.ticksToLive > 150);
                         var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
                         var wallers = _.filter(Game.creeps, (creep) => creep.memory.role == 'waller' && creep.room.name == room);
 
@@ -230,15 +231,28 @@ var systemSpawner = {
                                 {memory: {role: 'builder'}});
                         }
 
-                        if (upgraders.length < 3) {
+                        //controls number of upgraders spawned based on energy stored
+                        var count = 2
+                        if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > storage.store.getCapacity(RESOURCE_ENERGY)/1.5) {
+                            count = 3
+                        }
+                        if (upgraders.length < 1) {
+                            var bodyArray;
+                            if (count == 2) {
+                                bodyArray = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
+                                    MOVE, MOVE, MOVE, MOVE, MOVE];
+                            } else {
+                                bodyArray = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
+                                    MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                            }
                             var newName = Game.rooms[room].name + '_Upgrader_' + Game.time;
                             console.log('Spawning new Upgrader: ' + newName);
-                            roomSpawn.spawnCreep([WORK, WORK, WORK, WORK, CARRY, CARRY,
-                                MOVE, MOVE, MOVE], newName, 
+                            roomSpawn.spawnCreep(bodyArray, newName, 
                                 {memory: {role: 'upgrader'}});
                         }
 
-                        if (wallers.length < 2) {
+
+                        if (wallers.length < count - 1) {
                             var newName = Game.rooms[room].name + '_Waller_' + Game.time;
                             console.log('Spawning new Waller: ' + newName);
                             roomSpawn.spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY,

@@ -22,7 +22,8 @@ var structureTower = {
                     if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(structure.structureType) && structure.hits > 100000) {
                         shouldHeal = false;
                     }
-                    return [STRUCTURE_RAMPART, STRUCTURE_ROAD, STRUCTURE_CONTAINER].includes(structure.structureType)  &&
+                    //disabled walls and ramparts
+                    return [STRUCTURE_ROAD, STRUCTURE_CONTAINER].includes(structure.structureType)  &&
                         structure.hits < structure.hitsMax && shouldHeal;
                 }
         });

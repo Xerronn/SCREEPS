@@ -9,7 +9,6 @@ const roleMaintainer = require('role.maintainer');
 const roleExtractor = require('role.extractor');
 const roleReserver = require('role.reserver');
 const roleUpgrader = require('role.upgrader');
-const roleAttacker = require('role.attacker');
 const roleManager = require('role.manager');
 const roleBuilder = require('role.builder');
 const roleLinker = require('role.linker');
@@ -23,6 +22,10 @@ const structureLink = require('structure.link');
 const roleRemoteBuilder = require('role.remoteBuilder');
 const roleRemoteUpgrader = require('role.remoteUpgrader');
 const roleRemoteDefender = require('role.remoteDefender');
+
+//attackers
+const roleAttacker = require('role.attack.attacker');
+const roleTurretDrainer = require('role.attack.turretDrainer');
 
 profiler.enable();
 module.exports.loop = function () {
@@ -87,6 +90,9 @@ module.exports.loop = function () {
                 case 'transporter':
                     roleTransporter.run(creep);
                     break;
+                case 'turretDrainer':
+                    roleTurretDrainer.run(creep);
+                    break;
                 case 'remoteBuilder':
                     roleRemoteBuilder.run(creep);
                     break;
@@ -99,7 +105,7 @@ module.exports.loop = function () {
             }
         }
         //loop through all rooms
-        myRooms = Object.keys(Game.rooms);
+        myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
         for (var room of myRooms) {
             //find all structures in each room that have something to execute
             var structures = Game.rooms[room].find(FIND_STRUCTURES, {
