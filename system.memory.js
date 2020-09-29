@@ -1,12 +1,27 @@
 var systemMemory = {
     run: function() {
-        //REWRITE TO ONLY SAVE IDs
-        //if the room memory doesn't exist, fill it up with data
+        //GAMESTAGE DATA
+        if (!Memory.gameStages) {
+            Memory.gameStages = {}
+        }
+        let myRooms = Object.keys(Game.rooms);
+            for (let room of myRooms) {
+                if (!Memory.gameStages[room]) {
+                    Memory.gameStages[room] = {};
+                    if (Game.rooms[room].controller.my) {
+                        Memory.gameStages[room].rank = Game.rooms[room].controller.level;
+                    } else {
+                        Memory.gameStages[room].rank = -1;
+                    } 
+                }   
+            }
+
+        //ROOM MEMMORY
         if (!Memory.rooms) {
             Memory.rooms = {};
             console.log("Room Memory reset");
-            var myRooms = Object.keys(Game.rooms);
-            for (var room of myRooms) {
+            let myRooms = Object.keys(Game.rooms);
+            for (let room of myRooms) {
                 //init a room memory for each room
                 if (!Memory.rooms[room]) {
                     Memory.rooms[room] = {};
@@ -15,7 +30,20 @@ var systemMemory = {
                 if (!Memory.rooms[room]["stats"]) {
                     Memory.rooms[room]["stats"] = {};
                     Memory.rooms[room]["stats"].lastUpdate = Game.time;
-                    Memory.rooms[room]["stats"].storedEnergy = Game.rooms[room].storage.store.getUsedCapacity(RESOURCE_ENERGY);
+                    if (Game.rooms[room].storage) {
+                        Memory.rooms[room]["stats"].storedEnergy = Game.rooms[room].storage.store.getUsedCapacity(RESOURCE_ENERGY);
+                    } else {
+                            var storages = Game.rooms[room].find(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return [STRUCTURE_CONTAINER, STRUCTURE_STORAGE].includes(structure.structureType);
+                                }
+                            });
+                            var totalEnergy = 0;
+                            for (storage of storages) {
+                                totalEnergy += storage.store.getUsedCapacity();
+                            }
+                        Memory.rooms[room]["stats"].storedEnergy = totalEnergy;
+                    }
                 }
                 //SOURCE MEMORY
                 if (!Memory.rooms[room]["sources"]) {
@@ -23,11 +51,11 @@ var systemMemory = {
                     var sources = Game.rooms[room].find(FIND_SOURCES);
 
                     for (var i in sources) {
-                        let openSpots = 0;
+                        let openSpots = [];
                         let terrain = Game.rooms[room].lookAtArea(sources[i].pos.y - 1, sources[i].pos.x - 1, sources[i].pos.y + 1, sources[i].pos.x + 1, true);
                         for (var j in terrain) {
                             if (terrain[j]["type"] == "terrain" && terrain[j]["terrain"] != "wall") {
-                                openSpots++;
+                                openSpots.push(terrain[j]['x'] + "," + terrain[j]['y']);
                             }
                         }
                         let container;

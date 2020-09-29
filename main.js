@@ -3,6 +3,7 @@ const profiler = require('screeps-profiler');
 const systemUI = require('system.ui');
 const systemMemory = require('system.memory');
 const systemSpawner = require('system.spawner');
+const systemRoomPlanner = require('system.roomPlanner');
 
 const roleTransporter = require('role.transporter');
 const roleMaintainer = require('role.maintainer');
@@ -30,6 +31,14 @@ const roleTurretDrainer = require('role.attack.turretDrainer');
 profiler.enable();
 module.exports.loop = function () {
     profiler.wrap(function() {
+        var spawns = Object.keys(Game.spawns);
+        var creeps = Object.keys(Game.creeps);
+        //in case of no existing spawns or creeps
+        if (spawns.length == 0 && creeps.length == 0) {
+            return;
+        }
+
+
         //clear memory of dead creeps
         for(var name in Memory.creeps) {
             if(!Game.creeps[name]) {
@@ -37,7 +46,7 @@ module.exports.loop = function () {
                 console.log('Clearing non-existing creep memory:', name);
             }
         }
-        var spawns = Object.keys(Game.spawns);
+        
         for (var spawn of spawns) {
             if (Game.spawns[spawn].hits < Game.spawns[spawn].hitsMax) {
                 console.log("EMERGENCY ACTIVATING SAFE MODE");
@@ -45,12 +54,15 @@ module.exports.loop = function () {
             }
         }
 
+        //in case of respawn
         systemMemory.run();
-        systemUI.run();
+
         if (Memory.rooms) {
             systemSpawner.run();
+            systemUI.run();
+            systemRoomPlanner.run();
         } else {
-            console.log("Spawner tasks skipped due to absence of memory");
+            console.log("System tasks skipped due to absence of memory");
         }
 
         //task assignment:
@@ -105,7 +117,7 @@ module.exports.loop = function () {
             }
         }
         //loop through all rooms
-        myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
+        var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
         for (var room of myRooms) {
             //find all structures in each room that have something to execute
             var structures = Game.rooms[room].find(FIND_STRUCTURES, {

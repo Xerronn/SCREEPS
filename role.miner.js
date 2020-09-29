@@ -5,6 +5,11 @@ var roleMiner = {
         var source = Game.getObjectById(creep.memory.assignedSource);
         var container = Game.getObjectById(creep.memory.assignedContainer);
         var link = Game.getObjectById(creep.memory.assignedLink);
+        //miners build their own container
+        if (!container) {
+            var containerSite = creep.room.find(FIND_MY_CONSTRUCTION_SITES, {
+                filter: (structure) => {return structure.structureType == STRUCTURE_CONTAINER && structure.pos.inRangeTo(source, 3)}})[0];
+        }
 
         if (link) {
             //if it has a link, just sit on it even harder
@@ -51,44 +56,60 @@ var roleMiner = {
                         creep.moveTo(source);
                     }
                 } else {
-                    //fill spawn and extensions
-                    var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                        filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
-                                structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
-                            });
-            
-                    if(target) {
-                        if (creep.pos.inRangeTo(target, 1)) {
-                            creep.transfer(target, RESOURCE_ENERGY);
+                    //rush to build own container
+                    if (containerSite) {
+                        if (creep.pos.inRangeTo(containerSite, 1)) {
+                            creep.build(containerSite);
                         } else {
-                            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                            creep.moveTo(containerSite, {visualizePathStyle: {stroke: '#ffffff'}});
                         }
                     } else {
-                        //fill container
+                        //fill spawn and extensions
                         var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                             filter: (structure) => {
-                                return structure.structureType == STRUCTURE_CONTAINER &&
-                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > creep.store.getUsedCapacity(RESOURCE_ENERGY)}
+                                return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
                                 });
+                
                         if(target) {
                             if (creep.pos.inRangeTo(target, 1)) {
                                 creep.transfer(target, RESOURCE_ENERGY);
                             } else {
-                                creep.moveTo(target);
+                                creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
                             }
                         } else {
-                            //last ditch is to fill tower
+                            //fill container
                             var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                                 filter: (structure) => {
-                                    return structure.structureType == STRUCTURE_TOWER &&
-                                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > creep.store.getCapacity()}
+                                    return structure.structureType == STRUCTURE_CONTAINER &&
+                                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > creep.store.getUsedCapacity(RESOURCE_ENERGY)}
                                     });
                             if(target) {
                                 if (creep.pos.inRangeTo(target, 1)) {
-                                    creep.transfer(target);
+                                    creep.transfer(target, RESOURCE_ENERGY);
                                 } else {
                                     creep.moveTo(target);
+                                }
+                            } else {
+                                //last ditch is to fill tower
+                                var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return structure.structureType == STRUCTURE_TOWER &&
+                                            structure.store.getFreeCapacity(RESOURCE_ENERGY) > creep.store.getCapacity()}
+                                        });
+                                if(target) {
+                                    if (creep.pos.inRangeTo(target, 1)) {
+                                        creep.transfer(target);
+                                    } else {
+                                        creep.moveTo(target);
+                                    }
+                                } else {
+                                    if (creep.pos.inRangeTo(creep.room.controller, 1)) {
+                                        //creep.signController(controller, "Born of God and Void. You shall seal the blinding light that plagues their dreams.")
+                                        creep.upgradeController(creep.room.controller);
+                                    } else {
+                                        creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                                    }
                                 }
                             }
                         }

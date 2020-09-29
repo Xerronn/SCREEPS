@@ -88,6 +88,7 @@ var roleBuilder= {
                     }
                 }
             } else {
+                //if no storage
                 //first refill extensions
                 var targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
