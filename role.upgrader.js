@@ -14,11 +14,7 @@ var roleUpgrader = {
             }
         }
 
-        var storage = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return structure.structureType == STRUCTURE_STORAGE;
-            }
-        });
+        var storage = creep.room.storage;
 
         //console.log(link);
         if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
@@ -70,11 +66,11 @@ var roleUpgrader = {
                     creep.moveTo(link);
                 }
             } else {
-                if (storage.length > 0) {
-                    if (creep.pos.inRangeTo(storage[0], 1)) {
-                        creep.withdraw(storage[0], RESOURCE_ENERGY);
+                if (storage) {
+                    if (creep.pos.inRangeTo(storage, 1)) {
+                        creep.withdraw(storage, RESOURCE_ENERGY);
                     } else {
-                        creep.moveTo(storage[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                        creep.moveTo(storage, {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                 } else {
                     //find container to pull from if no link exists
@@ -86,7 +82,7 @@ var roleUpgrader = {
                     });           
                     if(targets.length > 0) {
                         var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
-                        if (creep.pos.inRangeTo(targets[0], 1)) {
+                        if (creep.pos.inRangeTo(target, 1)) {
                             creep.withdraw(target, RESOURCE_ENERGY);
                         } else {
                             creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});

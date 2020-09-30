@@ -77,8 +77,8 @@ var systemRoomPlanner = {
                         Memory.gameStages[room].containersBuilt = true;
                     }
                 }
-                //BUILDS ROADS AT CONTROLLER LEVEL 4
-                if (Game.rooms[room].controller.level == 4) {
+                //BUILDS ROADS AT CONTROLLER LEVEL 3
+                if (Game.rooms[room].controller.level == 3) {
                     if (!Memory.gameStages[room].roadsBuilt) {
                         let sourcePaths = [];
                         for (var i in sources) {

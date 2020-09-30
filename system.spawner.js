@@ -37,9 +37,10 @@ var systemSpawner = {
             
             if (!roomSpawn.spawning) {
                 //first spawn setup 
-                if (roomController.level < 3) {
+                if (roomController.level < 4) {
                     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
                     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room);
+                    var repairers = _.filter(Game.creeps, (creep) => creep.memory.role == 'repairer' && creep.room.name == room);
 
                     //miners spawning
                     var sources = Game.rooms[room].find(FIND_SOURCES)
@@ -82,6 +83,14 @@ var systemSpawner = {
                         console.log('Spawning new Upgrader: ' + newName);
                         roomSpawn.spawnCreep(buildComposition(room), newName, 
                             {memory: {role: 'upgrader'}});
+                    }
+                    if (containers.length > 0){
+                        if (repairers.length < 1) {
+                            var newName = Game.rooms[room].name + '_Repairer_' + Game.time;
+                            console.log('Spawning new Repairer: ' + newName);
+                            roomSpawn.spawnCreep(buildComposition(room), newName, 
+                                {memory: {role: 'repairer'}});
+                        }
                     }
 
                 //early game setup using higher level room to bootstrap new room
