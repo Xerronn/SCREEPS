@@ -28,10 +28,12 @@ var roleWaller= {
                     Memory.rooms[creep.room.name]["structures"]["ramparts"]).map(
                     (struc) => {return Game.getObjectById(struc)});
                 creep.memory.target = _.sortBy(walls, function(wall) {
-                    if (wall.structureType == STRUCTURE_WALL) {
-                        return wall.hits / wall.hitsMax;
-                    } else {
-                        return wall.hits / (wall.hitsMax * 10);
+                    if (wall != null) {
+                        if (wall.structureType == STRUCTURE_WALL) {
+                            return wall.hits / wall.hitsMax;
+                        } else {
+                            return wall.hits / (wall.hitsMax * 10);
+                        }
                     }
                 })[0].id;
             }

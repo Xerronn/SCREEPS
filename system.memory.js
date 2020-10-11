@@ -4,7 +4,7 @@ var systemMemory = {
         if (!Memory.gameStages) {
             Memory.gameStages = {}
         }
-        let myRooms = Object.keys(Game.rooms);
+        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Game.rooms[room].find(FIND_MY_SPAWNS)[0]);
             for (let room of myRooms) {
                 if (!Memory.gameStages[room]) {
                     Memory.gameStages[room] = {};
@@ -20,7 +20,7 @@ var systemMemory = {
         if (!Memory.rooms) {
             Memory.rooms = {};
             console.log("Room Memory reset");
-            let myRooms = Object.keys(Game.rooms);
+            let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
             for (let room of myRooms) {
                 //init a room memory for each room
                 if (!Memory.rooms[room]) {

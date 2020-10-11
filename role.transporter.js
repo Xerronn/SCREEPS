@@ -3,7 +3,6 @@ var roleTransporter = {
     /** @param {Creep} creep **/
     run: function(creep) {
         var container = Game.getObjectById(creep.memory.assignedContainer);
-
         //this makes the transporter have free time between emptying the containers
         if (container.store.getUsedCapacity() > container.store.getCapacity() / 2) {
             creep.memory.useContainer = true;
@@ -19,7 +18,7 @@ var roleTransporter = {
 
 	    if(creep.memory.mining) {
             //if the container is up for mining right now use container
-            if (creep.memory.useContainer) {
+            if (creep.memory.useContainer && container.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                 if (creep.pos.inRangeTo(container, 1)) {
                     creep.withdraw(container, RESOURCE_ENERGY);
                 } else {
@@ -27,17 +26,12 @@ var roleTransporter = {
                 }
             //otherwise use the storage
             } else {
-                var targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return structure.structureType == STRUCTURE_STORAGE &&
-                            structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
-                    }
-                });
-                if (targets.length > 0) {
-                    if (creep.pos.inRangeTo(targets[0], 1)) {
-                        creep.withdraw(targets[0], RESOURCE_ENERGY);
+                var target = creep.room.storage;
+                if (target) {
+                    if (creep.pos.inRangeTo(target, 1)) {
+                        creep.withdraw(target, RESOURCE_ENERGY);
                     } else {
-                        creep.moveTo(targets[0]);
+                        creep.moveTo(target);
                     }
                 } else {
                     //use container as last option

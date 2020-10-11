@@ -1,23 +1,37 @@
 var systemSpawner = {
     run: function() {
+        //ADD IN PRIORITIZATION
         //THIS WHOLE FILE NEEDS TO BE REMADE, ALSO CONFIGURE SPAWNS BASED ON ATTACK STATUS
+        //code snippet that handles expansions into new rooms
+        //Add a new expansion target by executing Memory.expansion.push(target) in console
+        if (!Memory.expansion) {
+            Memory.expansion = [];
+        }
+        if (Memory.expansion.length > 0) {
+            for (var exp of Memory.expansion) {
+                var reservers = _.filter(Game.creeps, (creep) => creep.memory.role == 'reserver' && creep.memory.assignedRoom == exp);
+                if (reservers.length < 1) {
+                    var newName = exp + '_reserver_' + Game.time;
+                    console.log('Spawning new reserver: ' + newName);
+                    Game.spawns['French Armada From Spain'].spawnCreep([CLAIM, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                        {memory: {role: 'reserver', assignedRoom: exp}});
+                }
+            }
+        }
         //handles the automatic creation of remote upgraders in case of a new territory being claimed
         //first find any claimed controllers that do not have a spawn
-        //ONLY SPAWNS USING THE FRENCH ARMADA SPAWN
+        //ONLY SPAWNS USING THE FRENCH ARMADA SPAWN. FIGUIRE OUT HOW TO NOT DO THATTT
         var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER);
         for (var controller of controllers) {
             if (controller.room.find(FIND_MY_SPAWNS).length < 1) {
-                //if the controller has no spawn, check to see if there are any remoteUpgraders assigned to it
-                var remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedController == controller.id);
-                if (remoteUpgraders.length < 1) {
-                    var newName = controller.room.name + '_remoteUpgrader_' + controller.id.slice(-4) + '_' + Game.time;
-                    console.log('Spawning new remoteUpgrader: ' + newName);
-                    Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
-                        {memory: {role: 'remoteUpgrader', assignedRoom: controller.pos.roomName}});
+                //remove from memory expansions
+                if (Memory.expansion.includes(controller.room.name)) {
+                    let index = Memory.expansion.indexOf(controller.room.name);
+                    Memory.expansion.splice(index, 1);
                 }
 
-                var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedController == controller.id);
-                if (remoteBuilders.length < 1) {
+                var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
+                if (remoteBuilders.length < 3) {
                     var newName = controller.room.name + '_remoteBuilder_' + controller.id.slice(-4) + '_' + Game.time;
                     console.log('Spawning new remoteBuilder: ' + newName);
                     Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
@@ -25,17 +39,33 @@ var systemSpawner = {
                 }
             } 
         }
-        //loop through all rooms
-        var rooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
+        //MAIN SPAWNER LOGIC
+        //loop through all rooms that are claimed and have a spawn
+        var rooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim");
         for (var room of rooms) {
             //find the roomSpawn and how many extensions there are
-            let roomSpawn = Game.rooms[room].find(FIND_STRUCTURES, {
-                filter: (structure) => {return structure.structureType == STRUCTURE_SPAWN}})[0];
+            let roomSpawn = Game.rooms[room].find(FIND_MY_SPAWNS)[0];
             let roomController = Game.rooms[room].controller;
             let roomExtensions = Game.rooms[room].find(FIND_STRUCTURES, {
                 filter: (structure) => {return structure.structureType == STRUCTURE_EXTENSION}});
             
             if (!roomSpawn.spawning) {
+                //OH CRAP PANIC setup
+                var creeps = _.filter(Game.creeps, (creep) => creep.room.name == room);
+                //dont do this for early rooms, though I should find a better way to do it for them too
+                if (Game.rooms[room].controller.level > 3) {
+                    if (creeps.length < 2) {
+                        var containers = Game.rooms[room].find(FIND_STRUCTURES, {
+                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
+                            structure.store.getCapacity() > 0
+                        });
+                        console.log("PANIC SPAWNING TRANSPORTER")
+                        var assignedContainer = roomSpawn.pos.findClosestByRange(containers);
+                        var newName = Game.rooms[room].name + '_PANIC_' + Game.time;
+                        roomSpawn.spawnCreep([MOVE, CARRY, CARRY, MOVE], newName, 
+                            {memory: {role: 'transporter', assignedContainer: assignedContainer.id}});
+                    }
+                }
                 //first spawn setup 
                 if (roomController.level < 4) {
                     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
@@ -53,7 +83,7 @@ var systemSpawner = {
                             var assignedLink = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["link"];
                             console.log('Spawning new Miner: ' + newName);
                             roomSpawn.spawnCreep(buildComposition(room), newName, 
-                            {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer, assignedLink: assignedLink}});
+                                {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer, assignedLink: assignedLink}});
                         }
                     }
                     //transporter spawn
@@ -67,7 +97,7 @@ var systemSpawner = {
                             var assignedContainer = containers[i];
                             console.log('Spawning new Transporter: ' + newName);
                             roomSpawn.spawnCreep(buildComposition(room, 400, false), newName, 
-                            {memory: {role: 'transporter', assignedContainer: assignedContainer.id}});
+                                {memory: {role: 'transporter', assignedContainer: assignedContainer.id}});
                         }
                     }
                     var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
@@ -90,6 +120,24 @@ var systemSpawner = {
                             console.log('Spawning new Repairer: ' + newName);
                             roomSpawn.spawnCreep(buildComposition(room), newName, 
                                 {memory: {role: 'repairer'}});
+                        }
+                    }
+                    //REMOVE THIS LATER PLSS
+                    let remoteTowers = _.filter(Game.rooms[room].find(FIND_MY_STRUCTURES), (structure) => structure.structureType == STRUCTURE_TOWER);
+                    let remoteDefenders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteDefender' && creep.memory.assignedRoom == room && creep.ticksToLive > 300);
+                    if (remoteDefenders.length < 1 && remoteTowers.length < 1) {
+                        var newName = room + '_remoteDefender_' + Game.time;
+                        console.log('Spawning new remoteDefender: ' + newName);
+                        Game.spawns['French Armada From Spain'].spawnCreep([TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, HEAL], newName, 
+                            {memory: {role: 'remoteDefender', assignedRoom: room}});
+                    } else if (remoteTowers.length > 0) {
+                        //BUILD MAINTAINERS
+                        var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
+                        if (maintainers.length < 1) {
+                            var newName = Game.rooms[room].name + '_Maintainer_' + Game.time;
+                            console.log('Spawning new Maintainer: ' + newName);
+                            roomSpawn.spawnCreep(buildComposition(room, 400, false), newName, 
+                                {memory: {role: 'maintainer'}});
                         }
                     }
 
@@ -195,7 +243,7 @@ var systemSpawner = {
                         }
                     }
 
-                } else {
+                } else if (Game.rooms[room].storage) {
                     //later game setup
                     
                     //miner spawns
@@ -230,20 +278,23 @@ var systemSpawner = {
                     }
 
                     //linker spawner
-                    var storage = Game.rooms[room].storage;
-                    var storageLinks = Memory.rooms[room]["structures"]["links"]["storage"];
-
-                    for (var i in storageLinks) {
-                        var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'linker' && creep.memory.assignedLink == storageLinks[i]);
-                        if (assignedWorker.length < 1) {
-                            var newName = Game.rooms[room].name + '_Linker_' + storageLinks[i].slice(-4) + '_' + Game.time;
-                            //the container that the worker is assigned to
-                            var assignedLink = storageLinks[i];
-                            console.log('Spawning new Linker: ' + newName);
-                            roomSpawn.spawnCreep([CARRY, MOVE], newName, 
-                            {memory: {role: 'linker', assignedLink: assignedLink, assignedStorage: storage.id}});
-                        }
-                    } 
+                    var storage = (Game.rooms[room]).storage;
+                    if (Memory.rooms[room]["structures"]["links"]) {
+                        var storageLinks = Memory.rooms[room]["structures"]["links"]["storage"];
+                        if (storageLinks && storageLinks.length > 0) {
+                            for (var i in storageLinks) {
+                                var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'linker' && creep.memory.assignedLink == storageLinks[i]);
+                                if (assignedWorker.length < 1) {
+                                    var newName = Game.rooms[room].name + '_Linker_' + storageLinks[i].slice(-4) + '_' + Game.time;
+                                    //the container that the worker is assigned to
+                                    var assignedLink = storageLinks[i];
+                                    console.log('Spawning new Linker: ' + newName);
+                                    roomSpawn.spawnCreep([CARRY, MOVE], newName, 
+                                    {memory: {role: 'linker', assignedLink: assignedLink, assignedStorage: storage.id}});
+                                }
+                            }
+                        } 
+                    }
 
                     //DISABLED
                     //manager spawner
@@ -288,10 +339,11 @@ var systemSpawner = {
 
                     //controls number of upgraders spawned based on energy stored
                     var count = 2
+                    //todo GET RID OF HARDCODING!! PATCHWORK FEAST SOLUTION
                     if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > storage.store.getCapacity(RESOURCE_ENERGY)/1.5) {
                         count = 3
                     }
-                    if (upgraders.length < 1) {
+                    if (upgraders.length < 2) {
                         var bodyArray;
                         if (count == 2) {
                             bodyArray = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
@@ -340,7 +392,6 @@ var systemSpawner = {
             if (maxEnergy > Game.rooms[room].energyCapacityAvailable) {
                 maxEnergy = Game.rooms[room].energyCapacityAvailable;
             }
-            console.log(maxEnergy);
             var composition = [];
             while(maxEnergy >= 0) {
                 //check to see if temp maxEnergy changes, if not, terminate

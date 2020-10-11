@@ -10,7 +10,6 @@ const roleMaintainer = require('role.maintainer');
 const roleExtractor = require('role.extractor');
 const roleReserver = require('role.reserver');
 const roleUpgrader = require('role.upgrader');
-const roleRepairer = require('role.repairer');
 const roleManager = require('role.manager');
 const roleBuilder = require('role.builder');
 const roleLinker = require('role.linker');
@@ -38,8 +37,7 @@ module.exports.loop = function () {
         if (spawns.length == 0 && creeps.length == 0) {
             return;
         }
-
-
+        
         //clear memory of dead creeps
         for(var name in Memory.creeps) {
             if(!Game.creeps[name]) {
@@ -87,9 +85,6 @@ module.exports.loop = function () {
                     break;
                 case 'manager':
                     roleManager.run(creep);
-                    break;
-                case 'repairer':
-                    roleRepairer.run(creep);
                     break;
                 case 'reserver':
                     roleReserver.run(creep);

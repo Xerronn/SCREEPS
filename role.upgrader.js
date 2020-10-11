@@ -79,7 +79,7 @@ var roleUpgrader = {
                             return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
                             structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getCapacity();
                         }
-                    });           
+                    });      
                     if(targets.length > 0) {
                         var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
                         if (creep.pos.inRangeTo(target, 1)) {
