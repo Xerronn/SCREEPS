@@ -2,6 +2,7 @@ var systemSpawner = {
     run: function() {
         //ADD IN PRIORITIZATION
         //THIS WHOLE FILE NEEDS TO BE REMADE, ALSO CONFIGURE SPAWNS BASED ON ATTACK STATUS
+        
         //code snippet that handles expansions into new rooms
         //Add a new expansion target by executing Memory.expansion.push(target) in console
         if (!Memory.expansion) {
@@ -9,11 +10,15 @@ var systemSpawner = {
         }
         if (Memory.expansion.length > 0) {
             for (var exp of Memory.expansion) {
+                //finds the closest spawn
+                let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
+                    Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 850);
+                var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(exp, room))[0];
                 var reservers = _.filter(Game.creeps, (creep) => creep.memory.role == 'reserver' && creep.memory.assignedRoom == exp);
                 if (reservers.length < 1) {
                     var newName = exp + '_reserver_' + Game.time;
                     console.log('Spawning new reserver: ' + newName);
-                    Game.spawns['French Armada From Spain'].spawnCreep([CLAIM, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                    Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0].spawnCreep([CLAIM, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
                         {memory: {role: 'reserver', assignedRoom: exp}});
                 }
             }
@@ -29,12 +34,15 @@ var systemSpawner = {
                     let index = Memory.expansion.indexOf(controller.room.name);
                     Memory.expansion.splice(index, 1);
                 }
-
                 var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
                 if (remoteBuilders.length < 3) {
+                    let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
+                        Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
+                    var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
+                    
                     var newName = controller.room.name + '_remoteBuilder_' + controller.id.slice(-4) + '_' + Game.time;
                     console.log('Spawning new remoteBuilder: ' + newName);
-                    Game.spawns['French Armada From Spain'].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                    Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0].spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
                         {memory: {role: 'remoteBuilder', assignedRoom: controller.pos.roomName}});
                 }
             } 

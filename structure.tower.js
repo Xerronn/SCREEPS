@@ -19,11 +19,11 @@ var structureTower = {
         var targets = tower.room.find(FIND_STRUCTURES, {
                 filter: function (structure) {
                     let shouldHeal = true;
-                    if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(structure.structureType) && structure.hits > 100000) {
+                    if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(structure.structureType) && structure.hits > 1000) {
                         shouldHeal = false;
                     }
-                    //disabled walls and ramparts
-                    return [STRUCTURE_ROAD, STRUCTURE_CONTAINER].includes(structure.structureType)  &&
+                    //disabled walls but added ramparts back to get them kickstarted
+                    return [STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART].includes(structure.structureType)  &&
                         structure.hits < structure.hitsMax && shouldHeal;
                 }
         });

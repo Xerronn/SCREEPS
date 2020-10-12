@@ -13,31 +13,31 @@ var systemRoomPlanner = {
                 let sources = Game.rooms[room].find(FIND_SOURCES);
                 console.log("room planning to do!");
                 //BUILDS EXTENSIONS AT EACH CONTROLLER LEVEL
-                if (Memory.gameStages[room].extensionsMaxed) {
+                if (!Memory.gameStages[room].extensionsMaxed) {
                     if (!Memory.gameStages[room].buildingSpots) {
                         Memory.gameStages[room].buildingSpots = {};
                         //check what tiles to build a grid on
                         let grid = (roomSpawn.pos.x + roomSpawn.pos.y) % 2;
-                        //find terrain at area
-                        var rDown = 6;
-                        var rRight = 6;
-                        var rUp = 6;
-                        var rLeft = 6;
-                        if (roomSpawn.pos.x - 6 < 0) {
-                            rLeft = 6 - Math.abs((roomSpawn.pos.x - 6));
-                            rRight = 12 - rLeft;
+                        //shift the area if the spawn is too close to edges
+                        var rDown = 8;
+                        var rRight = 8;
+                        var rUp = 8;
+                        var rLeft = 8;
+                        if (roomSpawn.pos.x - 8 < 0) {
+                            rLeft = 8 - Math.abs((roomSpawn.pos.x - 8));
+                            rRight = 16 - rLeft;
                         }
-                        if (roomSpawn.pos.y - 6 < 0) {
-                            rUp = 6 - Math.abs((roomSpawn.pos.y - 6));
-                            rDown = 12 - rUp;
+                        if (roomSpawn.pos.y - 8 < 0) {
+                            rUp = 8 - Math.abs((roomSpawn.pos.y - 8));
+                            rDown = 16 - rUp;
                         }
-                        if (roomSpawn.pos.x + 6 > 49) {
-                            rRight = 6 - Math.abs((roomSpawn.pos.x + 6 - 49));
-                            rLeft = 12 - rRight;
+                        if (roomSpawn.pos.x + 8 > 49) {
+                            rRight = 8 - Math.abs((roomSpawn.pos.x + 8 - 49));
+                            rLeft = 16 - rRight;
                         }
-                        if (roomSpawn.pos.y + 6 > 49) {
-                            rDown = 6 - Math.abs((roomSpawn.pos.y + 6 - 49));
-                            rUp = 12 - rDown;
+                        if (roomSpawn.pos.y + 8 > 49) {
+                            rDown = 8 - Math.abs((roomSpawn.pos.y + 8 - 49));
+                            rUp = 16 - rDown;
                         }
                         var terrain = Game.rooms[room].lookAtArea(parseInt(roomSpawn.pos.y) - rUp, parseInt(roomSpawn.pos.x) - rLeft, parseInt(roomSpawn.pos.y) + rDown, parseInt(roomSpawn.pos.x) + rRight, true);
                         
@@ -81,11 +81,17 @@ var systemRoomPlanner = {
                     let maxExt = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][Game.rooms[room].controller.level];
                     let extToBuild = maxExt - (numExt + numBuildingExt);
                     while (extToBuild > 0) {
+                        console.log("yeet");
                         let rdStringPos = Memory.gameStages[room].buildingSpots["roads"].shift();
                         let extStringPos = Memory.gameStages[room].buildingSpots["extensions"].shift();
-                        Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
+                        let extSuc = Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
                         Game.rooms[room].createConstructionSite(new RoomPosition(extStringPos.split(",")[0], extStringPos.split(",")[1], room), STRUCTURE_EXTENSION);
-                        extToBuild--;
+                        if (extSuc == 0) {
+                            console.log("yeet");
+                            extToBuild--;
+                        } else {
+                            console.log("yeeter");
+                        }
                     }
                     //BUILDS TOWERS WHEN IT CAN IN THE PLACE OF AN EXT
                     let numTower = Game.rooms[room].find(FIND_STRUCTURES, {
@@ -150,8 +156,15 @@ var systemRoomPlanner = {
                 if (Game.rooms[room].controller.level == 4) {
                     if (!Memory.gameStages[room].rampartsBuilt) {
                         for (var pos of Memory.gameStages[room].buildingSpots["ramparts"]) {
-                            console.log(pos);
-                            Game.rooms[room].createConstructionSite(new RoomPosition(pos.split(",")[0], pos.split(",")[1], room), STRUCTURE_RAMPART);
+                            let grid = (roomSpawn.pos.x + roomSpawn.pos.y) % 2;
+                            
+                            //alternates walls and ramparts, but places ramparts on any structures that might be on the border, mostly roads.
+                            if ((parseInt(pos.split(",")[0]) + parseInt(pos.split(",")[1])) % 2 != grid && 
+                            Game.rooms[room].lookForAt(LOOK_STRUCTURES, parseInt(pos.split(",")[0]), parseInt(pos.split(",")[1])).length < 1) {
+                                Game.rooms[room].createConstructionSite(new RoomPosition(pos.split(",")[0], pos.split(",")[1], room), STRUCTURE_WALL);
+                            } else {
+                                Game.rooms[room].createConstructionSite(new RoomPosition(pos.split(",")[0], pos.split(",")[1], room), STRUCTURE_RAMPART);
+                            }
                         }
                         Memory.gameStages[room].rampartsBuilt = true;
                     }

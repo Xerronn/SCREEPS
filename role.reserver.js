@@ -1,8 +1,6 @@
 var roleReserver = {
     /** @param {Creep} creep **/
     run: function(creep) {
-        //figure out how to not hardcode this
-        //I guess it really doesn't need to be not hardcoded. IDK I'll think about it
         if (creep.pos.x == 0 || creep.pos.y == 0 || creep.pos.x == 49 || creep.pos.y == 49) {
             creep.moveTo(new RoomPosition(25,25, creep.room.name));
         }
@@ -25,7 +23,7 @@ var roleReserver = {
         } else {
             var controller = Game.rooms[creep.memory.assignedRoom].controller;
             if (creep.pos.inRangeTo(controller, 1)) {
-                //creep.signController(controller, "Higher beings, these words are for you alone");
+                //creep.signController(controller, "...Soul of Wyrm. Soul of Root. Heart of Void...");
                 creep.claimController(controller);
             } else {
                 creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});
