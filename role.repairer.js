@@ -2,7 +2,6 @@ var roleRepairer= {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        //if creep is about to die, transfer its energy to a container
         if (creep.store.getUsedCapacity() == 0){
             creep.memory.mining = true;
         } else if (creep.store.getFreeCapacity() == 0) {
@@ -33,6 +32,9 @@ var roleRepairer= {
             }
             try {
                 var target = Game.getObjectById(creep.memory.target);
+                if (target.hits == target.hitsMax) {
+                    creep.memory.target = "none";
+                }
                 if (creep.pos.inRangeTo(target, 1)) {
                     creep.repair(target, RESOURCE_ENERGY);
                 } else {

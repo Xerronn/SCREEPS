@@ -2,6 +2,7 @@ var systemSpawner = {
     run: function() {
         //ADD IN PRIORITIZATION
         //THIS WHOLE FILE NEEDS TO BE REMADE, ALSO CONFIGURE SPAWNS BASED ON ATTACK STATUS
+        //ADD IN CHECKS FOR ROADS AND CHANGE MOVE PARTS ACCORDINGLY
         
         //code snippet that handles expansions into new rooms
         //Add a new expansion target by executing Memory.expansion.push(target) in console
@@ -78,6 +79,8 @@ var systemSpawner = {
                 if (roomController.level < 4) {
                     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
                     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room);
+                    let remoteTowers = _.filter(Game.rooms[room].find(FIND_MY_STRUCTURES), (structure) => structure.structureType == STRUCTURE_TOWER);
+                    let remoteDefenders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteDefender' && creep.memory.assignedRoom == room && creep.ticksToLive > 300);
                     var repairers = _.filter(Game.creeps, (creep) => creep.memory.role == 'repairer' && creep.room.name == room);
 
                     //miners spawning
@@ -122,7 +125,7 @@ var systemSpawner = {
                         roomSpawn.spawnCreep(buildComposition(room), newName, 
                             {memory: {role: 'upgrader'}});
                     }
-                    if (containers.length > 0){
+                    if (containers.length > 0 && remoteTowers < 1){
                         if (repairers.length < 1) {
                             var newName = Game.rooms[room].name + '_Repairer_' + Game.time;
                             console.log('Spawning new Repairer: ' + newName);
@@ -130,13 +133,10 @@ var systemSpawner = {
                                 {memory: {role: 'repairer'}});
                         }
                     }
-                    //REMOVE THIS LATER PLSS
-                    let remoteTowers = _.filter(Game.rooms[room].find(FIND_MY_STRUCTURES), (structure) => structure.structureType == STRUCTURE_TOWER);
-                    let remoteDefenders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteDefender' && creep.memory.assignedRoom == room && creep.ticksToLive > 300);
                     if (remoteDefenders.length < 1 && remoteTowers.length < 1) {
                         var newName = room + '_remoteDefender_' + Game.time;
                         console.log('Spawning new remoteDefender: ' + newName);
-                        Game.spawns['French Armada From Spain'].spawnCreep([TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, HEAL], newName, 
+                        Game.spawns['City of Tears'].spawnCreep([TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, HEAL], newName, 
                             {memory: {role: 'remoteDefender', assignedRoom: room}});
                     } else if (remoteTowers.length > 0) {
                         //BUILD MAINTAINERS
@@ -151,6 +151,7 @@ var systemSpawner = {
 
                 //early game setup using higher level room to bootstrap new room
                 } else if (roomController.level < 5 && roomController.level != 0 && rooms.length > 1) {
+                    //NOT CURRENTLY BEING USED PROBABLY SHOULD BE REMOVED
                     if (roomExtensions.length < 10) {
                         let remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedRoom == room);
                         if (remoteUpgraders.length < 1) {
@@ -351,7 +352,7 @@ var systemSpawner = {
                     if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > storage.store.getCapacity(RESOURCE_ENERGY)/1.5) {
                         count = 3
                     }
-                    if (upgraders.length < 2) {
+                    if (upgraders.length < 1) {
                         var bodyArray;
                         if (count == 2) {
                             bodyArray = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY,
@@ -395,6 +396,7 @@ var systemSpawner = {
                 }
             }
         }
+        
         function buildComposition (room, maxEnergy=Game.rooms[room].energyCapacityAvailable, hasWorkParts=true) {
             //dynamically create body part compositions at a 1:1 move ratio
             if (maxEnergy > Game.rooms[room].energyCapacityAvailable) {

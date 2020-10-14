@@ -81,17 +81,16 @@ var systemRoomPlanner = {
                     let maxExt = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][Game.rooms[room].controller.level];
                     let extToBuild = maxExt - (numExt + numBuildingExt);
                     while (extToBuild > 0) {
-                        console.log("yeet");
                         let rdStringPos = Memory.gameStages[room].buildingSpots["roads"].shift();
                         let extStringPos = Memory.gameStages[room].buildingSpots["extensions"].shift();
-                        let extSuc = Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
-                        Game.rooms[room].createConstructionSite(new RoomPosition(extStringPos.split(",")[0], extStringPos.split(",")[1], room), STRUCTURE_EXTENSION);
-                        if (extSuc == 0) {
-                            console.log("yeet");
+                        let rdSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
+                        let extSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(extStringPos.split(",")[0], extStringPos.split(",")[1], room), STRUCTURE_EXTENSION);
+                        if (extSuccess == 0) {
                             extToBuild--;
-                        } else {
-                            console.log("yeeter");
                         }
+                    }
+                    if (extToBuild == 0) {
+                        Memory.gameStages[room].extensionsMaxed = true;
                     }
                     //BUILDS TOWERS WHEN IT CAN IN THE PLACE OF AN EXT
                     let numTower = Game.rooms[room].find(FIND_STRUCTURES, {
@@ -102,22 +101,12 @@ var systemRoomPlanner = {
                     let towersToBuild = maxTower - (numTower + numBuildingTower);
                     while (towersToBuild > 0) {
                         let rdStringPos = Memory.gameStages[room].buildingSpots["roads"].shift();
-                        let extStringPos = Memory.gameStages[room].buildingSpots["extensions"].shift();
+                        let twrStringPos = Memory.gameStages[room].buildingSpots["extensions"].shift();
                         let rdSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
-                        let extSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(extStringPos.split(",")[0], extStringPos.split(",")[1], room), STRUCTURE_TOWER);
-                        if (rdSuccess == 0 && extSuccess == 0) {
+                        let twrSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(twrStringPos.split(",")[0], twrStringPos.split(",")[1], room), STRUCTURE_TOWER);
+                        if (twrSuccess == 0) {
                             towersToBuild--;
                         }
-                    }
-
-                    //make sure there is nothing left to build
-                    numExt = Game.rooms[room].find(FIND_STRUCTURES, {
-                        filter: (structure) => {return structure.structureType == STRUCTURE_EXTENSION}}).length;
-                    numBuildingExt = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES, {
-                        filter: (structure) => {return structure.structureType == STRUCTURE_EXTENSION}}).length;
-                    extToBuild = maxExt - (numExt + numBuildingExt);
-                    if (extToBuild == 0) {
-                        Memory.gameStages[room].extensionsMaxed = true;
                     }
                 }
                 //BUILDS CONTAINERS AT CONTROLLER LEVEL 2
@@ -141,7 +130,7 @@ var systemRoomPlanner = {
                     if (!Memory.gameStages[room].roadsBuilt) {
                         let sourcePaths = [];
                         for (var i in sources) {
-                            sourcePaths.push(roomSpawn.pos.findPathTo(sources[i].pos, {range: 1}));
+                            sourcePaths.push(roomSpawn.pos.findPathTo(sources[i].pos, {range: 1, ignoreCreeps: true}));
                         }
                         sourcePaths.push(roomSpawn.pos.findPathTo(Game.rooms[room].controller.pos, {range: 1}));
                         for (var posList of sourcePaths) {

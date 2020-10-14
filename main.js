@@ -9,6 +9,7 @@ const roleTransporter = require('role.transporter');
 const roleMaintainer = require('role.maintainer');
 const roleExtractor = require('role.extractor');
 const roleReserver = require('role.reserver');
+const roleRepairer = require('role.repairer');
 const roleUpgrader = require('role.upgrader');
 const roleManager = require('role.manager');
 const roleBuilder = require('role.builder');
@@ -80,17 +81,20 @@ module.exports.loop = function () {
                 case 'builder':
                     roleBuilder.run(creep);
                     break;
-                case 'attacker':
-                    roleAttacker.run(creep);
-                    break;
                 case 'manager':
                     roleManager.run(creep);
+                    break;
+                case 'attacker':
+                    roleAttacker.run(creep);
                     break;
                 case 'reserver':
                     roleReserver.run(creep);
                     break;
                 case 'upgrader':
                     roleUpgrader.run(creep);
+                    break;
+                case 'repairer':
+                    roleRepairer.run(creep);
                     break;
                 case 'extractor':
                     roleExtractor.run(creep);
