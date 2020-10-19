@@ -1,6 +1,7 @@
 var systemRoomPlanner = {
     run: function() {
         if (!Memory.gameStages["excluded"]) {
+            //rooms that were already established before I implemented this
             Memory.gameStages["excluded"] = ["E44N23", "E45N22"];
         }
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && !Memory.gameStages["excluded"].includes(room) && Game.rooms[room].find(FIND_MY_SPAWNS)[0]);

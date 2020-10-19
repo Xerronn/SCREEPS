@@ -10,6 +10,11 @@ var roleMiner = {
             var containerSite = creep.room.find(FIND_MY_CONSTRUCTION_SITES, {
                 filter: (structure) => {return structure.structureType == STRUCTURE_CONTAINER && structure.pos.inRangeTo(source, 3)}})[0];
         }
+        if (!link) {
+            var linkSite = creep.room.find(FIND_MY_CONSTRUCTION_SITES, {
+                filter: (structure) => {return structure.structureType == STRUCTURE_LINK && structure.pos.inRangeTo(source, 3)}})[0];
+            //figure out how to switch to link after finishing building
+        }
 
         if (link) {
             //if it has a link, just sit on it even harder
@@ -33,7 +38,15 @@ var roleMiner = {
                 }
             }
         } else {
-            if (container) {  
+            if (container) {
+                //rush to build linkSite if possible
+                if (linkSite) {
+                    if (creep.pos.inRangeTo(linkSite, 1)) {
+                        creep.build(linkSite);
+                    } else {
+                        creep.moveTo(linkSite, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                }  
                 //if it has a container, just sit on it bruh
                 if (creep.pos.inRangeTo(source, 1) && creep.pos.inRangeTo(container, 0)) {
                     creep.harvest(source);

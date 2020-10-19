@@ -2,7 +2,7 @@ const profiler = require('screeps-profiler');
 
 const systemUI = require('system.ui');
 const systemMemory = require('system.memory');
-const systemSpawner = require('system.spawner');
+const systemSpawner = require('system.spawner.prototype');
 const systemRoomPlanner = require('system.roomPlanner');
 
 const roleTransporter = require('role.transporter');
@@ -38,7 +38,6 @@ module.exports.loop = function () {
         if (spawns.length == 0 && creeps.length == 0) {
             return;
         }
-        
         //clear memory of dead creeps
         for(var name in Memory.creeps) {
             if(!Game.creeps[name]) {

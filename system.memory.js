@@ -8,6 +8,7 @@ var systemMemory = {
             for (let room of myRooms) {
                 if (!Memory.gameStages[room]) {
                     Memory.gameStages[room] = {};
+                    Memory.gameStages[room].roadsBuilt = false;
                     if (Game.rooms[room].controller.my) {
                         Memory.gameStages[room].rank = Game.rooms[room].controller.level;
                     } else {
@@ -39,7 +40,7 @@ var systemMemory = {
                                 }
                             });
                             var totalEnergy = 0;
-                            for (storage of storages) {
+                            for (let storage of storages) {
                                 totalEnergy += storage.store.getUsedCapacity();
                             }
                         Memory.rooms[room]["stats"].storedEnergy = totalEnergy;
@@ -104,57 +105,56 @@ var systemMemory = {
 
                     var links = Game.rooms[room].find(FIND_STRUCTURES, {
                         filter: (structure) => structure.structureType == STRUCTURE_LINK});
-        
+                    
+                    if (!currentRoom["walls"]) {
+                        currentRoom["walls"] = [];
+                    }
                     for (var i in walls) {
-                        if (!currentRoom["walls"]) {
-                            currentRoom["walls"] = [];
-                        }
                         currentRoom["walls"].push(walls[i].id);
                     }
 
+                    if (!currentRoom["roads"]) {
+                        currentRoom["roads"] = [];
+                    }
                     for (var i in roads) {
-                        if (!currentRoom["roads"]) {
-                            currentRoom["roads"] = [];
-                        }
                         currentRoom["roads"].push(roads[i].id);
                     }
 
+                    if (!currentRoom["ramparts"]) {
+                        currentRoom["ramparts"] = [];
+                    }
                     for (var i in ramparts) {
-                        if (!currentRoom["ramparts"]) {
-                            currentRoom["ramparts"] = [];
-                        }
                         currentRoom["ramparts"].push(ramparts[i].id);
                     }
-        
+                    
+                    if (!currentRoom["containers"]) {
+                        currentRoom["containers"] = [];
+                    }
                     for (var i in containers) {
-                        if (!currentRoom["containers"]) {
-                            currentRoom["containers"] = [];
-                        }
                         currentRoom["containers"].push(containers[i].id);
                     }
-        
+                    
+                    if (!currentRoom["towers"]) {
+                        currentRoom["towers"] = [];
+                    }
                     for (var i in towers) {
-                        if (!currentRoom["towers"]) {
-                            currentRoom["towers"] = [];
-                        }
                         currentRoom["towers"].push(towers[i].id);
                     }
 
+                    if (!currentRoom["links"]) {
+                        currentRoom["links"] = {};
+                    }
+                    if (!currentRoom["links"]["storage"]) {
+                        currentRoom["links"]["storage"] = [];
+                        currentRoom["links"]["controller"] = [];
+                        currentRoom["links"]["container"] = [];
+                        currentRoom["links"]["none"] = [];
+                        currentRoom["links"]["all"] = {};
+                    }
                     for (var i in links) {
-                        if (!currentRoom["links"]) {
-                            currentRoom["links"] = {};
-                        }
-                        if (!currentRoom["links"]["storage"]) {
-                            currentRoom["links"]["storage"] = [];
-                            currentRoom["links"]["controller"] = [];
-                            currentRoom["links"]["container"] = [];
-                            currentRoom["links"]["none"] = [];
-                            currentRoom["links"]["all"] = {};
-                        }
                         if (!currentRoom["links"]["all"][links[i].id]) {
                             currentRoom["links"]["all"][links[i].id] = {};
                         }
-
                         //define what the behavior of the link should be
                         let nearestBuilding = links[i].pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => { return structure.structureType != STRUCTURE_LINK 

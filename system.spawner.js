@@ -152,6 +152,7 @@ var systemSpawner = {
                 //early game setup using higher level room to bootstrap new room
                 } else if (roomController.level < 5 && roomController.level != 0 && rooms.length > 1) {
                     //NOT CURRENTLY BEING USED PROBABLY SHOULD BE REMOVED
+                    //IS BEING USED BUT ONLY FOR RANK 4. SHOULD REWORK
                     if (roomExtensions.length < 10) {
                         let remoteUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteUpgrader' && creep.memory.assignedRoom == room);
                         if (remoteUpgraders.length < 1) {
@@ -209,13 +210,14 @@ var systemSpawner = {
                                 //the container that the worker is assigned to
                                 var assignedContainer = containers[i];
                                 console.log('Spawning new Transporter: ' + newName);
-                                roomSpawn.spawnCreep([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], newName, 
+                                roomSpawn.spawnCreep([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
                                 {memory: {role: 'transporter', assignedContainer: assignedContainer.id}});
                             }
                         }
                         var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
                         var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room);
                         var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
+                        var wallers = _.filter(Game.creeps, (creep) => creep.memory.role == 'waller' && creep.room.name == room);
 
                         var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
                         if (builders.length < 2 && constructionSites.length > 0) {
@@ -240,7 +242,14 @@ var systemSpawner = {
                                 MOVE, MOVE, MOVE, MOVE], newName, 
                                 {memory: {role: 'maintainer'}});
                         }
-                        
+
+                        //DISABLED DRAINING TOO MUCH ENERGY
+                        if (wallers.length < 0) {
+                            var newName = Game.rooms[room].name + '_Waller_' + Game.time;
+                            console.log('Spawning new Waller: ' + newName);
+                            roomSpawn.spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], newName, 
+                                {memory: {role: 'waller'}});
+                        }
                         
                         if (roomSpawn.spawning) { 
                             var spawningCreep = Game.creeps[roomSpawn.spawning.name];
@@ -367,8 +376,8 @@ var systemSpawner = {
                             {memory: {role: 'upgrader'}});
                     }
 
-
-                    if (wallers.length < count - 1) {
+                    //DISABLED TOO COSTLY RN
+                    if (wallers.length < 0) {
                         var newName = Game.rooms[room].name + '_Waller_' + Game.time;
                         console.log('Spawning new Waller: ' + newName);
                         roomSpawn.spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY,
@@ -423,7 +432,21 @@ var systemSpawner = {
                 }
             }
             return composition;
-        } 
+        }
+        
+        function spawnCreep(spawn, role) {
+            let body, numToSpawn, numSpawn;
+            switch (role) {
+
+            }
+            if (numAlive < numToSpawn) {
+                var newName = Game.rooms[room].name + '_Maintainer_' + Game.time;
+                console.log('Spawning new Maintainer: ' + newName);
+                roomSpawn.spawnCreep([WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, 
+                    MOVE, MOVE, MOVE, MOVE], newName, 
+                    {memory: {role: 'maintainer'}});
+            }
+        }
     }
 };
 

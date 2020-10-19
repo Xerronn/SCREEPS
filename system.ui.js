@@ -23,7 +23,7 @@ var systemUI = {
                     }
                 });
                 var totalEnergy = 0;
-                for (storage of storages) {
+                for (let storage of storages) {
                     totalEnergy += storage.store.getUsedCapacity();
                 }
                 Game.spawns[roomSpawn.name].room.visual.text('Energy Change: ' + (totalEnergy - Memory.rooms[room]["stats"].storedEnergy), Game.spawns[roomSpawn.name].pos.x + 6, Game.spawns[roomSpawn.name].pos.y + 5, {align: 'left', opacity: 0.8});

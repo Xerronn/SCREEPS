@@ -19,8 +19,29 @@ var roleWaller= {
                     creep.moveTo(storage, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
             } else {
-                //I don't want them to mine rn
-                //add in early game logic
+                //pull from containers if there is no storage
+                var targets = creep.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return [STRUCTURE_CONTAINER].includes(structure.structureType) &&
+                        structure.store.getUsedCapacity(RESOURCE_ENERGY) > creep.store.getFreeCapacity();
+                    }
+                });           
+                if(targets.length > 0) {
+                    var target = _.sortBy(targets, (t) => t.pos.getRangeTo(creep))[0];
+                    if (creep.pos.inRangeTo(target, 1)) {
+                        creep.withdraw(target, RESOURCE_ENERGY);
+                    } else {
+                        creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                } else {
+                    //if there is no containers to pull from
+                    var source = creep.pos.findClosestByPath(FIND_SOURCES);
+                    if (creep.pos.inRangeTo(source, 1)) {
+                        creep.harvest(source);
+                    } else {
+                        creep.moveTo(source);
+                    }
+                }
             }
         } else {
             if (creep.memory.target == "none") {
