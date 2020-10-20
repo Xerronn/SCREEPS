@@ -74,17 +74,33 @@ var systemSpawner2 = {
             //begin of spawning loop. Loop through each spawn in the room
             var roomSpawns = Game.rooms[room].find(FIND_MY_SPAWNS);
             var roomController = Game.rooms[room].controller;
+            //find what the other spawner is spawning right now
+            //downside of this is that it two spawns cant collaborate to spawn a single type of creep
+            //they both have to be spawning some thing different. room for improvement for sure.
+            var currentlySpawning = [];
+            for (var spawn of roomSpawns) {
+                if (!Memory.gameStages[room].spawns) {
+                    Memory.gameStages[room].spawns = {};
+                }
+                currentlySpawning.push(Memory.gameStages[room].spawns[spawn.name]);
+            }
             for (var spawn of roomSpawns) {
                 //if it is already spawn, skip it
                 if (spawn.spawning) {
                     continue;
                 }
+                
+                //set spawning memory to not spawning
+                if (!Memory.gameStages[room].spawns) {
+                    Memory.gameStages[room].spawns = {};
+                }
+                Memory.gameStages[room].spawns[spawn.name] = "none";
 
                 let hasRoads = Memory.gameStages[room].roadsBuilt;
 
                 //OH CRAP PANIC setup
                 var creeps = _.filter(Game.creeps, (creep) => creep.room.name == room);
-                //dont do this for early rooms, though I should find a better way to do it for them too
+                //dont do this for early rooms, though I should find a better way to do it for them too. Add in logic for gathering from containers instead of storage and mining to do that
                 if (Game.rooms[room].controller.level > 3) {
                     if (creeps.length < 2) {
                         var containers = Game.rooms[room].find(FIND_STRUCTURES, {
@@ -102,8 +118,10 @@ var systemSpawner2 = {
                 for (var container of containers) {
                     let assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'transporter' && creep.memory.assignedContainer == container);
                     if (assignedWorker.length < 1) {
-                        let memory = {role: 'transporter', assignedContainer: container}
-                        spawnCreep(spawn, "transporter", memory, hasRoads);
+                        if (!currentlySpawning.includes("transporter")) {
+                            let memory = {role: 'transporter', assignedContainer: container}
+                            spawnCreep(spawn, "transporter", memory, hasRoads);
+                        }
                     }
                 }
 
@@ -112,10 +130,12 @@ var systemSpawner2 = {
                 for (var source of sources) {
                     let assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source && creep.ticksToLive > 50);      
                     if (assignedWorker.length < 1) {
-                        let assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][source]["container"];
-                        let assignedLink = Memory.rooms[Game.rooms[room].name]["sources"][source]["link"];
-                        let memory = {role: 'miner', assignedSource: source, assignedContainer: assignedContainer, assignedLink: assignedLink};
-                        spawnCreep(spawn, "miner", memory, hasRoads);
+                        if (!currentlySpawning.includes("miner")) {
+                            let assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][source]["container"];
+                            let assignedLink = Memory.rooms[Game.rooms[room].name]["sources"][source]["link"];
+                            let memory = {role: 'miner', assignedSource: source, assignedContainer: assignedContainer, assignedLink: assignedLink};
+                            spawnCreep(spawn, "miner", memory, hasRoads);
+                        }
                     }
                 }
                 
@@ -123,7 +143,9 @@ var systemSpawner2 = {
                 var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
                 var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
                 if (builders.length < 2 && constructionSites.length > 0) {
-                    spawnCreep(spawn, "builder", {role: "builder"}, hasRoads=hasRoads);
+                    if (!currentlySpawning.includes("builder")) {
+                        spawnCreep(spawn, "builder", {role: "builder"}, hasRoads=hasRoads);
+                    }
                 }
 
                 let upgraderCount = 1;
@@ -131,7 +153,9 @@ var systemSpawner2 = {
                 //upgrader spawning
                 var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room && creep.ticksToLive > 150);
                 if (upgraders.length < upgraderCount) {
-                    spawnCreep(spawn, "upgrader", {role: "upgrader"}, hasRoads=hasRoads);
+                    if (!currentlySpawning.includes("upgrader")) {
+                        spawnCreep(spawn, "upgrader", {role: "upgrader"}, hasRoads=hasRoads);
+                    }
                 }
 
                 //remoteDefender spawning
@@ -154,7 +178,9 @@ var systemSpawner2 = {
                 var repairers = _.filter(Game.creeps, (creep) => creep.memory.role == 'repairer' && creep.room.name == room);
                 if (containers.length > 0 && towers.length < 1){
                     if (repairers.length < 1) {
-                        spawnCreep(spawn, "repairer", {role: "repairer"}, hasRoads=hasRoads);
+                        if (!currentlySpawning.includes("repairer")) {
+                            spawnCreep(spawn, "repairer", {role: "repairer"}, hasRoads=hasRoads);
+                        }
                     }
                 }
                 
@@ -163,7 +189,9 @@ var systemSpawner2 = {
                     //maintainer spawning
                     var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
                     if (maintainers.length < 1 && towers) {
-                        spawnCreep(spawn, "maintainer", {role: "maintainer"}, hasRoads=hasRoads);
+                        if (!currentlySpawning.includes("maintainer")) {
+                            spawnCreep(spawn, "maintainer", {role: "maintainer"}, hasRoads=hasRoads);
+                        }
                     }
 
                     //once the room can have links
@@ -176,8 +204,10 @@ var systemSpawner2 = {
                                 for (var link of storageLinks) {
                                     var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'linker' && creep.memory.assignedLink == link);
                                     if (assignedWorker.length < 1) {
-                                        let memory = {role: 'linker', assignedLink: link, assignedStorage: storage.id};
-                                        spawnCreep(spawn, "linker", memory, hasRoads=hasRoads);
+                                        if (!currentlySpawning.includes("linker")) {
+                                            let memory = {role: 'linker', assignedLink: link, assignedStorage: storage.id};
+                                            spawnCreep(spawn, "linker", memory, hasRoads=hasRoads);
+                                        }
                                     }
                                 }
                             } 
@@ -186,7 +216,9 @@ var systemSpawner2 = {
                         //waller spawning
                         var wallers = _.filter(Game.creeps, (creep) => creep.memory.role == 'waller' && creep.room.name == room);
                         if (wallers.length < 1) {
-                            spawnCreep(spawn, "waller", {role: "waller"}, hasRoads=hasRoads);
+                            if (!currentlySpawning.includes("waller")) {
+                                spawnCreep(spawn, "waller", {role: "waller"}, hasRoads=hasRoads);
+                            }
                         }
                     }
                 }
@@ -236,7 +268,11 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 1000);
                     break;
                 case "upgrader":
-                    body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY], hasRoads);
+                    if (Memory.rooms[spawnRoom].structures.links.storage && Memory.rooms[spawnRoom].structures.links.controller.length > 0) {
+                        body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY], hasRoads);
+                    } else {
+                        body = addMoves([WORK, CARRY], hasRoads);
+                    }
                     let storage = Game.rooms[spawnRoom].storage;
                     if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 1.3)) {
                         //Unlimited cost on upgraders if the storage gets above a certain capacity
@@ -262,9 +298,15 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 600);
                     break;
             }
-            var newName = Game.rooms[room].name + "/" + role + "/" + Game.time;
-            console.log('Spawning Creep in ' + Game.rooms[room].name + " with name " + newName);
-            spawn.spawnCreep(body, newName, {memory: memory});
+            var newName = spawnRoom + "/" + role + "/" + Game.time;
+            console.log('Spawning Creep in ' + spawnRoom + " with name " + newName);
+            let spawnSuccess = spawn.spawnCreep(body, newName, {memory: memory});
+            if (spawnSuccess == 0) {
+                if (!Memory.gameStages[room].spawns) {
+                    Memory.gameStages[room].spawns = {};
+                }
+                Memory.gameStages[room].spawns[spawn.name] = role;
+            }
         }
 
         function addMoves(body, hasRoads) {
@@ -303,6 +345,7 @@ var systemSpawner2 = {
                 }
             }
 
+
             //reduce the body if needed
             if (totalCost > maxEnergy) {
                 var mostCommon = WORK;
@@ -325,6 +368,10 @@ var systemSpawner2 = {
                     if (totalCost + BODYPART_COST[part] < maxEnergy) {
                         body.push(part);
                         totalCost += BODYPART_COST[part];
+                        if (body.length == 50) {
+                            body.sort(compareBodyParts);
+                            return body;
+                        }
                     } else {
                         body.sort(compareBodyParts)
                         return body;
@@ -339,9 +386,11 @@ var systemSpawner2 = {
             
             //helper function to compare body parts by cost
             function compareBodyParts(a, b) {
-                if (BODYPART_COST[a] < BODYPART_COST[b]) {
+                var compareCost = {...BODYPART_COST};
+                compareCost[MOVE] = 51;
+                if (compareCost[a] < compareCost[b]) {
                     return -1;
-                } else if (BODYPART_COST[a] > BODYPART_COST[b]) {
+                } else if (compareCost[a] > compareCost[b]) {
                     return 1;
                 } else {
                     return 0;

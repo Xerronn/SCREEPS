@@ -2,15 +2,15 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        var spawn = creep.room.controller;
-        if (spawn) {
+        var controller = creep.room.controller;
+        if (controller) {
             var targets = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
                     return [STRUCTURE_LINK].includes(structure.structureType);
                 }
             });
             if(targets.length > 0) {
-                var link = spawn.pos.findInRange(targets,6)[0];
+                var link = controller.pos.findInRange(targets,6)[0];
             }
         }
 
@@ -28,7 +28,7 @@ var roleUpgrader = {
 
 	    if(creep.memory.upgrading) {
             // if there is a link, just worry about the controller
-            if (link) {
+            if (link || storage) {
                 if (creep.pos.inRangeTo(creep.room.controller, 3)) {
                     creep.upgradeController(creep.room.controller);
                 } else {
