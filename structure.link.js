@@ -3,18 +3,18 @@ var structureLink = {
     /** @param {Turret} link **/
     run: function(link) {
         try {
-            var linkType = Memory.rooms[link.room.name]["structures"]["links"]["all"][link.id]["type"];
+            var linkType = Memory.roomsCache[link.room.name]["structures"]["links"]["all"][link.id]["type"];
             
-            var storageLinks = Memory.rooms[link.room.name]["structures"]["links"]["storage"].map(
+            var storageLinks = Memory.roomsCache[link.room.name]["structures"]["links"]["storage"].map(
                 (struc) => {return Game.getObjectById(struc)});
             
-            var containerLinks = Memory.rooms[link.room.name]["structures"]["links"]["container"].map(
+            var containerLinks = Memory.roomsCache[link.room.name]["structures"]["links"]["container"].map(
                 (struc) => {return Game.getObjectById(struc)});
 
-            var controllerLinks = Memory.rooms[link.room.name]["structures"]["links"]["controller"].map(
+            var controllerLinks = Memory.roomsCache[link.room.name]["structures"]["links"]["controller"].map(
                 (struc) => {return Game.getObjectById(struc)});
 
-            var noneLinks = Memory.rooms[link.room.name]["structures"]["links"]["none"].map(
+            var noneLinks = Memory.roomsCache[link.room.name]["structures"]["links"]["none"].map(
                 (struc) => {return Game.getObjectById(struc)});
 
             switch (linkType) {

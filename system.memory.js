@@ -1,38 +1,38 @@
 var systemMemory = {
     run: function() {
         //GAMESTAGE DATA
-        if (!Memory.gameStages) {
-            Memory.gameStages = {}
+        if (!Memory.roomsPersistent) {
+            Memory.roomsPersistent = {}
         }
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
             for (let room of myRooms) {
-                if (!Memory.gameStages[room]) {
-                    Memory.gameStages[room] = {};
-                    Memory.gameStages[room].roadsBuilt = false;
+                if (!Memory.roomsPersistent[room]) {
+                    Memory.roomsPersistent[room] = {};
+                    Memory.roomsPersistent[room].roadsBuilt = false;
                     if (Game.rooms[room].controller.my) {
-                        Memory.gameStages[room].rank = Game.rooms[room].controller.level;
+                        Memory.roomsPersistent[room].rank = Game.rooms[room].controller.level;
                     } else {
-                        Memory.gameStages[room].rank = -1;
+                        Memory.roomsPersistent[room].rank = -1;
                     } 
                 }   
             }
 
         //ROOM MEMMORY
-        if (!Memory.rooms) {
-            Memory.rooms = {};
+        if (!Memory.roomsCache) {
+            Memory.roomsCache = {};
             console.log("Room Memory reset");
             let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
             for (let room of myRooms) {
                 //init a room memory for each room
-                if (!Memory.rooms[room]) {
-                    Memory.rooms[room] = {};
+                if (!Memory.roomsCache[room]) {
+                    Memory.roomsCache[room] = {};
                 }
                 //STATISTICS
-                if (!Memory.rooms[room]["stats"]) {
-                    Memory.rooms[room]["stats"] = {};
-                    Memory.rooms[room]["stats"].lastUpdate = Game.time;
+                if (!Memory.roomsCache[room]["stats"]) {
+                    Memory.roomsCache[room]["stats"] = {};
+                    Memory.roomsCache[room]["stats"].lastUpdate = Game.time;
                     if (Game.rooms[room].storage) {
-                        Memory.rooms[room]["stats"].storedEnergy = Game.rooms[room].storage.store.getUsedCapacity(RESOURCE_ENERGY);
+                        Memory.roomsCache[room]["stats"].storedEnergy = Game.rooms[room].storage.store.getUsedCapacity(RESOURCE_ENERGY);
                     } else {
                             var storages = Game.rooms[room].find(FIND_STRUCTURES, {
                                 filter: (structure) => {
@@ -43,12 +43,12 @@ var systemMemory = {
                             for (let storage of storages) {
                                 totalEnergy += storage.store.getUsedCapacity();
                             }
-                        Memory.rooms[room]["stats"].storedEnergy = totalEnergy;
+                        Memory.roomsCache[room]["stats"].storedEnergy = totalEnergy;
                     }
                 }
                 //SOURCE MEMORY
-                if (!Memory.rooms[room]["sources"]) {
-                    Memory.rooms[room]["sources"] = {};
+                if (!Memory.roomsCache[room]["sources"]) {
+                    Memory.roomsCache[room]["sources"] = {};
                     var sources = Game.rooms[room].find(FIND_SOURCES);
 
                     for (var i in sources) {
@@ -76,18 +76,18 @@ var systemMemory = {
                         if (!link) {
                             link = "none";
                         }
-                        if (!Memory.rooms[room]["sources"][sources[i].id]) {
-                            Memory.rooms[room]["sources"][sources[i].id] = {};
+                        if (!Memory.roomsCache[room]["sources"][sources[i].id]) {
+                            Memory.roomsCache[room]["sources"][sources[i].id] = {};
                         }
-                        Memory.rooms[room]["sources"][sources[i].id]["positions"] = openSpots;
-                        Memory.rooms[room]["sources"][sources[i].id]["container"] = container;
-                        Memory.rooms[room]["sources"][sources[i].id]["link"] = link;
+                        Memory.roomsCache[room]["sources"][sources[i].id]["positions"] = openSpots;
+                        Memory.roomsCache[room]["sources"][sources[i].id]["container"] = container;
+                        Memory.roomsCache[room]["sources"][sources[i].id]["link"] = link;
                     }
                 } 
                 //STRUCTURE MEMORY
-                if (!Memory.rooms[room]["structures"]) {
-                    Memory.rooms[room]["structures"] = {};
-                    var currentRoom = Memory.rooms[room]["structures"];
+                if (!Memory.roomsCache[room]["structures"]) {
+                    Memory.roomsCache[room]["structures"] = {};
+                    var currentRoom = Memory.roomsCache[room]["structures"];
                     var walls = Game.rooms[room].find(FIND_STRUCTURES, {
                         filter: (structure) => structure.structureType == STRUCTURE_WALL});
 
@@ -198,7 +198,7 @@ var systemMemory = {
         //refresh memory every x ticks
         if (!Memory.lastUpdate || Memory.lastUpdate + 250 < Game.time) {
             Memory.lastUpdate = Game.time;
-            delete Memory.rooms;
+            delete Memory.roomsCache;
             console.log("Memory Updated");            
         };
     }

@@ -3,8 +3,8 @@ var roleUpgrader = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (!creep.memory.link) {
-            if (Memory.rooms[creep.room.name].structures.links.controller) {
-                creep.memory.link = Memory.rooms[creep.room.name].structures.links.controller[0];
+            if (Memory.roomsCache[creep.room.name].structures.links.controller) {
+                creep.memory.link = Memory.roomsCache[creep.room.name].structures.links.controller[0];
             } else {
                 creep.memory.link = null;
             }

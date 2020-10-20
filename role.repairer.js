@@ -24,8 +24,8 @@ var roleRepairer= {
             }
         } else {
             if (creep.memory.target == "none") {
-                var walls = Memory.rooms[creep.room.name]["structures"]["roads"].concat(
-                    Memory.rooms[creep.room.name]["structures"]["containers"]).map(
+                var walls = Memory.roomsCache[creep.room.name]["structures"]["roads"].concat(
+                    Memory.roomsCache[creep.room.name]["structures"]["containers"]).map(
                     (struc) => {return Game.getObjectById(struc)});
                 creep.memory.target = _.sortBy(walls, function(wall) {
                     return wall.hits / wall.hitsMax;})[0].id;

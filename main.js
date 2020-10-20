@@ -33,7 +33,7 @@ module.exports.loop = function () {
         //in case of respawn
         systemMemory.run();
 
-        if (Memory.rooms) {
+        if (Memory.roomsCache) {
             systemSpawner.run();
             //rework UI
             systemUI.run();

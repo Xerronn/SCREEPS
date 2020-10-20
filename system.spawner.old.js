@@ -90,8 +90,8 @@ var systemSpawner = {
                         if (assignedWorker.length < 1) {
                             var newName = Game.rooms[room].name + '_Miner_' + sources[i].id.slice(-4) + '_' + Game.time;
                             //the container that the worker is assigned to
-                            var assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["container"];
-                            var assignedLink = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["link"];
+                            var assignedContainer = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["container"];
+                            var assignedLink = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["link"];
                             console.log('Spawning new Miner: ' + newName);
                             roomSpawn.spawnCreep(buildComposition(room), newName, 
                                 {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer, assignedLink: assignedLink}});
@@ -186,7 +186,7 @@ var systemSpawner = {
                             if (assignedWorker.length < 1) {
                                 var newName = Game.rooms[room].name + '_Miner_' + sources[i].id.slice(-4) + '_' + Game.time;
                                 //the container that the worker is assigned to
-                                var assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["container"];
+                                var assignedContainer = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["container"];
                                 //if it has a container, it doesn't need many move parts
                                 if (assignedContainer != "none") {
                                     console.log('Spawning new Miner: ' + newName);
@@ -272,8 +272,8 @@ var systemSpawner = {
                         if (assignedWorker.length < 1) {
                             var newName = Game.rooms[room].name + '_Miner_' + sources[i].id.slice(-4) + '_' + Game.time;
                             //the container that the worker is assigned to
-                            var assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["container"];
-                            var assignedLink = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["link"];
+                            var assignedContainer = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["container"];
+                            var assignedLink = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["link"];
                             console.log('Spawning new Miner: ' + newName);
                             roomSpawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], newName, 
                             {memory: {role: 'miner', assignedSource: sources[i].id, assignedContainer: assignedContainer, assignedLink: assignedLink}});
@@ -281,7 +281,7 @@ var systemSpawner = {
                     }
                     
                     //transporter spawns
-                    var containers = Memory.rooms[room]["structures"]["containers"].map(
+                    var containers = Memory.roomsCache[room]["structures"]["containers"].map(
                         (struc) => {return Game.getObjectById(struc)});
                     for (var i in containers) {
                         var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'transporter' && creep.memory.assignedContainer == containers[i].id);
@@ -297,8 +297,8 @@ var systemSpawner = {
 
                     //linker spawner
                     var storage = (Game.rooms[room]).storage;
-                    if (Memory.rooms[room]["structures"]["links"]) {
-                        var storageLinks = Memory.rooms[room]["structures"]["links"]["storage"];
+                    if (Memory.roomsCache[room]["structures"]["links"]) {
+                        var storageLinks = Memory.roomsCache[room]["structures"]["links"]["storage"];
                         if (storageLinks && storageLinks.length > 0) {
                             for (var i in storageLinks) {
                                 var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'linker' && creep.memory.assignedLink == storageLinks[i]);

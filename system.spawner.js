@@ -26,7 +26,7 @@ var systemSpawner2 = {
         }
         //handles the automatic creation of remote upgraders in case of a new territory being claimed
         //first find any claimed controllers that do not have a spawn
-        var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER && (Memory.rooms[structure.pos.roomName].structures["spawns"].length < 1));
+        var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER && (Memory.roomsCache[structure.pos.roomName].structures["spawns"].length < 1));
         for (var controller of controllers) {
             if (controller.room.find(FIND_MY_SPAWNS).length < 1) {
                 //remove from memory expansions
@@ -37,7 +37,7 @@ var systemSpawner2 = {
                 var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
                 if (remoteBuilders.length < 3) {
                     let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
-                    Memory.rooms[room].structures["spawns"].length > 0 && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
+                    Memory.roomsCache[room].structures["spawns"].length > 0 && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
                     var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
                     let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
                     let memory = {role: 'remoteBuilder', assignedRoom: controller.pos.roomName};
@@ -47,12 +47,12 @@ var systemSpawner2 = {
         }
 
         //iterate through rooms that I own and have at least one spawn
-        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Memory.rooms[room].structures["spawns"].length > 0);
+        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Memory.roomsCache[room].structures["spawns"].length > 0);
         for (var room of myRooms) {
 
             //This block of code determines if the room is under attack or not
-            if (!Memory.gameStages[room].attackStatus || Game.time > Memory.rooms[room].attackStatusTimer + 150) {
-                Memory.gameStages[room].attackStatus = false;
+            if (!Memory.roomsPersistent[room].attackStatus || Game.time > Memory.roomsCache[room].attackStatusTimer + 150) {
+                Memory.roomsPersistent[room].attackStatus = false;
             }
             let hostileCreeps = Game.rooms[room].find(FIND_HOSTILE_CREEPS);
             if (hostileCreeps.length > 0) {
@@ -61,35 +61,35 @@ var systemSpawner2 = {
                 attackEvents.forEach(event => {
                     let target = Game.getObjectById(event.data.targetId);
                     if(target && target.my) {
-                        Memory.gameStages[room].attackStatus = true;
-                        Memory.gameStages[room].attackStatusTimer = Game.time;
+                        Memory.roomsPersistent[room].attackStatus = true;
+                        Memory.roomsPersistent[room].attackStatusTimer = Game.time;
                     }
                 });
             }
             
             //begin of spawning loop. Loop through each spawn in the room
-            var roomSpawns = Memory.rooms[room].structures["spawns"].map(spawnID => Game.getObjectById(spawnID));
+            var roomSpawns = Memory.roomsCache[room].structures["spawns"].map(spawnID => Game.getObjectById(spawnID));
             var roomController = Game.rooms[room].controller;
             //find what the other spawner is spawning right now
             //downside of this is that it two spawns cant collaborate to spawn a single type of creep
             //they both have to be spawning some thing different. room for improvement for sure.
             var currentlySpawning = [];
             for (var spawn of roomSpawns) {
-                if (!Memory.gameStages[room].spawns) {
-                    Memory.gameStages[room].spawns = {};
+                if (!Memory.roomsPersistent[room].spawns) {
+                    Memory.roomsPersistent[room].spawns = {};
                 }
-                currentlySpawning.push(Memory.gameStages[room].spawns[spawn.name]);
+                currentlySpawning.push(Memory.roomsPersistent[room].spawns[spawn.name]);
             }
             //variables used per room. Once per room for efficiency
             var wallers = _.filter(Game.creeps, (creep) => creep.memory.role == 'waller' && creep.room.name == room);
             var creeps = _.filter(Game.creeps, (creep) => creep.room.name == room);
-            var sources = Object.keys(Memory.rooms[room].sources);
+            var sources = Object.keys(Memory.roomsCache[room].sources);
             var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
             var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
             var upgraderCount = 1;
-            if (roomController.level < 4 ||(Memory.rooms[room].structures.links.storage && Memory.rooms[room].structures.links.controller.length < 1)) upgraderCount = 3;
+            if (roomController.level < 4 ||(Memory.roomsCache[room].structures.links.storage && Memory.roomsCache[room].structures.links.controller.length < 1)) upgraderCount = 3;
             var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room && creep.ticksToLive > 150);
-            var towers = Memory.rooms[room].structures.towers;
+            var towers = Memory.roomsCache[room].structures.towers;
             var repairers = _.filter(Game.creeps, (creep) => creep.memory.role == 'repairer' && creep.room.name == room);
             var maintainers = _.filter(Game.creeps, (creep) => creep.memory.role == 'maintainer' && creep.room.name == room);
 
@@ -100,12 +100,12 @@ var systemSpawner2 = {
                 }
                 
                 //set spawning memory to not spawning
-                if (!Memory.gameStages[room].spawns) {
-                    Memory.gameStages[room].spawns = {};
+                if (!Memory.roomsPersistent[room].spawns) {
+                    Memory.roomsPersistent[room].spawns = {};
                 }
-                Memory.gameStages[room].spawns[spawn.name] = "none";
+                Memory.roomsPersistent[room].spawns[spawn.name] = "none";
 
-                let hasRoads = Memory.gameStages[room].roadsBuilt;
+                let hasRoads = Memory.roomsPersistent[room].roadsBuilt;
 
                 //OH CRAP PANIC setup
                 //dont do this for early rooms, though I should find a better way to do it for them too. Add in logic for gathering from containers instead of storage and mining to do that
@@ -122,7 +122,7 @@ var systemSpawner2 = {
                 }
 
                 //transporter spawning
-                var containers = Memory.rooms[room].structures.containers;
+                var containers = Memory.roomsCache[room].structures.containers;
                 for (var container of containers) {
                     let assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'transporter' && creep.memory.assignedContainer == container);
                     if (assignedWorker.length < 1) {
@@ -138,8 +138,8 @@ var systemSpawner2 = {
                     let assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source && creep.ticksToLive > 50);      
                     if (assignedWorker.length < 1) {
                         if (!currentlySpawning.includes("miner")) {
-                            let assignedContainer = Memory.rooms[Game.rooms[room].name]["sources"][source]["container"];
-                            let assignedLink = Memory.rooms[Game.rooms[room].name]["sources"][source]["link"];
+                            let assignedContainer = Memory.roomsCache[Game.rooms[room].name]["sources"][source]["container"];
+                            let assignedLink = Memory.roomsCache[Game.rooms[room].name]["sources"][source]["link"];
                             let memory = {role: 'miner', assignedSource: source, assignedContainer: assignedContainer, assignedLink: assignedLink};
                             spawnCreep(spawn, "miner", memory, hasRoads);
                         }
@@ -197,8 +197,8 @@ var systemSpawner2 = {
                     if (roomController.level > 4) {
                         //linker spawning
                         var storage = Game.rooms[room].storage;
-                        if (Memory.rooms[room]["structures"]["links"]) {
-                            var storageLinks = Memory.rooms[room]["structures"]["links"]["storage"];
+                        if (Memory.roomsCache[room]["structures"]["links"]) {
+                            var storageLinks = Memory.roomsCache[room]["structures"]["links"]["storage"];
                             if (storageLinks && storageLinks.length > 0) {
                                 for (var link of storageLinks) {
                                     var assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'linker' && creep.memory.assignedLink == link);
@@ -266,7 +266,7 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 1000);
                     break;
                 case "upgrader":
-                    if (Memory.rooms[spawnRoom].structures.links.storage && Memory.rooms[spawnRoom].structures.links.controller.length > 0) {
+                    if (Memory.roomsCache[spawnRoom].structures.links.storage && Memory.roomsCache[spawnRoom].structures.links.controller.length > 0) {
                         body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY], hasRoads);
                     } else {
                         body = addMoves([WORK, CARRY], hasRoads);
@@ -300,11 +300,11 @@ var systemSpawner2 = {
             console.log('Spawning Creep in ' + spawnRoom + " with name " + newName);
             let spawnSuccess = spawn.spawnCreep(body, newName, {memory: memory});
             if (spawnSuccess == 0) {
-                if (!Memory.gameStages[room].spawns) {
-                    Memory.gameStages[room].spawns = {};
+                if (!Memory.roomsPersistent[room].spawns) {
+                    Memory.roomsPersistent[room].spawns = {};
                 }
-                Memory.gameStages[room].spawns[spawn.name] = role;
-                Memory.gameStages[room].extensionsFilled = false;
+                Memory.roomsPersistent[room].spawns[spawn.name] = role;
+                Memory.roomsPersistent[room].extensionsFilled = false;
             }
         }
 

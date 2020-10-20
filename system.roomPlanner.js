@@ -1,22 +1,22 @@
 var systemRoomPlanner = {
     run: function() {
-        if (!Memory.gameStages["excluded"]) {
+        if (!Memory.roomsPersistent["excluded"]) {
             //rooms that were already established before I implemented this
-            Memory.gameStages["excluded"] = ["E44N23", "E45N22"];
+            Memory.roomsPersistent["excluded"] = ["E44N23", "E45N22"];
         }
-        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && !Memory.gameStages["excluded"].includes(room) && Game.rooms[room].controller.level > 0);
+        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && !Memory.roomsPersistent["excluded"].includes(room) && Game.rooms[room].controller.level > 0);
         for (var room of myRooms) {
-            if (Memory.gameStages[room].rank < Game.rooms[room].controller.level) {
+            if (Memory.roomsPersistent[room].rank < Game.rooms[room].controller.level) {
                 //tell the room that more extensions need to be made
-                Memory.gameStages[room].extensionsMaxed = false;
+                Memory.roomsPersistent[room].extensionsMaxed = false;
                 let roomSpawn = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => {return structure.structureType == STRUCTURE_SPAWN}})[0];
                 let sources = Game.rooms[room].find(FIND_SOURCES);
                 console.log("room planning to do!");
                 //BUILDS EXTENSIONS AT EACH CONTROLLER LEVEL
-                if (!Memory.gameStages[room].extensionsMaxed) {
-                    if (!Memory.gameStages[room].buildingSpots) {
-                        Memory.gameStages[room].buildingSpots = {};
+                if (!Memory.roomsPersistent[room].extensionsMaxed) {
+                    if (!Memory.roomsPersistent[room].buildingSpots) {
+                        Memory.roomsPersistent[room].buildingSpots = {};
                         //check what tiles to build a grid on
                         let grid = (roomSpawn.pos.x + roomSpawn.pos.y) % 2;
                         //shift the area if the spawn is too close to edges
@@ -61,17 +61,17 @@ var systemRoomPlanner = {
                         //decided not to store objects, but strings instead
                         var extSpotsSorted = _.sortBy(extSpots, (pos) => pos.findPathTo(roomSpawn).length);
                         var rdSpotsSorted = _.sortBy(rdSpots, (pos) => pos.findPathTo(roomSpawn).length);
-                        Memory.gameStages[room].buildingSpots["extensions"] = [];
-                        Memory.gameStages[room].buildingSpots["roads"] = [];
-                        Memory.gameStages[room].buildingSpots["ramparts"] = [];
+                        Memory.roomsPersistent[room].buildingSpots["extensions"] = [];
+                        Memory.roomsPersistent[room].buildingSpots["roads"] = [];
+                        Memory.roomsPersistent[room].buildingSpots["ramparts"] = [];
                         for (let pos of extSpotsSorted) {
-                            Memory.gameStages[room].buildingSpots["extensions"].push(pos.x + "," + pos.y);
+                            Memory.roomsPersistent[room].buildingSpots["extensions"].push(pos.x + "," + pos.y);
                         }
                         for (let pos of rdSpotsSorted) {
-                            Memory.gameStages[room].buildingSpots["roads"].push(pos.x + "," + pos.y);
+                            Memory.roomsPersistent[room].buildingSpots["roads"].push(pos.x + "," + pos.y);
                         }
                         for (let pos of rampSpots) {
-                            Memory.gameStages[room].buildingSpots["ramparts"].push(pos.x + "," + pos.y);
+                            Memory.roomsPersistent[room].buildingSpots["ramparts"].push(pos.x + "," + pos.y);
                         }
                     }
                     //Actual building of the extensions
@@ -82,8 +82,8 @@ var systemRoomPlanner = {
                     let maxExt = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][Game.rooms[room].controller.level];
                     let extToBuild = maxExt - (numExt + numBuildingExt);
                     while (extToBuild > 0) {
-                        let rdStringPos = Memory.gameStages[room].buildingSpots["roads"].shift();
-                        let extStringPos = Memory.gameStages[room].buildingSpots["extensions"].shift();
+                        let rdStringPos = Memory.roomsPersistent[room].buildingSpots["roads"].shift();
+                        let extStringPos = Memory.roomsPersistent[room].buildingSpots["extensions"].shift();
                         let rdSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
                         let extSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(extStringPos.split(",")[0], extStringPos.split(",")[1], room), STRUCTURE_EXTENSION);
                         if (extSuccess == 0) {
@@ -91,7 +91,7 @@ var systemRoomPlanner = {
                         }
                     }
                     if (extToBuild == 0) {
-                        Memory.gameStages[room].extensionsMaxed = true;
+                        Memory.roomsPersistent[room].extensionsMaxed = true;
                     }
                     //BUILDS TOWERS WHEN IT CAN IN THE PLACE OF AN EXT
                     let numTower = Game.rooms[room].find(FIND_STRUCTURES, {
@@ -101,8 +101,8 @@ var systemRoomPlanner = {
                     let maxTower = CONTROLLER_STRUCTURES[STRUCTURE_TOWER][Game.rooms[room].controller.level];
                     let towersToBuild = maxTower - (numTower + numBuildingTower);
                     while (towersToBuild > 0) {
-                        let rdStringPos = Memory.gameStages[room].buildingSpots["roads"].shift();
-                        let twrStringPos = Memory.gameStages[room].buildingSpots["extensions"].shift();
+                        let rdStringPos = Memory.roomsPersistent[room].buildingSpots["roads"].shift();
+                        let twrStringPos = Memory.roomsPersistent[room].buildingSpots["extensions"].shift();
                         let rdSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(rdStringPos.split(",")[0], rdStringPos.split(",")[1], room), STRUCTURE_ROAD);
                         let twrSuccess = Game.rooms[room].createConstructionSite(new RoomPosition(twrStringPos.split(",")[0], twrStringPos.split(",")[1], room), STRUCTURE_TOWER);
                         if (twrSuccess == 0) {
@@ -112,10 +112,10 @@ var systemRoomPlanner = {
                 }
                 //BUILDS CONTAINERS AT CONTROLLER LEVEL 2
                 if (Game.rooms[room].controller.level == 2) {
-                    if (!Memory.gameStages[room].containersBuilt) {
+                    if (!Memory.roomsPersistent[room].containersBuilt) {
                         let closest = []
                         for (var i in sources) {
-                            let positions = Memory.rooms[Game.rooms[room].name]["sources"][sources[i].id]["positions"].map(
+                            let positions = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["positions"].map(
                                 (pos) => {return new RoomPosition(pos.split(",")[0], pos.split(",")[1], room)})
                             closest.push(roomSpawn.pos.findClosestByPath(positions));
                             
@@ -123,12 +123,12 @@ var systemRoomPlanner = {
                         for (var close of closest) {
                             close.createConstructionSite(STRUCTURE_CONTAINER);
                         }
-                        Memory.gameStages[room].containersBuilt = true;
+                        Memory.roomsPersistent[room].containersBuilt = true;
                     }
                 }
                 //BUILDS ROADS AT CONTROLLER LEVEL 3
                 if (Game.rooms[room].controller.level == 3) {
-                    if (!Memory.gameStages[room].roadsBuilt) {
+                    if (!Memory.roomsPersistent[room].roadsBuilt) {
                         let sourcePaths = [];
                         for (var i in sources) {
                             sourcePaths.push(roomSpawn.pos.findPathTo(sources[i].pos, {range: 1, ignoreCreeps: true}));
@@ -139,13 +139,13 @@ var systemRoomPlanner = {
                                 Game.rooms[room].createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD);
                             }
                         }
-                        Memory.gameStages[room].roadsBuilt = true;
+                        Memory.roomsPersistent[room].roadsBuilt = true;
                     }
                 }
                 //BUILDS RAMPARTS AT CONTROLLER LEVEL 4
                 if (Game.rooms[room].controller.level == 4) {
-                    if (!Memory.gameStages[room].rampartsBuilt) {
-                        for (var pos of Memory.gameStages[room].buildingSpots["ramparts"]) {
+                    if (!Memory.roomsPersistent[room].rampartsBuilt) {
+                        for (var pos of Memory.roomsPersistent[room].buildingSpots["ramparts"]) {
                             let grid = (roomSpawn.pos.x + roomSpawn.pos.y) % 2;
                             
                             //alternates walls and ramparts, but places ramparts on any structures that might be on the border, mostly roads.
@@ -156,11 +156,11 @@ var systemRoomPlanner = {
                                 Game.rooms[room].createConstructionSite(new RoomPosition(pos.split(",")[0], pos.split(",")[1], room), STRUCTURE_RAMPART);
                             }
                         }
-                        Memory.gameStages[room].rampartsBuilt = true;
+                        Memory.roomsPersistent[room].rampartsBuilt = true;
                     }
                 }
 
-                Memory.gameStages[room].rank = Game.rooms[room].controller.level;
+                Memory.roomsPersistent[room].rank = Game.rooms[room].controller.level;
             } 
         }
     }
