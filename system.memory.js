@@ -4,7 +4,7 @@ var systemMemory = {
         if (!Memory.gameStages) {
             Memory.gameStages = {}
         }
-        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Game.rooms[room].find(FIND_MY_SPAWNS)[0]);
+        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
             for (let room of myRooms) {
                 if (!Memory.gameStages[room]) {
                     Memory.gameStages[room] = {};
@@ -106,6 +106,8 @@ var systemMemory = {
                     var links = Game.rooms[room].find(FIND_STRUCTURES, {
                         filter: (structure) => structure.structureType == STRUCTURE_LINK});
                     
+                        var spawns = Game.rooms[room].find(FIND_MY_SPAWNS);
+                    
                     if (!currentRoom["walls"]) {
                         currentRoom["walls"] = [];
                     }
@@ -180,6 +182,13 @@ var systemMemory = {
                             currentRoom["links"]["none"].push(links[i].id);
                             currentRoom["links"]["all"][links[i].id]["type"] = "none";
                         }
+                    }
+
+                    if (!currentRoom["spawns"]) {
+                        currentRoom["spawns"] = [];
+                    }
+                    for (var i in spawns) {
+                        currentRoom["spawns"].push(spawns[i].id)
                     }
                     //do the rest of the structures
                 }

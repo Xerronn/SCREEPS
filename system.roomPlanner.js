@@ -4,8 +4,8 @@ var systemRoomPlanner = {
             //rooms that were already established before I implemented this
             Memory.gameStages["excluded"] = ["E44N23", "E45N22"];
         }
-        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && !Memory.gameStages["excluded"].includes(room) && Game.rooms[room].find(FIND_MY_SPAWNS)[0]);
-        for (let room of myRooms) {
+        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && !Memory.gameStages["excluded"].includes(room) && Game.rooms[room].controller.level > 0);
+        for (var room of myRooms) {
             if (Memory.gameStages[room].rank < Game.rooms[room].controller.level) {
                 //tell the room that more extensions need to be made
                 Memory.gameStages[room].extensionsMaxed = false;

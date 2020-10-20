@@ -2,18 +2,15 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        var controller = creep.room.controller;
-        if (controller) {
-            var targets = creep.room.find(FIND_MY_STRUCTURES, {
-                filter: (structure) => {
-                    return [STRUCTURE_LINK].includes(structure.structureType);
-                }
-            });
-            if(targets.length > 0) {
-                var link = controller.pos.findInRange(targets,6)[0];
+        if (!creep.memory.link) {
+            if (Memory.rooms[creep.room.name].structures.links.controller) {
+                creep.memory.link = Memory.rooms[creep.room.name].structures.links.controller[0];
+            } else {
+                creep.memory.link = null;
             }
-        }
+        } //ADD IN MEMORY FOR THIS
 
+        var link = Game.getObjectById(creep.memory.link);
         var storage = creep.room.storage;
 
         //console.log(link);
