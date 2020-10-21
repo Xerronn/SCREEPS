@@ -19,15 +19,15 @@ var structureLink = {
 
             switch (linkType) {
                 case "storage":
-                    if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 500 && controllerLinks[0]) {
-                        if (controllerLinks[0].store.getUsedCapacity(RESOURCE_ENERGY) <= controllerLinks[0].store.getCapacity(RESOURCE_ENERGY) / 1.2) {
+                    if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 200 && controllerLinks[0]) {
+                        if (controllerLinks[0].store.getUsedCapacity(RESOURCE_ENERGY) < 650) {
                             link.transferEnergy(controllerLinks[0]);
                         }
                     }
                     break;
                 case "container":
                 case "none":
-                    if (link.store.getFreeCapacity(RESOURCE_ENERGY) >= link.store.getCapacity() / 2 && storageLinks[0]) {
+                    if (link.store.getFreeCapacity(RESOURCE_ENERGY) <= 400 && storageLinks[0]) {
                         if (storageLinks[0].store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
                             link.transferEnergy(storageLinks[0]);
                         }

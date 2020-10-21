@@ -10,11 +10,11 @@ var roleLinker = {
         } else if (creep.store.getFreeCapacity() == 0) {
             creep.memory.mining = false;
         }
-        if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 650 && link.store.getUsedCapacity(RESOURCE_ENERGY) <= 750) {
+        if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 350 && link.store.getUsedCapacity(RESOURCE_ENERGY) <= 450) {
             return;
         }
         if (creep.memory.mining) {
-            if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 700) {
+            if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 400) {
                 if (creep.pos.inRangeTo(link, 1)) {
                     creep.withdraw(link, RESOURCE_ENERGY);
                 } else {
@@ -28,7 +28,7 @@ var roleLinker = {
                 }
             }            
         } else {
-            if (link.store.getUsedCapacity(RESOURCE_ENERGY) <= 700) {
+            if (link.store.getUsedCapacity(RESOURCE_ENERGY) <= 400) {
                 if (creep.pos.inRangeTo(link, 1)) {
                     creep.transfer(link, RESOURCE_ENERGY);
                 } else {
