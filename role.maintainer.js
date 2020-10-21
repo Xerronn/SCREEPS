@@ -67,8 +67,8 @@ var roleMaintainer= {
                     
                 } else {
                     creep.memory.target = "none";
-                    //fill spawns/extensions only if not being attacked
-                    if (Memory.roomsPersistent[room].attackStatus == false) {
+                    //fill spawns/extensions only if not being attacked and they need to be filled
+                    if (Memory.roomsPersistent[room].attackStatus == false && !Memory.roomsPersistent[creep.pos.roomName].extensionsFilled) {
                         if (!creep.memory.target || creep.memory.target == "none") {
                             creep.memory.target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                                 filter: (structure) => {
@@ -87,8 +87,8 @@ var roleMaintainer= {
                     }
                 }
             } else {
-                //fill spawns/extensions first to prevent softlocking
-                if (Memory.roomsPersistent[room].attackStatus == false) {
+                //fill spawns/extensions first to prevent softlocking in early rooms
+                if (Memory.roomsPersistent[room].attackStatus == false && !Memory.roomsPersistent[creep.pos.roomName].extensionsFilled) {
                     if (!creep.memory.target || creep.memory.target == "none") {
                         creep.memory.target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                             filter: (structure) => {

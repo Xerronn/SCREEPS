@@ -19,8 +19,8 @@ var structureLink = {
 
             switch (linkType) {
                 case "storage":
-                    if (link.store.getFreeCapacity(RESOURCE_ENERGY) >= link.store.getCapacity(RESOURCE_ENERGY) / 2 && controllerLinks[0]) {
-                        if (controllerLinks[0].store.getUsedCapacity(RESOURCE_ENERGY) <= controllerLinks[0].store.getCapacity(RESOURCE_ENERGY) / 2) {
+                    if (link.store.getUsedCapacity(RESOURCE_ENERGY) >= 500 && controllerLinks[0]) {
+                        if (controllerLinks[0].store.getUsedCapacity(RESOURCE_ENERGY) <= controllerLinks[0].store.getCapacity(RESOURCE_ENERGY) / 1.2) {
                             link.transferEnergy(controllerLinks[0]);
                         }
                     }

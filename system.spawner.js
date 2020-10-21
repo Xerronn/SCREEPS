@@ -254,7 +254,7 @@ var systemSpawner2 = {
                     if (!hasRoads) {
                         body = buildComposition(spawnRoom, [WORK, CARRY, MOVE, MOVE], true);
                     } else {
-                        body = buildComposition(spawnRoom, [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], false);
+                        body = buildComposition(spawnRoom, [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], false);
                     }
                     break;
                 case "transporter":
@@ -266,7 +266,7 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 1000);
                     break;
                 case "upgrader":
-                    if (Memory.roomsCache[spawnRoom].structures.links.storage && Memory.roomsCache[spawnRoom].structures.links.controller.length > 0) {
+                    if (Memory.roomsCache[spawnRoom].structures.links.controller && Memory.roomsCache[spawnRoom].structures.links.controller.length > 0) {
                         body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY], hasRoads);
                     } else {
                         body = addMoves([WORK, CARRY], hasRoads);
@@ -304,7 +304,6 @@ var systemSpawner2 = {
                     Memory.roomsPersistent[room].spawns = {};
                 }
                 Memory.roomsPersistent[room].spawns[spawn.name] = role;
-                Memory.roomsPersistent[room].extensionsFilled = false;
             }
         }
 

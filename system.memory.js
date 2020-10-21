@@ -1,23 +1,31 @@
 var systemMemory = {
     run: function() {
-        //GAMESTAGE DATA
+        //PERSISTENT DATA
         if (!Memory.roomsPersistent) {
             Memory.roomsPersistent = {}
         }
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
-            for (let room of myRooms) {
-                if (!Memory.roomsPersistent[room]) {
-                    Memory.roomsPersistent[room] = {};
-                    Memory.roomsPersistent[room].roadsBuilt = false;
-                    if (Game.rooms[room].controller.my) {
-                        Memory.roomsPersistent[room].rank = Game.rooms[room].controller.level;
-                    } else {
-                        Memory.roomsPersistent[room].rank = -1;
-                    } 
-                }   
+        for (let room of myRooms) {
+            if (!Memory.roomsPersistent[room]) {
+                Memory.roomsPersistent[room] = {};
+                Memory.roomsPersistent[room].roadsBuilt = false;
+                if (Game.rooms[room].controller.my) {
+                    Memory.roomsPersistent[room].rank = Game.rooms[room].controller.level;
+                } else {
+                    Memory.roomsPersistent[room].rank = -1;
+                } 
+            }   
+            if (!Memory.roomsPersistent[room].extensionsFilled) {
+                Memory.roomsPersistent[room].extensionsFilled = false;
             }
-
-        //ROOM MEMMORY
+            if (Game.rooms[room].energyAvailable < Game.rooms[room].energyCapacityAvailable) {
+                Memory.roomsPersistent[room].extensionsFilled = false;
+            } else {
+                Memory.roomsPersistent[room].extensionsFilled = true;
+            }
+        }
+        
+        //ROOM CAHE MEMMORY
         if (!Memory.roomsCache) {
             Memory.roomsCache = {};
             console.log("Room Memory reset");
