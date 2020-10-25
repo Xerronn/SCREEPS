@@ -94,7 +94,7 @@ var systemSpawner2 = {
             var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.room.name == room);
             var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
             var upgraderCount = 1;
-            if (roomController.level < 4 ||(Memory.roomsCache[room].structures.links.storage && Memory.roomsCache[room].structures.links.controller.length < 1)) upgraderCount = 3;
+            //if (roomController.level < 4 ||(Memory.roomsCache[room].structures.links.storage && Memory.roomsCache[room].structures.links.controller.length < 1)) upgraderCount = 3;
             var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room && creep.ticksToLive > 150);
             var towers = Memory.roomsCache[room].structures.towers;
             var repairers = _.filter(Game.creeps, (creep) => creep.memory.role == 'repairer' && creep.room.name == room);
@@ -331,7 +331,7 @@ var systemSpawner2 = {
                     break;
                 case "upgrader":
                     if (Memory.roomsCache[spawnRoom].structures.links.controller && Memory.roomsCache[spawnRoom].structures.links.controller.length > 0) {
-                        body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY], hasRoads);
+                        body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY], hasRoads);
                     } else {
                         body = addMoves([WORK, CARRY], hasRoads);
                     }
