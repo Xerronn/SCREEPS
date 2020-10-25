@@ -23,6 +23,7 @@ module.exports.loop = function () {
             }
         }
         
+        //needs rework
         for (var spawn of spawns) {
             if (Game.spawns[spawn].hits < Game.spawns[spawn].hitsMax) {
                 console.log("EMERGENCY ACTIVATING SAFE MODE");
@@ -44,5 +45,10 @@ module.exports.loop = function () {
 
         //task assignment:
         systemTaskManager.run();
+        
+        //pixelsss
+        if (Game.cpu["bucket"] > 9000) {
+            Game.cpu.generatePixel();
+        }
     });
 }

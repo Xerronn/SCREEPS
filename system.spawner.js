@@ -51,7 +51,7 @@ var systemSpawner2 = {
         for (var room of myRooms) {
 
             //This block of code determines if the room is under attack or not
-            if (!Memory.roomsPersistent[room].attackStatus || Game.time > Memory.roomsCache[room].attackStatusTimer + 150) {
+            if (!Memory.roomsPersistent[room].attackStatus || Game.time > Memory.roomsPersistent[room].attackStatusTimer + 150) {
                 Memory.roomsPersistent[room].attackStatus = false;
             }
             let hostileCreeps = Game.rooms[room].find(FIND_HOSTILE_CREEPS);
@@ -66,6 +66,13 @@ var systemSpawner2 = {
                     }
                 });
             }
+            //This will prevent the spawner logic from running when its not needed. Find a way to account for the spawns that happen before the creep dies
+            // if (!Memory.roomsPersistent[room].readyToSpawn) {
+            //     Memory.roomsPersistent[room].readyToSpawn = false;
+            // }
+            // if (Memory.roomsPersistent[room].readyToSpawn == false) {
+            //     continue;
+            // }
             
             //begin of spawning loop. Loop through each spawn in the room
             var roomSpawns = Memory.roomsCache[room].structures["spawns"].map(spawnID => Game.getObjectById(spawnID));
@@ -98,6 +105,9 @@ var systemSpawner2 = {
                 if (spawn.spawning) {
                     continue;
                 }
+
+                //list to hold everything that needs to spawn
+                var spawnQueue = [];
                 
                 //set spawning memory to not spawning
                 if (!Memory.roomsPersistent[room].spawns) {
@@ -115,9 +125,10 @@ var systemSpawner2 = {
                             filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
                             structure.store.getCapacity() > 0
                         });
-                        var assignedContainer = roomSpawn.pos.findClosestByRange(containers);
+                        var assignedContainer = spawn.pos.findClosestByRange(containers);
                         let memory = {role: 'transporter', assignedContainer: assignedContainer.id}
-                        spawnCreep(spawn, "transporter", memory);
+                        spawnCreep(spawn, "panic", memory, hasRoads);
+                        break;
                     }
                 }
 
@@ -128,20 +139,30 @@ var systemSpawner2 = {
                     if (assignedWorker.length < 1) {
                         if (!currentlySpawning.includes("transporter")) {
                             let memory = {role: 'transporter', assignedContainer: container}
-                            spawnCreep(spawn, "transporter", memory, hasRoads);
+                            spawnQueue.unshift({
+                                creepSpawn: spawn,
+                                creepName: "transporter",
+                                creepMemory: memory,
+                                creepHasRoads: hasRoads
+                            });
                         }
                     }
                 }
 
                 //miners spawning
                 for (var source of sources) {
-                    let assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source && creep.ticksToLive > 50);      
+                    let assignedWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source && creep.ticksToLive > 100);      
                     if (assignedWorker.length < 1) {
                         if (!currentlySpawning.includes("miner")) {
                             let assignedContainer = Memory.roomsCache[Game.rooms[room].name]["sources"][source]["container"];
                             let assignedLink = Memory.roomsCache[Game.rooms[room].name]["sources"][source]["link"];
                             let memory = {role: 'miner', assignedSource: source, assignedContainer: assignedContainer, assignedLink: assignedLink};
-                            spawnCreep(spawn, "miner", memory, hasRoads);
+                            spawnQueue.unshift({
+                                creepSpawn: spawn,
+                                creepName: "miner",
+                                creepMemory: memory,
+                                creepHasRoads: hasRoads
+                            });
                         }
                     }
                 }
@@ -149,14 +170,24 @@ var systemSpawner2 = {
                 //builder spawning
                 if (builders.length < 2 && constructionSites.length > 0) {
                     if (!currentlySpawning.includes("builder")) {
-                        spawnCreep(spawn, "builder", {role: "builder"}, hasRoads=hasRoads);
+                        spawnQueue.push({
+                            creepSpawn: spawn,
+                            creepName: "builder",
+                            creepMemory: {role: "builder"},
+                            creepHasRoads: hasRoads
+                        });
                     }
                 }
 
                 //upgrader spawning
                 if (upgraders.length < upgraderCount) {
                     if (!currentlySpawning.includes("upgrader")) {
-                        spawnCreep(spawn, "upgrader", {role: "upgrader"}, hasRoads=hasRoads);
+                        spawnQueue.push({
+                            creepSpawn: spawn,
+                            creepName: "upgrader",
+                            creepMemory: {role: "upgrader"},
+                            creepHasRoads: hasRoads
+                        });
                     }
                 }
 
@@ -170,7 +201,12 @@ var systemSpawner2 = {
                             var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
                             let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
                             let memory = {role: 'remoteDefender', assignedRoom: room};
-                            spawnCreep(chosenSpawn, "remoteDefender", memory, hasRoads=hasRoads);
+                            spawnQueue.push({
+                                creepSpawn: chosenSpawn,
+                                creepName: "remoteDefender",
+                                creepMemory: memory,
+                                creepHasRoads: hasRoads
+                            });
                         }
                     }
                 }
@@ -179,7 +215,12 @@ var systemSpawner2 = {
                 if (containers.length > 0 && towers.length < 1){
                     if (repairers.length < 1) {
                         if (!currentlySpawning.includes("repairer")) {
-                            spawnCreep(spawn, "repairer", {role: "repairer"}, hasRoads=hasRoads);
+                            spawnQueue.push({
+                                creepSpawn: spawn,
+                                creepName: "repairer",
+                                creepMemory: {role: "repairer"},
+                                creepHasRoads: hasRoads
+                            });
                         }
                     }
                 }
@@ -189,7 +230,12 @@ var systemSpawner2 = {
                     //maintainer spawning
                     if (maintainers.length < 1 && towers) {
                         if (!currentlySpawning.includes("maintainer")) {
-                            spawnCreep(spawn, "maintainer", {role: "maintainer"}, hasRoads=hasRoads);
+                            spawnQueue.push({
+                                creepSpawn: spawn,
+                                creepName: "maintainer",
+                                creepMemory: {role: "maintainer"},
+                                creepHasRoads: hasRoads
+                            });
                         }
                     }
 
@@ -205,7 +251,12 @@ var systemSpawner2 = {
                                     if (assignedWorker.length < 1) {
                                         if (!currentlySpawning.includes("linker")) {
                                             let memory = {role: 'linker', assignedLink: link, assignedStorage: storage.id};
-                                            spawnCreep(spawn, "linker", memory, hasRoads=hasRoads);
+                                            spawnQueue.push({
+                                                creepSpawn: spawn,
+                                                creepName: "linker",
+                                                creepMemory: memory,
+                                                creepHasRoads: hasRoads
+                                            });
                                         }
                                     }
                                 }
@@ -215,10 +266,19 @@ var systemSpawner2 = {
                         //waller spawning
                         if (wallers.length < 1) {
                             if (!currentlySpawning.includes("waller")) {
-                                spawnCreep(spawn, "waller", {role: "waller"}, hasRoads=hasRoads);
+                                spawnQueue.push({
+                                    creepSpawn: spawn,
+                                    creepName: "waller",
+                                    creepMemory: {role: "waller"},
+                                    creepHasRoads: hasRoads
+                                });
                             }
                         }
                     }
+                }
+
+                if (spawnQueue.length > 0) {
+                    spawnCreep(spawnQueue[0]["creepSpawn"], spawnQueue[0]["creepName"], spawnQueue[0]["creepMemory"], spawnQueue[0]["creepHasRoads"]);
                 }
 
                 //to print the little status symbol next to the spawn
@@ -261,6 +321,10 @@ var systemSpawner2 = {
                     body = addMoves([CARRY], hasRoads);
                     body = buildComposition(spawnRoom, body, true, 800);
                     break;
+                case "panic":
+                    body = addMoves([CARRY], hasRoads);
+                    body = buildComposition(spawnRoom, body, true, 300);
+                    break;
                 case "builder":
                     body = addMoves([WORK, CARRY, CARRY], hasRoads);
                     body = buildComposition(spawnRoom, body, true, 1000);
@@ -297,7 +361,9 @@ var systemSpawner2 = {
                     break;
             }
             var newName = spawnRoom + "/" + role + "/" + Game.time;
-            console.log('Spawning Creep in ' + spawnRoom + " with name " + newName);
+            let hyperLink = "<a href='#!/room/shard3/" + spawnRoom + "'>" + spawnRoom + "</a>"
+            console.log('Spawning Creep in ' + hyperLink + " with name " + newName);
+            
             let spawnSuccess = spawn.spawnCreep(body, newName, {memory: memory});
             if (spawnSuccess == 0) {
                 if (!Memory.roomsPersistent[room].spawns) {
