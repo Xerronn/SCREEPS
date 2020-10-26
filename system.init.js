@@ -13,6 +13,8 @@ var systemInit = {
         global.TASK_BUILD = "build";
         global.TASK_UPGRADE = "upgrade";
         global.TASK_REPAIR = "repair";
+
+        global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
         
         
         global.ALL_TASKS = [
@@ -28,7 +30,9 @@ var systemInit = {
             
             TASK_BUILD,
             TASK_UPGRADE,
-            TASK_REPAIR
+            TASK_REPAIR,
+
+            TASK_REMOTE
         ];
 
         //prototype overrides
@@ -144,21 +148,35 @@ var systemInit = {
                 if (!Memory.roomsPersistent[this.pos.roomName].extensionsFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
                     //find the closest extensions
                     //TODO: optimize this somehow
-                    var target = this.pos.findClosestByPath(FIND_STRUCTURES, {
-                        filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
-                                structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
-                            });
+                    if (this.memory.fillTarget && this.memory.fillTarget != "none") {
+                        let creepfillTarget = Game.getObjectById(this.memory.fillTarget);
+
+                        //set the memory to none if it is full
+                        if (creepfillTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                            this.memory.fillTarget = "none";
+                        }
+                    }
+
+                    //assign a new object that needs filling to be the target
+                    if (!this.memory.fillTarget || this.memory.fillTarget == "none") {
+                        this.memory.fillTarget = this.pos.findClosestByPath(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
+                                }).id;
+                    }
+                    
                 } else {
                     return true; //move to next task
                 }
 
                 //if there is a target, move towards it and transfer
-                if(target) {
-                    if (this.pos.inRangeTo(target, 1)) {
-                        this.transfer(target, RESOURCE_ENERGY);
+                var creepFillTarget = Game.getObjectById(this.memory.fillTarget);
+                if(creepFillTarget) {
+                    if (this.pos.inRangeTo(creepFillTarget, 1)) {
+                        this.transfer(creepFillTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(target, {visualizePathStyle: {stroke: '#00dbfe', lineStyle: 'undefined'}});
+                        this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#00dbfe', lineStyle: 'undefined'}});
                     }
                 }
                 return false; //do it again
@@ -195,6 +213,16 @@ var systemInit = {
                     return true; //move on to next task
                 }
             }
+        }
+
+
+
+        //task to build structures
+        if (!Creep.prototype._build) {
+            //store the original version of the function
+            Creep.prototype._build = Creep.prototype.build;
+
+
         }
     }
 };
