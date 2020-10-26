@@ -6,9 +6,10 @@ const systemSpawner = require('system.spawner');
 const systemRoomPlanner = require('system.roomPlanner');
 const systemTaskManager = require('system.taskManager');
 
+const systemInit = require('system.init');
+
 profiler.enable();
 module.exports.loop = function () {
-    profiler.wrap(function() {
         var spawns = Object.keys(Game.spawns);
         var creeps = Object.keys(Game.creeps);
         //in case of no existing spawns or creeps
@@ -18,6 +19,20 @@ module.exports.loop = function () {
         //clear memory of dead creeps
         for(var name in Memory.creeps) {
             if(!Game.creeps[name]) {
+                //remove the assigned worker from assignedSource memory
+                try {
+                    if (Memory.creeps[name].assignedSource) {
+                        let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);
+                        let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].workers;
+                        let index = array.indexOf(name);
+                        if (index > -1) {
+                            array.splice(index, 1)
+                            Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].workers = array;
+                        }
+                    }
+                } catch (err) {
+                    //TODO: figure out how to avoid errors
+                }
                 delete Memory.creeps[name];
                 console.log('Clearing non-existing creep memory:', name);
             }
@@ -34,21 +49,22 @@ module.exports.loop = function () {
         //in case of respawn
         systemMemory.run();
 
-        if (Memory.roomsCache) {
-            systemSpawner.run();
-            //rework UI
-            systemUI.run();
-            systemRoomPlanner.run();
-        } else {
-            console.log("System tasks skipped due to absence of memory");
-        }
+        // if (Memory.roomsCache) {
+        //     systemSpawner.run();
+        //     //rework UI
+        //     systemUI.run();
+        //     systemRoomPlanner.run();
+        // } else {
+        //     console.log("System tasks skipped due to absence of memory");
+        // }
 
-        //task assignment:
+        // //task assignment:
+        systemInit.run();
         systemTaskManager.run();
         
         //pixelsss
-        if (Game.cpu["bucket"] > 9000) {
-            Game.cpu.generatePixel();
-        }
-    });
+        // if (Game.cpu["bucket"] > 9000) {
+        //     Game.cpu.generatePixel();
+        // }
+    //});
 }

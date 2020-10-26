@@ -6,15 +6,10 @@ var systemMemory = {
         }
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
         for (let room of myRooms) {
-            if (!Memory.roomsPersistent[room]) {
+            //whether or not the extensions need filling in this room
+            if (!Memory.roomsPersistent[room]){
                 Memory.roomsPersistent[room] = {};
-                Memory.roomsPersistent[room].roadsBuilt = false;
-                if (Game.rooms[room].controller.my) {
-                    Memory.roomsPersistent[room].rank = Game.rooms[room].controller.level;
-                } else {
-                    Memory.roomsPersistent[room].rank = -1;
-                } 
-            }   
+            }
             if (!Memory.roomsPersistent[room].extensionsFilled) {
                 Memory.roomsPersistent[room].extensionsFilled = false;
             }
@@ -23,7 +18,17 @@ var systemMemory = {
             } else {
                 Memory.roomsPersistent[room].extensionsFilled = true;
             }
+
+            //PERSISTENT SOURCE MEMORY
+            if (!Memory.roomsPersistent[room].sources) {
+                Memory.roomsPersistent[room].sources = {};
+                let sources = Game.rooms[room].find(FIND_SOURCES).map(source => source.id);
+                for (let source of sources) {
+                    Memory.roomsPersistent[room].sources[source] = {};
+                }
+            }
         }
+        
         
         //ROOM CAHE MEMMORY
         if (!Memory.roomsCache) {
@@ -54,44 +59,6 @@ var systemMemory = {
                         Memory.roomsCache[room]["stats"].storedEnergy = totalEnergy;
                     }
                 }
-                //SOURCE MEMORY
-                if (!Memory.roomsCache[room]["sources"]) {
-                    Memory.roomsCache[room]["sources"] = {};
-                    var sources = Game.rooms[room].find(FIND_SOURCES);
-
-                    for (var i in sources) {
-                        let openSpots = [];
-                        let terrain = Game.rooms[room].lookAtArea(sources[i].pos.y - 1, sources[i].pos.x - 1, sources[i].pos.y + 1, sources[i].pos.x + 1, true);
-                        for (var j in terrain) {
-                            if (terrain[j]["type"] == "terrain" && terrain[j]["terrain"] != "wall") {
-                                openSpots.push(terrain[j]['x'] + "," + terrain[j]['y']);
-                            }
-                        }
-                        let container;
-                        let link;
-                        let buildings = Game.rooms[room].lookForAtArea(LOOK_STRUCTURES, sources[i].pos.y - 2, sources[i].pos.x - 2, sources[i].pos.y + 2, sources[i].pos.x + 2, true);
-                        for (var j in buildings) {
-                            if (buildings[j]["structure"].structureType == STRUCTURE_CONTAINER) {
-                                container = buildings[j]["structure"].id;
-                            }
-                            if (buildings[j]["structure"].structureType == STRUCTURE_LINK) {
-                                link = buildings[j]["structure"].id;
-                            }
-                        }
-                        if (!container) {
-                            container = "none";
-                        }
-                        if (!link) {
-                            link = "none";
-                        }
-                        if (!Memory.roomsCache[room]["sources"][sources[i].id]) {
-                            Memory.roomsCache[room]["sources"][sources[i].id] = {};
-                        }
-                        Memory.roomsCache[room]["sources"][sources[i].id]["positions"] = openSpots;
-                        Memory.roomsCache[room]["sources"][sources[i].id]["container"] = container;
-                        Memory.roomsCache[room]["sources"][sources[i].id]["link"] = link;
-                    }
-                } 
                 //STRUCTURE MEMORY
                 if (!Memory.roomsCache[room]["structures"]) {
                     Memory.roomsCache[room]["structures"] = {};

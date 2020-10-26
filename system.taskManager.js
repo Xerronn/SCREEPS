@@ -10,6 +10,8 @@ const roleLinker = require('role.linker');
 const roleWaller = require('role.waller');
 const roleMiner = require('role.miner');
 
+const roleWorker = require('role.worker');
+
 const structureTower = require('structure.tower');
 const structureLink = require('structure.link');
 
@@ -28,6 +30,9 @@ var systemTaskManager = {
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
             switch (creep.memory.role) {
+                case 'worker':
+                    roleWorker.run(creep);
+                    break;
                 case 'miner':
                     roleMiner.run(creep);
                     break;
