@@ -22,6 +22,11 @@ var roleWorker = {
                 case TASK_FILL_TOWERS:
                 case TASK_TRANSPORT:
                 case TASK_BUILD:
+                    if (creep.build() == true) {
+                        taskCompleted = true;
+                        console.log("yeeted4")
+                    }
+                    break;
                 case TASK_UPGRADE:
                     if (creep.upgradeController() == true) {
                         taskCompleted = true;

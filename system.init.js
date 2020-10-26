@@ -147,7 +147,7 @@ var systemInit = {
                 //check memory if the room needs to be filled
                 if (!Memory.roomsPersistent[this.pos.roomName].extensionsFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
                     //find the closest extensions
-                    //TODO: optimize this somehow
+                    //TODO: optimize this somehow more
                     if (this.memory.fillTarget && this.memory.fillTarget != "none") {
                         let creepfillTarget = Game.getObjectById(this.memory.fillTarget);
 
@@ -222,7 +222,41 @@ var systemInit = {
             //store the original version of the function
             Creep.prototype._build = Creep.prototype.build;
 
+            Creep.prototype.build = function() {
+                //check memory if the room has any construction sites
+                if (Memory.roomsPersistent[this.pos.roomName].constructionSites.length > 0 && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
+                    //find the closest site
+                    //TODO: optimize this somehow more
+                    if (this.memory.siteTarget && this.memory.siteTarget != "none") {
+                        let creepSiteTarget = Game.getObjectById(this.memory.siteTarget);
 
+                        //set the memory to none if it no longer exists
+                        if (!creepSiteTarget) {
+                            this.memory.siteTarget = "none";
+                        }
+                    }
+                    //assign a new object that needs siteing to be the target
+                    if (!this.memory.siteTarget || this.memory.siteTarget == "none") {
+                        console.log("test2");
+                        let siteList = Memory.roomsPersistent[this.pos.roomName].constructionSites.map(site => Game.getObjectById(site));
+                        this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
+                    }
+                    
+                } else {
+                    return true; //move to next task
+                }
+
+                //if there is a target, move towards it and transfer
+                var creepSiteTarget = Game.getObjectById(this.memory.siteTarget);
+                if(creepSiteTarget) {
+                    if (this.pos.inRangeTo(creepSiteTarget, 1)) {
+                        this._build(creepSiteTarget, RESOURCE_ENERGY);
+                    } else {
+                        this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: '#4dfe00', lineStyle: 'undefined'}});
+                    }
+                }
+                return false; //do it again
+            }
         }
     }
 };

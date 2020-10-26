@@ -6,10 +6,11 @@ var systemMemory = {
         }
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
         for (let room of myRooms) {
-            //whether or not the extensions need filling in this room
+            //initialization of the persistent room memory
             if (!Memory.roomsPersistent[room]){
                 Memory.roomsPersistent[room] = {};
             }
+            //whether or not the extensions need filling in this room
             if (!Memory.roomsPersistent[room].extensionsFilled) {
                 Memory.roomsPersistent[room].extensionsFilled = false;
             }
@@ -27,10 +28,18 @@ var systemMemory = {
                     Memory.roomsPersistent[room].sources[source] = {};
                 }
             }
+
+            //whether or not there are construction sites in the room
+            //refreshes a list every 20 ticks
+            if (!Memory.roomsPersistent[room].constructionSites || Memory.roomsPersistent[room].constructionSitesRefresh + 20 < Game.time) {
+                console.log("Construction site list refreshed");
+                Memory.roomsPersistent[room].constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES).map(site => site.id);
+                Memory.roomsPersistent[room].constructionSitesRefresh = Game.time;
+            }
         }
         
         
-        //ROOM CAHE MEMMORY
+        //ROOM CACHE MEMMORY
         if (!Memory.roomsCache) {
             Memory.roomsCache = {};
             console.log("Room Memory reset");
