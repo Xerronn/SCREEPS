@@ -4,7 +4,7 @@ var systemSpawner2 = {
         //TODO:
         //CHECK IF THERE IS AN ONGOING ATTACK, IF SO STALL ALL NON ESSENTIAL CREEP SPAWNING AND SPAWN DEFENDERS
         //
-        
+
         //code snippet that handles expansions into new rooms
         //Add a new expansion target by executing Memory.expansion.push(target) in console
         if (!Memory.expansion) {
@@ -49,23 +49,6 @@ var systemSpawner2 = {
         //iterate through rooms that I own and have at least one spawn
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Memory.roomsCache[room].structures["spawns"].length > 0);
         for (var room of myRooms) {
-
-            //This block of code determines if the room is under attack or not
-            if (!Memory.roomsPersistent[room].attackStatus || Game.time > Memory.roomsPersistent[room].attackStatusTimer + 150) {
-                Memory.roomsPersistent[room].attackStatus = false;
-            }
-            let hostileCreeps = Game.rooms[room].find(FIND_HOSTILE_CREEPS);
-            if (hostileCreeps.length > 0) {
-                let eventLog = Game.rooms[room].getEventLog();
-                let attackEvents = _.filter(eventLog, {event: EVENT_ATTACK});
-                attackEvents.forEach(event => {
-                    let target = Game.getObjectById(event.data.targetId);
-                    if(target && target.my) {
-                        Memory.roomsPersistent[room].attackStatus = true;
-                        Memory.roomsPersistent[room].attackStatusTimer = Game.time;
-                    }
-                });
-            }
             //This will prevent the spawner logic from running when its not needed. Find a way to account for the spawns that happen before the creep dies
             // if (!Memory.roomsPersistent[room].readyToSpawn) {
             //     Memory.roomsPersistent[room].readyToSpawn = false;

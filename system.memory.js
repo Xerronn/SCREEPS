@@ -36,6 +36,23 @@ var systemMemory = {
                 Memory.roomsPersistent[room].constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES).map(site => site.id);
                 Memory.roomsPersistent[room].constructionSitesRefresh = Game.time;
             }
+
+            //Room attack status
+            if (!Memory.roomsPersistent[room].attackStatus || Game.time > Memory.roomsPersistent[room].attackStatusTimer + 150) {
+                Memory.roomsPersistent[room].attackStatus = false;
+            }
+            let hostileCreeps = Game.rooms[room].find(FIND_HOSTILE_CREEPS);
+            if (hostileCreeps.length > 0) {
+                let eventLog = Game.rooms[room].getEventLog();
+                let attackEvents = _.filter(eventLog, {event: EVENT_ATTACK});
+                attackEvents.forEach(event => {
+                    let target = Game.getObjectById(event.data.targetId);
+                    if(target && target.my) {
+                        Memory.roomsPersistent[room].attackStatus = true;
+                        Memory.roomsPersistent[room].attackStatusTimer = Game.time;
+                    }
+                });
+            }
         }
         
         

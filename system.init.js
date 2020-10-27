@@ -1,13 +1,14 @@
 var systemInit = {
     run: function() {
         //global declarations of some things
-        global.TASK_HARVEST = "harvest";
-        global.TASK_DROP_HARVEST = "drop_harvest";
-        global.TASK_WITHDRAW_STORAGE = "withdraw_storage";
+        //orders of task implementations are the same as these declarations
+        global.TASK_HARVEST = "harvest"; //implemented
+        global.TASK_DROP_HARVEST = "drop_harvest"; //implemented
+        global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
         global.TASK_WITHDRAW_CONTAINER = "withdraw_container";        
-        global.TASK_FILL_EXTENSIONS = "fill_extensions";
-        global.TASK_FILL_TOWERS = "fill_towers";
-        global.TASK_TRANSPORT = "transport_to_storage";
+        global.TASK_FILL_EXTENSIONS = "fill_extensions"; //implemented
+        global.TASK_FILL_TOWERS = "fill_towers"; 
+        global.TASK_FILL_STORAGE = "fill_storage";
         global.TASK_MANAGE_LINK = "manage_link"
 
         global.TASK_BUILD = "build";
@@ -15,7 +16,8 @@ var systemInit = {
         global.TASK_REPAIR = "repair";
 
         global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
-        
+        global.TASK_ROOM_CLAIM = "claim";
+        global.TASK_ROOM_RESERVE = "reserve";
         
         global.ALL_TASKS = [
             TASK_HARVEST,
@@ -25,14 +27,16 @@ var systemInit = {
 
             TASK_FILL_EXTENSIONS,
             TASK_FILL_TOWERS,
-            TASK_TRANSPORT,
+            TASK_FILL_STORAGE,
             TASK_MANAGE_LINK,
             
-            TASK_BUILD,
             TASK_UPGRADE,
+            TASK_BUILD,
             TASK_REPAIR,
 
-            TASK_REMOTE
+            TASK_REMOTE,
+            TASK_ROOM_CLAIM,
+            TASK_ROOM_RESERVE
         ];
 
         //prototype overrides
@@ -48,7 +52,7 @@ var systemInit = {
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
-                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && !this.memory.tasks.includes(TASK_DROP_HARVEST)) {
                     this.memory.harvesting = false;
                 }
 
@@ -141,6 +145,98 @@ var systemInit = {
 
 
 
+        //task to withdraw from a storage
+        if (!Creep.prototype.withdrawStorage) {
+            Creep.prototype.withdrawStorage = function() {
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                var creepStorage = this.room.storage;
+                if (!creepStorage || !this.memory.harvesting) {
+                    //remove this task if there is no storage
+                    if (!creepStorage) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_WITHDRAW_STORAGE);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return true; //move to next task if creep is full or if there is no storage
+                }
+                //withdraw from the storage
+                if (this.pos.inRangeTo(creepStorage, 1)) {
+                    this.withdraw(creepStorage, RESOURCE_ENERGY);
+                } else {
+                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                }
+            }
+        }
+
+
+
+        //task to withdraw from a container
+        if (!Creep.prototype.withdrawContainer) {
+            Creep.prototype.withdrawContainer = function() {
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+                //containers from memory
+                var creepContainers = Memory.roomsCache[this.room.name].structures.containers.filter(
+                    container => Game.getObjectById(container).store.getUsedCapacity(RESOURCE_ENERGY) > 0
+                ).map(
+                    container => Game.getObjectById(container)
+                    );
+                if (creepContainers.length == 0 || !this.memory.harvesting) {
+                    //remove this task if there is no containers
+                    if (creepContainers.length == 0) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_WITHDRAW_CONTAINER);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return true; //move to next task if creep is full or if there is no container
+                }
+                //find the closest of the containers
+                //TODO: optimize this somehow more
+                if (this.memory.containerTarget && this.memory.containerTarget != "none") {
+                    let creepcontainerTarget = Game.getObjectById(this.memory.containerTarget);
+
+                    //set the memory to none if it is empty
+                    if (creepcontainerTarget.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                        this.memory.containerTarget = "none";
+                    }
+                }
+
+                //assign a new object that needs filling to be the target
+                if (!this.memory.containerTarget || this.memory.containerTarget == "none") {
+                    this.memory.containerTarget = this.pos.findClosestByPath(creepContainers, {
+                        filter: (structure) => {
+                            return structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0}}).id;
+                }
+
+                var creepContainerTarget = Game.getObjectById(this.memory.containerTarget);
+                if (creepContainerTarget) {
+                    if (this.pos.inRangeTo(creepContainerTarget, 1)) {
+                        this.withdraw(creepContainerTarget, RESOURCE_ENERGY);
+                    } else {
+                        this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                    }
+                }
+                return false; //do it again
+            }
+        }
+
+
         //task to fill extensions and spawn
         if (!Creep.prototype.fillExtensions) {
             Creep.prototype.fillExtensions = function() {
@@ -176,7 +272,7 @@ var systemInit = {
                     if (this.pos.inRangeTo(creepFillTarget, 1)) {
                         this.transfer(creepFillTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#00dbfe', lineStyle: 'undefined'}});
+                        this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
                     }
                 }
                 return false; //do it again
@@ -235,11 +331,20 @@ var systemInit = {
                             this.memory.siteTarget = "none";
                         }
                     }
-                    //assign a new object that needs siteing to be the target
+                    //assign a new object that needs building to be the target
                     if (!this.memory.siteTarget || this.memory.siteTarget == "none") {
-                        console.log("test2");
-                        let siteList = Memory.roomsPersistent[this.pos.roomName].constructionSites.map(site => Game.getObjectById(site));
-                        this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
+                        //filter out null sites andthen convert to live objects
+                        let siteList = Memory.roomsPersistent[this.pos.roomName].constructionSites.filter(
+                                site => Game.getObjectById(site) != null
+                        ).map(
+                            site => Game.getObjectById(site)
+                        );
+                        //if there are any sites
+                        if (siteList.length > 0) {
+                            this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
+                        } else {
+                            return true; //move to next task if the last construction site is finished
+                        }
                     }
                     
                 } else {
@@ -258,6 +363,10 @@ var systemInit = {
                 return false; //do it again
             }
         }
+
+
+
+        //
     }
 };
 
