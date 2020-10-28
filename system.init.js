@@ -4,42 +4,25 @@ var systemInit = {
         //orders of task implementations are the same as these declarations
         global.TASK_HARVEST = "harvest"; //implemented
         global.TASK_HARVEST_DROP = "harvest_drop"; //implemented
-        global.TASK_HARVEST_LINK = "harvest_link";
+        global.TASK_HARVEST_LINK = "harvest_link"; //implemented
         global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
-        global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented      
-        global.TASK_FILL_EXTENSIONS = "fill_extensions"; //implemented
-        global.TASK_FILL_TOWERS = "fill_towers"; //implemented
+        global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
+        global.TASK_TRANSPORT = "transport";
+        
+        global.TASK_FILL_EXTENSION = "fill_extension"; //implemented
+        global.TASK_FILL_TOWER = "fill_tower"; //implemented
         global.TASK_FILL_STORAGE = "fill_storage";
-        global.TASK_FILL_LINK = "fill_link"
-        global.TASK_MANAGE_LINK = "manage_link"
+        global.TASK_FILL_LINK = "fill_link";
 
         global.TASK_BUILD = "build"; //implemented
         global.TASK_UPGRADE = "upgrade"; //implemented
+        global.TASK_MANAGE_LINK = "manage_link";
         global.TASK_REPAIR = "repair";
-
+        global.TASK_REPAIR_WALL = "repair_wall";
+ 
         global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
         global.TASK_ROOM_CLAIM = "claim";
         global.TASK_ROOM_RESERVE = "reserve";
-        
-        global.ALL_TASKS = [
-            TASK_HARVEST,
-            TASK_HARVEST_DROP,
-            TASK_WITHDRAW_STORAGE,
-            TASK_WITHDRAW_CONTAINER,
-
-            TASK_FILL_EXTENSIONS,
-            TASK_FILL_TOWERS,
-            TASK_FILL_STORAGE,
-            TASK_MANAGE_LINK,
-            
-            TASK_UPGRADE,
-            TASK_BUILD,
-            TASK_REPAIR,
-
-            TASK_REMOTE,
-            TASK_ROOM_CLAIM,
-            TASK_ROOM_RESERVE
-        ];
 
         //prototype overrides
         //prototype returns true if the task is complete
@@ -58,24 +41,23 @@ var systemInit = {
                     this.memory.harvesting = false;
                 }
 
-                //assign creep to source that has the least workers
-                //TODO: Handle source numWorkers memory and also link mining
+                //assign creep to source that has the least miners
                 if (!this.memory.assignedSource) {
                     var sourceList = Memory.roomsPersistent[this.room.name].sources;
                     var leastAttended = "none";
-                    //find the source with the least number of workers
+                    //find the source with the least number of miners
                     for (var source of Object.keys(sourceList)) {
                         let sourceMemory = Memory.roomsPersistent[this.room.name].sources[source]
-                        if (!sourceMemory.workers) {
-                            sourceMemory.workers = [];
+                        if (!sourceMemory.miners) {
+                            sourceMemory.miners = [];
                         }
-                        if (leastAttended == "none" || sourceMemory.workers.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].workers.length) {
+                        if (leastAttended == "none" || sourceMemory.miners.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].miners.length) {
                             leastAttended = source;
                         }
                     }
                     //set the creep memory to that least attended source so we never have to do this again
                     this.memory.assignedSource = leastAttended;
-                    Memory.roomsPersistent[this.room.name].sources[leastAttended].workers.push(this.name);
+                    Memory.roomsPersistent[this.room.name].sources[leastAttended].miners.push(this.name);
                 }
 
                 //once the creep definitely has an assigned source, we can use a variable to reference the game object
@@ -131,7 +113,7 @@ var systemInit = {
                 
                 //ends the harvesting task if it doesn't need to harvest
                 if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_DROP) && !this.memory.tasks.includes(TASK_HARVEST_LINK)) {
-                    return true; //move to next task
+                    return true; //move to next tick
                 }
 
                 //if creep is full and has a link
@@ -141,7 +123,7 @@ var systemInit = {
                     } else {
                         this.moveTo(creepLink, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                     }
-                    return false; //do it again
+                    return false; //move to next task
                 }
 
                 //at this point the creep either has to be harvesting or drop harvesting
@@ -159,7 +141,7 @@ var systemInit = {
                 } else {
                     this.moveTo(moveTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                 }
-                return false; //do it again
+                return false; //move to next task
             }
         }
 
@@ -186,7 +168,7 @@ var systemInit = {
                             this.memory.tasks = array;
                         }
                     }
-                    return true; //move to next task if creep is full or if there is no storage
+                    return true; //move to next tick if creep is full or if there is no storage
                 }
                 //withdraw from the storage
                 if (this.pos.inRangeTo(creepStorage, 1)) {
@@ -194,6 +176,7 @@ var systemInit = {
                 } else {
                     this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                 }
+                return false; //move to next task
             }
         }
 
@@ -209,14 +192,16 @@ var systemInit = {
                     this.memory.harvesting = false;
                 }
                 //containers from memory
-                var creepContainers = Memory.roomsCache[this.room.name].structures.containers.filter(
-                    container => Game.getObjectById(container).store.getUsedCapacity(RESOURCE_ENERGY) > 0
-                ).map(
+                var allContainers = Memory.roomsCache[this.room.name].structures.containers.map(
                     container => Game.getObjectById(container)
-                    );
+                );
+                //all containers that have energy in them
+                var creepContainers = allContainers.filter(
+                    container => container.store.getUsedCapacity(RESOURCE_ENERGY) > 0
+                )
                 if (creepContainers.length == 0 || !this.memory.harvesting) {
                     //remove this task if there is no containers
-                    if (creepContainers.length == 0) {
+                    if (allContainers.length == 0) {
                         let array = this.memory.tasks;
                         let index = array.indexOf(TASK_WITHDRAW_CONTAINER);
                         if (index > -1) {
@@ -224,7 +209,7 @@ var systemInit = {
                             this.memory.tasks = array;
                         }
                     }
-                    return true; //move to next task if creep is full or if there is no container
+                    return true; //move to next tick if creep is full or if there is no container
                 }
                 //find the closest of the containers
                 //TODO: optimize this somehow more
@@ -252,9 +237,81 @@ var systemInit = {
                         this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //do it again
+                return false; //move to next task
             }
         }
+
+
+
+        //task to withdraw from assigned source container
+        if (!Creep.prototype.transport) {
+            Creep.prototype.transport = function() {
+                //TODO: fix the transporter having nothing to do if the source has no container
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //assign creep to source that has the least transporters
+                if (!this.memory.assignedContainerSource) {
+                    var sourceList = Memory.roomsPersistent[this.room.name].sources;
+                    var leastAttended = "none";
+                    //find the source with the least number of transporters
+                    for (var source of Object.keys(sourceList)) {
+                        let sourceMemory = Memory.roomsPersistent[this.room.name].sources[source]
+                        if (!sourceMemory.transporters) {
+                            sourceMemory.transporters = [];
+                        }
+                        if (leastAttended == "none" || sourceMemory.transporters.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].transporters.length) {
+                            leastAttended = source;
+                        }
+                    }
+                    //set the creep memory to that least attended source so we never have to do this again
+                    this.memory.assignedContainerSource = leastAttended;
+                    Memory.roomsPersistent[this.room.name].sources[leastAttended].transporters.push(this.name);
+                }
+
+                //once the creep definitely has an assigned source, we can use a variable to reference the game object
+                var creepSource = Game.getObjectById(this.memory.assignedContainerSource);
+
+                //now we check for a container to withdraw from
+                if (!this.memory.assignedSourceContainer) {
+                    //find any containers within range 1
+                    let sourceContainers = creepSource.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}})
+                    if (sourceContainers.length > 0) {
+                        this.memory.assignedContainer = sourceContainers[0].id;
+                    } else {
+                        //remove transport from potential tasks if there is no container
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_TRANSPORT);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                        return true; //move to next tick if there is no container to transport from
+                    }
+                }
+
+                //get live object of our container
+                var creepContainer = Game.getObjectById(this.memory.assignedContainer);
+                
+                //ends the withdraw if there it is done
+                if (!this.memory.harvesting) {
+                    return true; //move to next tick if full
+                }
+
+                //now move to the target and then harvest the source
+                if (this.pos.inRangeTo(creepContainer, 1)) {
+                    this.withdraw(creepContainer, RESOURCE_ENERGY);
+                } else {
+                    this.moveTo(creepContainer, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                }
+                return false; //move to next task
+            }
+        }
+
 
 
         //task to fill extensions and spawn
@@ -283,7 +340,7 @@ var systemInit = {
                     }
                     
                 } else {
-                    return true; //move to next task
+                    return true; //move to next tick
                 }
 
                 //if there is a target, move towards it and transfer
@@ -295,7 +352,7 @@ var systemInit = {
                         this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //do it again
+                return false; //move to next task
             }
         }
 
@@ -326,7 +383,7 @@ var systemInit = {
                     }
                     
                 } else {
-                    return true; //move to next task
+                    return true; //move to next tick
                 }
 
                 //if there is a target, move towards it and transfer
@@ -338,7 +395,37 @@ var systemInit = {
                         this.moveTo(creeptowerTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //do it again
+                return false; //move to next task
+            }
+        }
+
+
+
+        //task to fill a storage
+        if (!Creep.prototype.fillStorage) {
+            Creep.prototype.fillStorage = function() {
+                //set state
+                var creepStorage = this.room.storage;
+                //skip the task if there is no storage, the creep is harvesting or the creep has no energy
+                if (!creepStorage || this.memory.harvesting || !this.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                    //remove this task if there is no storage
+                    if (!creepStorage) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_FILL_STORAGE);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return true; //move to next tick if creep is harvesting
+                }
+                //fill the storage
+                if (this.pos.inRangeTo(creepStorage, 1)) {
+                    this.transfer(creepStorage, RESOURCE_ENERGY);
+                } else {
+                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                }
+                return false; //move to next task
             }
         }
 
@@ -367,7 +454,7 @@ var systemInit = {
                     } else {
                         this.moveTo(creepController, {visualizePathStyle: {stroke: '#fe4100', lineStyle: 'undefined'}});
                     }
-                    return false; //do it again
+                    return false; //move to next task
                 } else {
                     return true; //move on to next task
                 }
@@ -406,12 +493,12 @@ var systemInit = {
                         if (siteList.length > 0) {
                             this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
                         } else {
-                            return true; //move to next task if the last construction site is finished
+                            return true; //move to next tick if the last construction site is finished
                         }
                     }
                     
                 } else {
-                    return true; //move to next task
+                    return true; //move to next tick
                 }
 
                 //if there is a target, move towards it and transfer
@@ -423,7 +510,7 @@ var systemInit = {
                         this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: '#4dfe00', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //do it again
+                return false; //move to next task
             }
         }
 

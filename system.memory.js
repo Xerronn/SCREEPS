@@ -23,7 +23,7 @@ var systemMemory = {
 
             //whether or not the towers need filling in this room
             //only execute if cache exists
-            if (Memory.roomsCache) {
+            if (Memory.roomsCache && Memory.roomsCache.structures) {
                 if (!Memory.roomsPersistent[room].towersFilled) {
                     Memory.roomsPersistent[room].towersFilled = false;
                 }

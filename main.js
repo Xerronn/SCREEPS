@@ -13,15 +13,25 @@ module.exports.loop = function () {
     //clear memory of dead creeps ALWAYS FIRST
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
-            //remove the assigned worker from assignedSource memory
             try {
+                //remove the assigned worker from assignedSource memory
                 if (Memory.creeps[name].assignedSource) {
                     let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);
-                    let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].workers;
+                    let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].miners;
                     let index = array.indexOf(name);
                     if (index > -1) {
                         array.splice(index, 1);
-                        Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].workers = array;
+                        Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].miners = array;
+                    }
+                }
+                //remove the assigned transporter from assignedSource memory
+                if (Memory.creeps[name].assignedSourceContainer) {
+                    let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);
+                    let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].miners;
+                    let index = array.indexOf(name);
+                    if (index > -1) {
+                        array.splice(index, 1);
+                        Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].transporters = array;
                     }
                 }
             } catch (err) {
@@ -42,15 +52,15 @@ module.exports.loop = function () {
     //some class definitions and constants
     systemInit.run();
     //for spawning during test:
-    var simpleBuilder = _.filter(Game.creeps, (creep) => creep.memory.role == 'worker' && _.isEqual(creep.memory.tasks, [TASK_HARVEST, TASK_FILL_EXTENSIONS, TASK_BUILD, TASK_UPGRADE]));
-    var simpleUpgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'worker' && _.isEqual(creep.memory.tasks, [TASK_HARVEST, TASK_FILL_EXTENSIONS, TASK_UPGRADE, TASK_BUILD]));
+    var simpleBuilder = _.filter(Game.creeps, (creep) => creep.memory.role == 'worker' && _.isEqual(creep.memory.tasks, [TASK_HARVEST, TASK_FILL_EXTENSION, TASK_BUILD, TASK_UPGRADE]));
+    var simpleUpgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'worker' && _.isEqual(creep.memory.tasks, [TASK_HARVEST, TASK_FILL_EXTENSION, TASK_UPGRADE, TASK_BUILD]));
     if (simpleBuilder.length < 2) {
         let name = "chungus" + Game.time;
-        Game.spawns["Spawn1"].spawnCreep([WORK,CARRY,MOVE,MOVE], name, {memory: {role: 'worker', tasks: [TASK_HARVEST, TASK_FILL_EXTENSIONS, TASK_BUILD, TASK_UPGRADE]}})
+        Game.spawns["Spawn1"].spawnCreep([WORK,CARRY,MOVE,MOVE], name, {memory: {role: 'worker', tasks: [TASK_HARVEST, TASK_FILL_EXTENSION, TASK_BUILD, TASK_UPGRADE]}})
     }
     if (simpleUpgrader.length < 2) {
         let name = "big" + Game.time;
-        Game.spawns["Spawn1"].spawnCreep([WORK,CARRY,MOVE,MOVE], name, {memory: {role:'worker', tasks: [TASK_HARVEST, TASK_FILL_EXTENSIONS, TASK_UPGRADE, TASK_BUILD]}})
+        Game.spawns["Spawn1"].spawnCreep([WORK,CARRY,MOVE,MOVE], name, {memory: {role:'worker', tasks: [TASK_HARVEST, TASK_FILL_EXTENSION, TASK_UPGRADE, TASK_BUILD]}})
     }
     
     ///TODO: needs rework

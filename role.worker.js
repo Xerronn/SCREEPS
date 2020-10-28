@@ -7,8 +7,8 @@ var roleWorker = {
             for (var task of creep.memory.tasks) {
                 var taskCompleted = false;
                 switch(task) {
-                    case TASK_HARVEST:
-                    case TASK_HARVEST_DROP:
+                    case TASK_HARVEST://move to next
+                    case TASK_HARVEST_DROP://move to next
                     case TASK_HARVEST_LINK:
                         if (creep.harvest() == true) {
                             taskCompleted = true;
@@ -24,17 +24,26 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
-                    case TASK_FILL_EXTENSIONS:
+                    case TASK_TRANSPORT:
+                        if (creep.transport() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_FILL_EXTENSION:
                         if (creep.fillExtensions() == true) {
                             taskCompleted = true;
                         }
                         break;
-                    case TASK_FILL_TOWERS:
+                    case TASK_FILL_TOWER:
                         if (creep.fillTowers() == true) {
                             taskCompleted = true;
                         }
                         break;
                     case TASK_FILL_STORAGE:
+                        if (creep.fillStorage() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_BUILD:
                         if (creep.build() == true) {
                             taskCompleted = true;
