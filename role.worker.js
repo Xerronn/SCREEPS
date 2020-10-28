@@ -8,7 +8,8 @@ var roleWorker = {
                 var taskCompleted = false;
                 switch(task) {
                     case TASK_HARVEST:
-                    case TASK_DROP_HARVEST:
+                    case TASK_HARVEST_DROP:
+                    case TASK_HARVEST_LINK:
                         if (creep.harvest() == true) {
                             taskCompleted = true;
                         } 

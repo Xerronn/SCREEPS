@@ -3,12 +3,14 @@ var systemInit = {
         //global declarations of some things
         //orders of task implementations are the same as these declarations
         global.TASK_HARVEST = "harvest"; //implemented
-        global.TASK_DROP_HARVEST = "drop_harvest"; //implemented
+        global.TASK_HARVEST_DROP = "harvest_drop"; //implemented
+        global.TASK_HARVEST_LINK = "harvest_link";
         global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
         global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented      
         global.TASK_FILL_EXTENSIONS = "fill_extensions"; //implemented
-        global.TASK_FILL_TOWERS = "fill_towers";
+        global.TASK_FILL_TOWERS = "fill_towers"; //implemented
         global.TASK_FILL_STORAGE = "fill_storage";
+        global.TASK_FILL_LINK = "fill_link"
         global.TASK_MANAGE_LINK = "manage_link"
 
         global.TASK_BUILD = "build"; //implemented
@@ -21,7 +23,7 @@ var systemInit = {
         
         global.ALL_TASKS = [
             TASK_HARVEST,
-            TASK_DROP_HARVEST,
+            TASK_HARVEST_DROP,
             TASK_WITHDRAW_STORAGE,
             TASK_WITHDRAW_CONTAINER,
 
@@ -52,7 +54,7 @@ var systemInit = {
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
-                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && !this.memory.tasks.includes(TASK_DROP_HARVEST)) {
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && !this.memory.tasks.includes(TASK_HARVEST_DROP)) {
                     this.memory.harvesting = false;
                 }
 
@@ -88,7 +90,7 @@ var systemInit = {
                     } else {
                         //remove drop mining from potential tasks if there is no container
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_DROP_HARVEST);
+                        let index = array.indexOf(TASK_HARVEST_DROP);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;
@@ -110,6 +112,13 @@ var systemInit = {
                     if (sourceLinks.length > 0) {
                         this.memory.assignedSourceLink = sourceLinks[0].id;
                     } else {
+                        //remove link mining from potential tasks if there is no container
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_HARVEST_LINK);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
                         this.memory.assignedSourceLink = "none";
                     }
                 }
@@ -121,14 +130,25 @@ var systemInit = {
                 }
                 
                 //ends the harvesting task if it doesn't need to harvest
-                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_DROP_HARVEST)) {
+                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_DROP) && !this.memory.tasks.includes(TASK_HARVEST_LINK)) {
                     return true; //move to next task
-                } 
+                }
 
+                //if creep is full and has a link
+                if (!this.memory.harvesting && creepLink) {
+                    if (this.pos.inRangeTo(creepLink, 1)) {
+                        this.transfer(creepLink, RESOURCE_ENERGY);
+                    } else {
+                        this.moveTo(creepLink, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                    }
+                    return false; //do it again
+                }
+
+                //at this point the creep either has to be harvesting or drop harvesting
                 var distanceToTarget = 1;
                 var moveTarget = creepSource;
                 //if there is a container and no link we need to move to on top of it instead of the source, so that drop mining can occur
-                if (this.memory.assignedContainer != "none" && this.memory.assignedSourceLink == "none" && this.memory.tasks.includes(TASK_DROP_HARVEST)) {
+                if (this.memory.assignedContainer != "none" && this.memory.assignedSourceLink == "none" && this.memory.tasks.includes(TASK_HARVEST_DROP)) {
                     distanceToTarget = 0;
                     moveTarget = creepContainer;
                 }
