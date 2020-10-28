@@ -10,6 +10,7 @@ var systemMemory = {
             if (!Memory.roomsPersistent[room]){
                 Memory.roomsPersistent[room] = {};
             }
+            
             //whether or not the extensions need filling in this room
             if (!Memory.roomsPersistent[room].extensionsFilled) {
                 Memory.roomsPersistent[room].extensionsFilled = false;
@@ -18,6 +19,23 @@ var systemMemory = {
                 Memory.roomsPersistent[room].extensionsFilled = false;
             } else {
                 Memory.roomsPersistent[room].extensionsFilled = true;
+            }
+
+            //whether or not the towers need filling in this room
+            //only execute if cache exists
+            if (Memory.roomsCache) {
+                if (!Memory.roomsPersistent[room].towersFilled) {
+                    Memory.roomsPersistent[room].towersFilled = false;
+                }
+
+                let towerArray = Memory.roomsCache[room].structures.towers.map(tower => Game.getObjectById(tower));
+                let isFilled = true;
+                for (let tower of towerArray) {
+                    if (tower.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                        isFilled = false;
+                    }
+                }
+                Memory.roomsPersistent[room].towersFilled = isFilled;
             }
 
             //PERSISTENT SOURCE MEMORY

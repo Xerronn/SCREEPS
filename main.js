@@ -38,7 +38,7 @@ module.exports.loop = function () {
     if (spawns.length == 0 && creeps.length == 0) {
         return;
     }
-
+    systemMemory.run();
     //some class definitions and constants
     systemInit.run();
     //for spawning during test:
@@ -62,7 +62,7 @@ module.exports.loop = function () {
     }
 
     //in case of respawn
-    systemMemory.run();
+    
 
     // if (Memory.roomsCache) {
     //     systemSpawner.run();

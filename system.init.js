@@ -5,14 +5,14 @@ var systemInit = {
         global.TASK_HARVEST = "harvest"; //implemented
         global.TASK_DROP_HARVEST = "drop_harvest"; //implemented
         global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
-        global.TASK_WITHDRAW_CONTAINER = "withdraw_container";        
+        global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented      
         global.TASK_FILL_EXTENSIONS = "fill_extensions"; //implemented
-        global.TASK_FILL_TOWERS = "fill_towers"; 
+        global.TASK_FILL_TOWERS = "fill_towers";
         global.TASK_FILL_STORAGE = "fill_storage";
         global.TASK_MANAGE_LINK = "manage_link"
 
-        global.TASK_BUILD = "build";
-        global.TASK_UPGRADE = "upgrade";
+        global.TASK_BUILD = "build"; //implemented
+        global.TASK_UPGRADE = "upgrade"; //implemented
         global.TASK_REPAIR = "repair";
 
         global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
@@ -273,6 +273,49 @@ var systemInit = {
                         this.transfer(creepFillTarget, RESOURCE_ENERGY);
                     } else {
                         this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
+                    }
+                }
+                return false; //do it again
+            }
+        }
+
+
+        //task to fill tower
+        if (!Creep.prototype.fillTowers) {
+            Creep.prototype.fillTowers = function() {
+                //check memory if the room needs to be filled
+                if (!Memory.roomsPersistent[this.pos.roomName].towersFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
+                    //find the closest extensions
+                    //TODO: optimize this somehow more
+                    if (this.memory.towerTarget && this.memory.towerTarget != "none") {
+                        let creeptowerTarget = Game.getObjectById(this.memory.towerTarget);
+
+                        //set the memory to none if it is full
+                        if (creeptowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                            this.memory.towerTarget = "none";
+                        }
+                    }
+
+                    //assign a new object that needs towering to be the target
+                    if (!this.memory.towerTarget || this.memory.towerTarget == "none") {
+                        this.memory.towerTarget = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_TOWER) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
+                                }).id;
+                    }
+                    
+                } else {
+                    return true; //move to next task
+                }
+
+                //if there is a target, move towards it and transfer
+                var creeptowerTarget = Game.getObjectById(this.memory.towerTarget);
+                if(creeptowerTarget) {
+                    if (this.pos.inRangeTo(creeptowerTarget, 1)) {
+                        this.transfer(creeptowerTarget, RESOURCE_ENERGY);
+                    } else {
+                        this.moveTo(creeptowerTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
                     }
                 }
                 return false; //do it again

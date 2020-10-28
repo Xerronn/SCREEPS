@@ -29,6 +29,10 @@ var roleWorker = {
                         }
                         break;
                     case TASK_FILL_TOWERS:
+                        if (creep.fillTowers() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_FILL_STORAGE:
                     case TASK_BUILD:
                         if (creep.build() == true) {
