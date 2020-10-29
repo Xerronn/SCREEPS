@@ -180,7 +180,7 @@ var systemMemory = {
                         let nearestBuilding = links[i].pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => { return structure.structureType != STRUCTURE_LINK 
                                 && [STRUCTURE_STORAGE, STRUCTURE_CONTROLLER, STRUCTURE_CONTAINER].includes(structure.structureType)
-                                && links[i].pos.inRangeTo(structure, 5)
+                                && links[i].pos.inRangeTo(structure, 4)
                             }});
                         if (nearestBuilding) {
                             switch(nearestBuilding.structureType) {

@@ -7,16 +7,16 @@ var systemInit = {
         global.TASK_HARVEST_LINK = "harvest_link"; //implemented
         global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
         global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
-        global.TASK_TRANSPORT = "transport";
+        global.TASK_TRANSPORT = "transport"; //implemented
         
         global.TASK_FILL_EXTENSION = "fill_extension"; //implemented
         global.TASK_FILL_TOWER = "fill_tower"; //implemented
-        global.TASK_FILL_STORAGE = "fill_storage";
-        global.TASK_FILL_LINK = "fill_link";
+        global.TASK_FILL_STORAGE = "fill_storage"; //implemented
 
-        global.TASK_BUILD = "build"; //implemented
         global.TASK_UPGRADE = "upgrade"; //implemented
-        global.TASK_MANAGE_LINK = "manage_link";
+        global.TASK_UPGRADE_LINK = "upgrade_link";
+        global.TASK_BUILD = "build"; //implemented
+        global.TASK_MANAGE_LINK = "manage_link"; //implemented
         global.TASK_REPAIR = "repair";
         global.TASK_REPAIR_WALL = "repair_wall";
  
@@ -113,7 +113,7 @@ var systemInit = {
                 
                 //ends the harvesting task if it doesn't need to harvest
                 if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_DROP) && !this.memory.tasks.includes(TASK_HARVEST_LINK)) {
-                    return true; //move to next tick
+                    return false; //move to next task
                 }
 
                 //if creep is full and has a link
@@ -123,7 +123,7 @@ var systemInit = {
                     } else {
                         this.moveTo(creepLink, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                     }
-                    return false; //move to next task
+                    return true; //move to next tick
                 }
 
                 //at this point the creep either has to be harvesting or drop harvesting
@@ -141,7 +141,7 @@ var systemInit = {
                 } else {
                     this.moveTo(moveTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -168,7 +168,7 @@ var systemInit = {
                             this.memory.tasks = array;
                         }
                     }
-                    return true; //move to next tick if creep is full or if there is no storage
+                    return false; //move to next task if creep is full or if there is no storage
                 }
                 //withdraw from the storage
                 if (this.pos.inRangeTo(creepStorage, 1)) {
@@ -176,7 +176,7 @@ var systemInit = {
                 } else {
                     this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -209,15 +209,15 @@ var systemInit = {
                             this.memory.tasks = array;
                         }
                     }
-                    return true; //move to next tick if creep is full or if there is no container
+                    return false; //move to next task if creep is full or if there is no container
                 }
                 //find the closest of the containers
                 //TODO: optimize this somehow more
                 if (this.memory.containerTarget && this.memory.containerTarget != "none") {
-                    let creepcontainerTarget = Game.getObjectById(this.memory.containerTarget);
+                    let creepContainerTarget = Game.getObjectById(this.memory.containerTarget);
 
                     //set the memory to none if it is empty
-                    if (creepcontainerTarget.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    if (creepContainerTarget.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                         this.memory.containerTarget = "none";
                     }
                 }
@@ -237,7 +237,7 @@ var systemInit = {
                         this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -290,7 +290,7 @@ var systemInit = {
                             array.splice(index, 1);
                             this.memory.tasks = array;
                         }
-                        return true; //move to next tick if there is no container to transport from
+                        return false; //move to next task if there is no container to transport from
                     }
                 }
 
@@ -299,7 +299,7 @@ var systemInit = {
                 
                 //ends the withdraw if there it is done
                 if (!this.memory.harvesting) {
-                    return true; //move to next tick if full
+                    return false; //move to next task if full
                 }
 
                 //now move to the target and then harvest the source
@@ -308,7 +308,7 @@ var systemInit = {
                 } else {
                     this.moveTo(creepContainer, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -322,10 +322,10 @@ var systemInit = {
                     //find the closest extensions
                     //TODO: optimize this somehow more
                     if (this.memory.fillTarget && this.memory.fillTarget != "none") {
-                        let creepfillTarget = Game.getObjectById(this.memory.fillTarget);
+                        let creepFillTarget = Game.getObjectById(this.memory.fillTarget);
 
                         //set the memory to none if it is full
-                        if (creepfillTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                        if (creepFillTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                             this.memory.fillTarget = "none";
                         }
                     }
@@ -340,7 +340,7 @@ var systemInit = {
                     }
                     
                 } else {
-                    return true; //move to next tick
+                    return false; //move to next task
                 }
 
                 //if there is a target, move towards it and transfer
@@ -352,7 +352,7 @@ var systemInit = {
                         this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -365,10 +365,10 @@ var systemInit = {
                     //find the closest extensions
                     //TODO: optimize this somehow more
                     if (this.memory.towerTarget && this.memory.towerTarget != "none") {
-                        let creeptowerTarget = Game.getObjectById(this.memory.towerTarget);
+                        let creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
 
                         //set the memory to none if it is full
-                        if (creeptowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                        if (creepTowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                             this.memory.towerTarget = "none";
                         }
                     }
@@ -383,19 +383,19 @@ var systemInit = {
                     }
                     
                 } else {
-                    return true; //move to next tick
+                    return false; //move to next task
                 }
 
                 //if there is a target, move towards it and transfer
-                var creeptowerTarget = Game.getObjectById(this.memory.towerTarget);
-                if(creeptowerTarget) {
-                    if (this.pos.inRangeTo(creeptowerTarget, 1)) {
-                        this.transfer(creeptowerTarget, RESOURCE_ENERGY);
+                var creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
+                if(creepTowerTarget) {
+                    if (this.pos.inRangeTo(creepTowerTarget, 1)) {
+                        this.transfer(creepTowerTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creeptowerTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
+                        this.moveTo(creepTowerTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -417,7 +417,7 @@ var systemInit = {
                             this.memory.tasks = array;
                         }
                     }
-                    return true; //move to next tick if creep is harvesting
+                    return false; //move to next task if creep is harvesting
                 }
                 //fill the storage
                 if (this.pos.inRangeTo(creepStorage, 1)) {
@@ -425,7 +425,7 @@ var systemInit = {
                 } else {
                     this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
@@ -441,22 +441,46 @@ var systemInit = {
                 
                 //use cached memory to check if there is a controller link
                 if (!this.memory.assignedControllerLink) {
-                    if (Memory.roomsCache[this.room.name].structures.links.controller) {
-                        this.memory.link = Memory.roomsCache[this.room.name].structures.links.controller[0];
+                    if (Memory.roomsCache[this.room.name].structures.links.controller.length > 0) {
+                        this.memory.assignedControllerLink = Memory.roomsCache[this.room.name].structures.links.controller[0];
                     } else {
-                        this.memory.link = "none";
+                        //remove link upgrading if there is no link
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_TRANSPORT_LINK);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                        this.memory.assignedControllerLink = "none";
                     }
                 }
-
+                //set state only if it has link mining
+                if (this.memory.tasks.includes(TASK_UPGRADE_LINK) && this.memory.assignedControllerLink != "none") {
+                    if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                        this.memory.harvesting = true;
+                    } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                        this.memory.harvesting = false;
+                    }
+                }
                 if (!this.memory.harvesting) {
                     if (this.pos.inRangeTo(creepController, 3)) {
                         this._upgradeController(creepController);
                     } else {
                         this.moveTo(creepController, {visualizePathStyle: {stroke: '#fe4100', lineStyle: 'undefined'}});
                     }
-                    return false; //move to next task
+                    return true; //move to next tick
                 } else {
-                    return true; //move on to next task
+                    if (this.memory.tasks.includes(TASK_UPGRADE_LINK) && this.memory.assignedControllerLink != "none") {
+                        var creepLink = Game.getObjectById(this.memory.assignedControllerLink);
+                        if (this.pos.inRangeTo(creepLink, 1)) {
+                            this.withdraw(creepLink, RESOURCE_ENERGY);
+                        } else {
+                            this.moveTo(creepLink, {visualizePathStyle: {stroke: '#fe4100', lineStyle: 'undefined'}});
+                        }
+                        return true; //move to next tick
+                    } else {
+                        return false; //move on to next task
+                    }
                 }
             }
         }
@@ -483,7 +507,7 @@ var systemInit = {
                     }
                     //assign a new object that needs building to be the target
                     if (!this.memory.siteTarget || this.memory.siteTarget == "none") {
-                        //filter out null sites andthen convert to live objects
+                        //filter out null sites and then convert to live objects
                         let siteList = Memory.roomsPersistent[this.pos.roomName].constructionSites.filter(
                                 site => Game.getObjectById(site) != null
                         ).map(
@@ -493,12 +517,12 @@ var systemInit = {
                         if (siteList.length > 0) {
                             this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
                         } else {
-                            return true; //move to next tick if the last construction site is finished
+                            return false; //move to next task if the last construction site is finished
                         }
                     }
                     
                 } else {
-                    return true; //move to next tick
+                    return false; //move to next task
                 }
 
                 //if there is a target, move towards it and transfer
@@ -510,13 +534,80 @@ var systemInit = {
                         this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: '#4dfe00', lineStyle: 'undefined'}});
                     }
                 }
-                return false; //move to next task
+                return true; //move to next tick
             }
         }
 
 
 
-        //
+        //task to manage link energy levels
+        if (!Creep.prototype.manageLink) {
+            Creep.prototype.manageLink = function() {
+                //assign the room storage and storage link to memory
+                var creepStorage = this.room.storage;
+                var creepLink = Game.getObjectById(Memory.roomsCache[this.room.name].structures.links.storage[0]);
+                //remove this task if there is no storage or storage link
+                if (!creepStorage || !creepLink) {
+                    //remove this task if there is no storage or storage link
+                    let array = this.memory.tasks;
+                    let index = array.indexOf(TASK_MANAGE_LINK);
+                    if (index > -1) {
+                        array.splice(index, 1);
+                        this.memory.tasks = array;
+                    }
+                    return false; //move to next task
+                }
+
+                //set the state
+                if (this.store.getUsedCapacity() == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity() == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //do nothing if the creepLink is sitting at a good spot
+                if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 350 && creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 450) {
+                    return true; //move to next tick
+                }
+                if (this.memory.harvesting) {
+                    //pull from the creepStorage creepLink if it is higher than the sweet spot
+                    if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 400) {
+                        if (this.pos.inRangeTo(creepLink, 1)) {
+                            this.withdraw(creepLink, RESOURCE_ENERGY);
+                        } else {
+                            this.moveTo(creepLink);
+                        }
+                        return true; //move to next tick
+                    }
+                    
+                    //pull from creepStorage itself if the creepLink is lower than the good spot
+                    if (this.pos.inRangeTo(creepStorage, 1)) {
+                        this.withdraw(creepStorage, RESOURCE_ENERGY);
+                    } else {
+                        this.moveTo(creepStorage);
+                    }
+                    return true; //move to next tick     
+                } else {
+                    //transfer to the creepLink if it is less than the sweet spot
+                    if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 400) {
+                        if (this.pos.inRangeTo(creepLink, 1)) {
+                            this.transfer(creepLink, RESOURCE_ENERGY);
+                        } else {
+                            this.moveTo(creepLink);
+                        }
+                        return true; //move to next tick
+                    }
+
+                    //otherwise transfer to the creepStorage
+                    if (this.pos.inRangeTo(creepStorage, 1)) {
+                        this.transfer(creepStorage, RESOURCE_ENERGY);
+                    } else {
+                        this.moveTo(creepStorage);
+                    }
+                    return true; //move to next tick
+                }
+            }
+        }
     }
 };
 

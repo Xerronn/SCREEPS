@@ -50,15 +50,20 @@ var roleWorker = {
                         }
                         break;
                     case TASK_UPGRADE:
+                    case TASK_UPGRADE_LINK:
                         if (creep.upgradeController() == true) {
                             taskCompleted = true;
                         }
                         break;
                     case TASK_REPAIR:
                     case TASK_MANAGE_LINK:
+                        if (creep.manageLink() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                 }
                 //break the loop if it finds what it needs to do
-                if (!taskCompleted) break;
+                if (taskCompleted) break;
             }
         } catch (err) {
             let hyperlink = "<a href='#!/room/shard3/" + creep.room.name + "'>" + creep.room.name + "</a>"
