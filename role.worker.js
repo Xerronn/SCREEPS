@@ -5,6 +5,7 @@ var roleWorker = {
         try {
             //iterate through tasks in order of importance(order)
             for (var task of creep.memory.tasks) {
+                //if this variable gets set to true, it will stop the iteration through tasks
                 var taskCompleted = false;
                 switch(task) {
                     case TASK_HARVEST://move to next

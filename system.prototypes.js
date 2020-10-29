@@ -1,29 +1,5 @@
-var systemInit = {
+var systemPrototypes = {
     run: function() {
-        //global declarations of some things
-        //orders of task implementations are the same as these declarations
-        global.TASK_HARVEST = "harvest"; //implemented
-        global.TASK_HARVEST_DROP = "harvest_drop"; //implemented
-        global.TASK_HARVEST_LINK = "harvest_link"; //implemented
-        global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
-        global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
-        global.TASK_TRANSPORT = "transport"; //implemented
-        
-        global.TASK_FILL_EXTENSION = "fill_extension"; //implemented
-        global.TASK_FILL_TOWER = "fill_tower"; //implemented
-        global.TASK_FILL_STORAGE = "fill_storage"; //implemented
-
-        global.TASK_UPGRADE = "upgrade"; //implemented
-        global.TASK_UPGRADE_LINK = "upgrade_link";
-        global.TASK_BUILD = "build"; //implemented
-        global.TASK_MANAGE_LINK = "manage_link"; //implemented
-        global.TASK_REPAIR = "repair";
-        global.TASK_REPAIR_WALL = "repair_wall";
- 
-        global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
-        global.TASK_ROOM_CLAIM = "claim";
-        global.TASK_ROOM_RESERVE = "reserve";
-
         //prototype overrides
         //prototype returns true if the task is complete
 
@@ -608,7 +584,49 @@ var systemInit = {
                 }
             }
         }
+
+
+
+        //task to repair objects
+        if (!Creep.prototype._repair) {
+            //store the original prototype
+            Creep.prototype._repair = Creep.prototype.repair;
+
+            Creep.prototype.repair = function () {
+                if (!this.memory.repairTarget || this.memory.repairTarget == "none") {
+                    var checkList = [];
+                    //variable target checking depending on assigned tasks
+                    if (this.memory.tasks.includes(TASK_REPAIR_WALL)) {
+                        checkList.push(STRUCTURE_WALL, STRUCTURE_RAMPART);
+                    }
+                    if (this.memory.tasks.includes(TASK_REPAIR)) {
+                        checkList.push(STRUCTURE_ROAD, STRUCTURE_CONTAINER);
+                    }
+                    //find the closest of all the structures you are searching for
+                    var targets = this.room.find(FIND_STRUCTURES, 
+                        {filter: structure => checkList.includes(structure.StructureType)});
+                    
+                    this.memory.repairTarget = this.pos.findClosestByRange(targets).id;
+                }
+
+                var target = Game.getObjectById(this.memory.repairTarget);
+                if (target.hits == target.hitsMax) {
+                    this.memory.repairTarget = "none";
+                }
+                if (this.pos.inRangeTo(target, 1)) {
+                    this._repair(target, RESOURCE_ENERGY);
+
+                    //set target to none when the creep runs out of energy to repair it
+                    if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                        this.memory.repairTarget = "none";
+                    }
+                } else {
+                    this.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+            }
+            
+        }
     }
 };
 
-module.exports = systemInit;
+module.exports = systemPrototypes;
