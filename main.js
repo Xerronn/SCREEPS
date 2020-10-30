@@ -10,9 +10,13 @@ const garbageCollection = require('system.taskManager');
 const initializeGlobals = require('system.globals');
 const initializePrototypes = require('system.prototypes');
 
-profiler.enable();
+//profiler.enable();
 module.exports.loop = function () {
-    //clear memory of dead creeps ALWAYS FIRST
+    //initialization
+    initializeGlobals.run();
+    initializePrototypes.run();
+
+    //memory cleanup
     garbageCollection.run();
     
     //check if the bot actually has anything to do
@@ -23,9 +27,7 @@ module.exports.loop = function () {
         return;
     }
     
-    //initialization
-    initializeGlobals.run();
-    initializePrototypes.run();
+    //memory init
     memoryHandler.run();
 
     //other system stuff

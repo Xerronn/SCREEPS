@@ -17,6 +17,11 @@ var systemPrototypes = {
                     this.memory.harvesting = false;
                 }
 
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
                 //assign creep to source that has the least miners
                 if (!this.memory.assignedSource) {
                     var sourceList = Memory.roomsPersistent[this.room.name].sources;
@@ -97,7 +102,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepLink, 1)) {
                         this.transfer(creepLink, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepLink, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                        this.moveTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }
@@ -115,7 +120,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(moveTarget, distanceToTarget)) {
                     this._harvest(creepSource);
                 } else {
-                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -131,6 +136,11 @@ var systemPrototypes = {
                     this.memory.harvesting = true;
                 } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
                 }
 
                 var creepStorage = this.room.storage;
@@ -150,7 +160,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(creepStorage, 1)) {
                     this.withdraw(creepStorage, RESOURCE_ENERGY);
                 } else {
-                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -167,6 +177,12 @@ var systemPrototypes = {
                 } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = false;
                 }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
                 //containers from memory
                 var allContainers = Memory.roomsCache[this.room.name].structures.containers.map(
                     container => Game.getObjectById(container)
@@ -210,7 +226,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepContainerTarget, 1)) {
                         this.withdraw(creepContainerTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                        this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -228,6 +244,11 @@ var systemPrototypes = {
                     this.memory.harvesting = true;
                 } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
                 }
 
                 //assign creep to source that has the least transporters
@@ -278,11 +299,11 @@ var systemPrototypes = {
                     return false; //move to next task if full
                 }
 
-                //now move to the target and then harvest the source
+                //now move to the container and withdraw
                 if (this.pos.inRangeTo(creepContainer, 1)) {
                     this.withdraw(creepContainer, RESOURCE_ENERGY);
                 } else {
-                    this.moveTo(creepContainer, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                    this.moveTo(creepContainer, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -308,11 +329,14 @@ var systemPrototypes = {
 
                     //assign a new object that needs filling to be the target
                     if (!this.memory.fillTarget || this.memory.fillTarget == "none") {
-                        this.memory.fillTarget = this.pos.findClosestByPath(FIND_STRUCTURES, {
+                        let closestFillTarget = this.pos.findClosestByPath(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
                                     structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
-                                }).id;
+                                });
+                        if (closestFillTarget) {
+                            this.memory.fillTarget = closestFillTarget.id;
+                        }
                     }
                     
                 } else {
@@ -325,7 +349,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepFillTarget, 1)) {
                         this.transfer(creepFillTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
+                        this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -368,7 +392,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepTowerTarget, 1)) {
                         this.transfer(creepTowerTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepTowerTarget, {visualizePathStyle: {stroke: '#ffffff', lineStyle: 'undefined'}});
+                        this.moveTo(creepTowerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -399,7 +423,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(creepStorage, 1)) {
                     this.transfer(creepStorage, RESOURCE_ENERGY);
                 } else {
-                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: '#f2fe00', lineStyle: 'undefined'}});
+                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -422,7 +446,7 @@ var systemPrototypes = {
                     } else {
                         //remove link upgrading if there is no link
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_TRANSPORT_LINK);
+                        let index = array.indexOf(TASK_UPGRADE_LINK);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;
@@ -442,7 +466,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepController, 3)) {
                         this._upgradeController(creepController);
                     } else {
-                        this.moveTo(creepController, {visualizePathStyle: {stroke: '#fe4100', lineStyle: 'undefined'}});
+                        this.moveTo(creepController, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 } else {
@@ -451,7 +475,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.withdraw(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.moveTo(creepLink, {visualizePathStyle: {stroke: '#fe4100', lineStyle: 'undefined'}});
+                            this.moveTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                         }
                         return true; //move to next tick
                     } else {
@@ -470,7 +494,7 @@ var systemPrototypes = {
 
             Creep.prototype.build = function() {
                 //check memory if the room has any construction sites
-                if (Memory.roomsPersistent[this.pos.roomName].constructionSites.length > 0 && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
+                if (Memory.roomsCache[this.pos.roomName].constructionSites.length > 0 && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
                     //find the closest site
                     //TODO: optimize this somehow more
                     if (this.memory.siteTarget && this.memory.siteTarget != "none") {
@@ -484,7 +508,7 @@ var systemPrototypes = {
                     //assign a new object that needs building to be the target
                     if (!this.memory.siteTarget || this.memory.siteTarget == "none") {
                         //filter out null sites and then convert to live objects
-                        let siteList = Memory.roomsPersistent[this.pos.roomName].constructionSites.filter(
+                        let siteList = Memory.roomsCache[this.pos.roomName].constructionSites.filter(
                                 site => Game.getObjectById(site) != null
                         ).map(
                             site => Game.getObjectById(site)
@@ -507,7 +531,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepSiteTarget, 1)) {
                         this._build(creepSiteTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: '#4dfe00', lineStyle: 'undefined'}});
+                        this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -621,7 +645,7 @@ var systemPrototypes = {
                         this.memory.repairTarget = "none";
                     }
                 } else {
-                    this.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    this.moveTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
             }
             

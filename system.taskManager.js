@@ -1,3 +1,4 @@
+const roleWorker = require('role.worker');
 const structureTower = require('structure.tower');
 const structureLink = require('structure.link');
 
@@ -6,7 +7,7 @@ var systemTaskManager = {
         //task assignment:
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
-            switch (creep.memory.role) {
+            switch (creep.memory.type) {
                 case 'worker':
                     roleWorker.run(creep);
                     break;

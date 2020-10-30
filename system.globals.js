@@ -18,8 +18,8 @@ var systemGlobals = {
             global.TASK_UPGRADE_LINK = "upgrade_link"; //implemented
             global.TASK_BUILD = "build"; //implemented
             global.TASK_MANAGE_LINK = "manage_link"; //implemented
-            global.TASK_REPAIR = "repair";
-            global.TASK_REPAIR_WALL = "repair_wall";
+            global.TASK_REPAIR = "repair"; //implemented
+            global.TASK_REPAIR_WALL = "repair_wall"; //implemented
     
             global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
             global.TASK_ROOM_CLAIM = "claim";
