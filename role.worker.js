@@ -57,6 +57,11 @@ var roleWorker = {
                         }
                         break;
                     case TASK_REPAIR:
+                    case TASK_REPAIR_WALL:
+                        if (creep.repair() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_MANAGE_LINK:
                         if (creep.manageLink() == true) {
                             taskCompleted = true;

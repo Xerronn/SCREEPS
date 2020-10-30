@@ -375,11 +375,16 @@ var systemPrototypes = {
 
                     //assign a new object that needs towering to be the target
                     if (!this.memory.towerTarget || this.memory.towerTarget == "none") {
-                        this.memory.towerTarget = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                        var towerTarget = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_TOWER) &&
                                     structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
-                                }).id;
+                                });
+                        if (towerTarget) {
+                            this.memory.towerTarget = towerTarget.id;
+                        } else {
+                            return false; //move to next task
+                        }
                     }
                     
                 } else {
@@ -627,26 +632,45 @@ var systemPrototypes = {
                         checkList.push(STRUCTURE_ROAD, STRUCTURE_CONTAINER);
                     }
                     //find the closest of all the structures you are searching for
-                    var targets = this.room.find(FIND_STRUCTURES, 
-                        {filter: structure => checkList.includes(structure.StructureType)});
-                    
-                    this.memory.repairTarget = this.pos.findClosestByRange(targets).id;
+                    var targets = this.room.find(FIND_STRUCTURES, {
+                        filter: (structure) => {
+                            return checkList.includes(structure.structureType);
+                        }
+                    });   
+                    if (targets && targets.length > 0) {
+                        this.memory.repairTarget = _.sortBy(targets, function(struc) {
+                            if (struc.structureType != STRUCTURE_RAMPART) {
+                                return struc.hits / struc.hitsMax;
+                            } else {
+                                return struc.hits / (struc.hitsMax * 10);
+                            }
+                        })[0].id;
+                    } else {
+                        this.memory.repairTarget = "none";
+                        return false; //move to next task
+                    }
                 }
-
-                var target = Game.getObjectById(this.memory.repairTarget);
-                if (target.hits == target.hitsMax) {
-                    this.memory.repairTarget = "none";
-                }
-                if (this.pos.inRangeTo(target, 1)) {
-                    this._repair(target, RESOURCE_ENERGY);
-
-                    //set target to none when the creep runs out of energy to repair it
-                    if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                if (this.memory.repairTarget != "none") {
+                    var target = Game.getObjectById(this.memory.repairTarget);
+                    if (target.hits == target.hitsMax) {
                         this.memory.repairTarget = "none";
                     }
-                } else {
-                    this.moveTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    if (this.pos.inRangeTo(target, 1)) {
+                        this._repair(target, RESOURCE_ENERGY);
+
+                        //set target to none when the creep runs out of energy to repair it
+                        if (this.store.getUsedCapacity(RESOURCE_ENERGY) < 15) {
+                            let numWork = _.filter(this.body, function(bp){return bp == WORK;}).length;
+                            if (this.store.getUsedCapacity(RESOURCE_ENERGY) - numWork <= 0) {
+                                this.memory.repairTarget = "none";
+                            }
+                        }
+                    } else {
+                        this.moveTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    }
+                    return true; //move to next tick
                 }
+                return false; //move to next task
             }
             
         }

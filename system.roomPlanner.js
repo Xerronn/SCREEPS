@@ -111,11 +111,12 @@ var systemRoomPlanner = {
                     }
                 }
                 //BUILDS CONTAINERS AT CONTROLLER LEVEL 2
+                /* TODO: NEEDS REWORK
                 if (Game.rooms[room].controller.level == 2) {
                     if (!Memory.roomsPersistent[room].containersBuilt) {
                         let closest = []
                         for (var i in sources) {
-                            let positions = Memory.roomsCache[Game.rooms[room].name]["sources"][sources[i].id]["positions"].map(
+                            let positions = Memory.roomsPersistent[Game.rooms[room].name]["sources"][sources[i].id]["positions"].map(
                                 (pos) => {return new RoomPosition(pos.split(",")[0], pos.split(",")[1], room)})
                             closest.push(roomSpawn.pos.findClosestByPath(positions));
                             
@@ -126,6 +127,7 @@ var systemRoomPlanner = {
                         Memory.roomsPersistent[room].containersBuilt = true;
                     }
                 }
+                */
                 //BUILDS ROADS AT CONTROLLER LEVEL 3
                 if (Game.rooms[room].controller.level == 3) {
                     if (!Memory.roomsPersistent[room].roadsBuilt) {

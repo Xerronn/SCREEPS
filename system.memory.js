@@ -9,6 +9,13 @@ var systemMemory = {
             //initialization of the persistent room memory
             if (!Memory.roomsPersistent[room]){
                 Memory.roomsPersistent[room] = {};
+                //room planning stuff
+                Memory.roomsPersistent[room].roadsBuilt = false;
+                if (Game.rooms[room].controller.my) {
+                    Memory.roomsPersistent[room].rank = Game.rooms[room].controller.level;
+                } else {
+                    Memory.roomsPersistent[room].rank = -1;
+                }
             }
             
             //creep counts
