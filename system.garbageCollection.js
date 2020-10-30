@@ -3,7 +3,7 @@ var systemGarbageCollection = {
         for(var name in Memory.creeps) {
             if(!Game.creeps[name]) {
                 try {
-                    Memory.roomsPersistent[Memory.creeps[name].role].creepCounts[role]--;
+                    Memory.roomsPersistent[Memory.creeps[name].spawnRoom].creepCounts[Memory.creeps[name].role]--;
                     //remove the assigned worker from assignedSource memory
                     if (Memory.creeps[name].assignedSource) {
                         let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);
@@ -26,6 +26,7 @@ var systemGarbageCollection = {
                     }
                 } catch (err) {
                     //TODO: figure out how to avoid errors when source is out of vision
+                    console.log(err);
                 }
                 delete Memory.creeps[name];
                 console.log('Clearing non-existing creep memory:', name);

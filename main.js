@@ -5,7 +5,7 @@ const memoryHandler = require('system.memory');
 const populationControl = require('system.spawner');
 const roomPlanner = require('system.roomPlanner');
 const taskExecution = require('system.taskManager');
-const garbageCollection = require('system.taskManager');
+const garbageCollection = require('system.garbageCollection');
 
 const initializeGlobals = require('system.globals');
 const initializePrototypes = require('system.prototypes');

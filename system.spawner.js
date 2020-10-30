@@ -4,7 +4,7 @@ var systemSpawner2 = {
         const TASK_LIST_RESERVER = [];
         const TASK_LIST_WALLER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_REPAIR_WALL];
         const TASK_LIST_REPAIRER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_REPAIR, TASK_REPAIR_WALL];
-        const TASK_LIST_HARVESTER = [TASK_HARVEST, TASK_HARVEST_DROP, TASK_HARVEST_LINK, TASK_FILL_EXTENSION, TASK_FILL_CONTAINER];
+        const TASK_LIST_HARVESTER = [TASK_HARVEST, TASK_HARVEST_DROP, TASK_HARVEST_LINK, TASK_FILL_EXTENSION, TASK_BUILD];//maybe make them put into container
         const TASK_LIST_UPGRADER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER,TASK_HARVEST, TASK_UPGRADE, TASK_UPGRADE_LINK];
         const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_BUILD, TASK_FILL_STORAGE];
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
@@ -130,6 +130,7 @@ var systemSpawner2 = {
             if (!Memory.roomsPersistent[room].creepCounts["miner"]) {
                 Memory.roomsPersistent[room].creepCounts["miner"] = 0;
             }
+            var sources = Object.keys(Memory.roomsPersistent[room].sources);
             for (var source of sources) {
                 let numWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source && creep.ticksToLive > 100).length;      
                 if (numWorker < 1) {
@@ -165,8 +166,10 @@ var systemSpawner2 = {
             if (!Memory.roomsPersistent[room].creepCounts["upgrader"]) {
                 Memory.roomsPersistent[room].creepCounts["upgrader"] = 0;
             }
-            let numUpgraders = Memory.roomsPersistent[room].creepCounts["upgrader"]; 
-            if (numUpgraders < 1) {
+            let numUpgraders = Memory.roomsPersistent[room].creepCounts["upgrader"];
+            let numToSpawn = 1;
+            if (roomController.level < 4) numToSpawn = 3;
+            if (numUpgraders < numToSpawn) {
                 if (!currentlySpawning.includes("upgrader")) {
                     spawnQueue.push({
                         creepName: "upgrader",
@@ -274,11 +277,11 @@ var systemSpawner2 = {
             for (var spawn of roomSpawns) {
                 //if the spawn is already spawning, print out the message and then skip
                 if (spawn.spawning) { 
-                    var spawningCreep = Game.creeps[roomSpawn.spawning.name];
+                    var spawningCreep = Game.creeps[spawn.spawning.name];
                     Game.rooms[room].visual.text(
                         '🛠️' + spawningCreep.memory.role,
-                        roomSpawn.pos.x + 1, 
-                        roomSpawn.pos.y, 
+                        spawn.pos.x + 1, 
+                        spawn.pos.y, 
                         {align: 'left', opacity: 0.8});
                     continue;
                 }
@@ -359,12 +362,12 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 600);
                     break;
             }
+            memory["spawnRoom"] = spawnRoom;
             var newName = spawnRoom + "/" + role + "/" + Game.time;
-            let hyperLink = "<a href='#!/room/shard3/" + spawnRoom + "'>" + spawnRoom + "</a>"
-            console.log('Spawning Creep in ' + hyperLink + " with name " + newName);
-            
             let spawnSuccess = spawn.spawnCreep(body, newName, {memory: memory});
             if (spawnSuccess == 0) {
+                let hyperLink = "<a href='#!/room/shard3/" + spawnRoom + "'>" + spawnRoom + "</a>"
+                console.log('Spawning Creep in ' + hyperLink + " with name " + newName);
                 //if the spawn is successful, increment the number of creeps of that role in the room
                 Memory.roomsPersistent[spawnRoom].creepCounts[role]++;
 
