@@ -6,9 +6,11 @@ var systemSpawner2 = {
         const TASK_LIST_REPAIRER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_REPAIR, TASK_REPAIR_WALL];
         const TASK_LIST_HARVESTER = [TASK_HARVEST, TASK_HARVEST_DROP, TASK_HARVEST_LINK, TASK_FILL_EXTENSION, TASK_BUILD, TASK_UPGRADE];//maybe make them put into container
         const TASK_LIST_UPGRADER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER,TASK_HARVEST, TASK_UPGRADE, TASK_UPGRADE_LINK];
-        const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_BUILD, TASK_FILL_STORAGE, TASK_UPGRADE];
+        const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_BUILD, TASK_UPGRADE];
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
-        const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT, TASK_FILL_STORAGE, TASK_FILL_EXTENSION]
+        const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT, TASK_FILL_STORAGE, TASK_FILL_EXTENSION];
+        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_FILL_EXTENSION];
+        //TODO PROBABLY CAN COMBINE MAINTAINER AND FILLER AS LONG AS THERE ISN't AN ATTACK GOING ON
 
         //ADD IN PRIORITIZATION
         //TODO:
@@ -107,6 +109,7 @@ var systemSpawner2 = {
             }
             */
 
+            //TODO: REMOVE CONTAINERS AFTER BUILDING LINK
             //transporter spawning
             if (!Memory.roomsPersistent[room].creepCounts["transporter"]) {
                 Memory.roomsPersistent[room].creepCounts["transporter"] = 0;
@@ -132,7 +135,8 @@ var systemSpawner2 = {
             }
             var sources = Object.keys(Memory.roomsPersistent[room].sources);
             for (var source of sources) {
-                let numWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source && creep.ticksToLive > 100).length;      
+                //TODO: FIGURE OUT HOW TO HANDLE creep.ticksToLive > 100 with my new source assignment
+                let numWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source).length;      
                 if (numWorker < 1) {
                     if (!currentlySpawning.includes("miner")) {
                         let memory = {type: "worker", role: 'miner', tasks: TASK_LIST_HARVESTER};
@@ -271,6 +275,23 @@ var systemSpawner2 = {
                         }
                     }
                 }
+                //if there is a storage, create dedicated filler role
+                if (Game.rooms[room].storage) {
+                    //filler spawning
+                    if (!Memory.roomsPersistent[room].creepCounts["filler"]) {
+                        Memory.roomsPersistent[room].creepCounts["filler"] = 0;
+                    }
+                    let numFillers = Memory.roomsPersistent[room].creepCounts["filler"];
+                    if (numFillers < 1) {
+                        if (!currentlySpawning.includes("filler")) {
+                            spawnQueue.unshift({
+                                creepName: "filler",
+                                creepMemory: {type: "worker", role: "filler", tasks: TASK_LIST_FILLER},
+                                creepHasRoads: hasRoads
+                            });
+                        }
+                    }
+                }
             }
 
             //loop through each spawn in a room
@@ -346,7 +367,7 @@ var systemSpawner2 = {
                     }
                     break;
                 case "maintainer":
-                    body = addMoves([WORK, CARRY, CARRY, CARRY], hasRoads);
+                    body = addMoves([CARRY], hasRoads);
                     body = buildComposition(spawnRoom, body, true, 700);
                     break;
                 case "linker":
@@ -360,6 +381,10 @@ var systemSpawner2 = {
                 case "repairer":
                     body = addMoves([WORK, CARRY, CARRY], hasRoads);
                     body = buildComposition(spawnRoom, body, true, 600);
+                    break;
+                case "filler":
+                    body = addMoves([CARRY], hasRoads);
+                    body = buildComposition(spawnRoom, body, true, 800);
                     break;
             }
             memory["spawnRoom"] = spawnRoom;

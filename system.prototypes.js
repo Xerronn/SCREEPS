@@ -13,12 +13,12 @@ var systemPrototypes = {
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
-                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && !this.memory.tasks.includes(TASK_HARVEST_DROP)) {
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = false;
                 }
 
                 //skip all this if its already full from another task
-                if (!this.memory.harvesting) {
+                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_DROP) && !this.memory.tasks.includes(TASK_HARVEST_LINK)) {
                     return false; //move to next task
                 }
 
@@ -71,7 +71,8 @@ var systemPrototypes = {
                 //now we do the final check for links
                 if (!this.memory.assignedSourceLink) {
                     //find any links within range 1
-                    let sourceLinks = creepSource.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_LINK}});
+                    let allSourceLinks = Memory.roomsCache[this.room.name].structures.links.container.map(container => Game.getObjectById(container));
+                    var sourceLinks = creepSource.pos.findInRange(allSourceLinks, 2);
                     if (sourceLinks.length > 0) {
                         this.memory.assignedSourceLink = sourceLinks[0].id;
                     } else {
@@ -435,7 +436,7 @@ var systemPrototypes = {
         }
 
 
-
+    
         //task to upgrade the controller
         if (!Creep.prototype._upgradeController) {
             //store the original version of the function
@@ -448,6 +449,8 @@ var systemPrototypes = {
                 if (!this.memory.assignedControllerLink) {
                     if (Memory.roomsCache[this.room.name].structures.links.controller.length > 0) {
                         this.memory.assignedControllerLink = Memory.roomsCache[this.room.name].structures.links.controller[0];
+                        //get rid of all other tasks if there is a link
+                        this.memory.tasks = [TASK_UPGRADE_LINK];
                     } else {
                         //remove link upgrading if there is no link
                         let array = this.memory.tasks;
@@ -571,7 +574,7 @@ var systemPrototypes = {
                 }
 
                 //do nothing if the creepLink is sitting at a good spot
-                if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 350 && creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 450) {
+                if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 350 && creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 450 ) {
                     return true; //move to next tick
                 }
                 if (this.memory.harvesting) {
@@ -650,8 +653,10 @@ var systemPrototypes = {
                         return false; //move to next task
                     }
                 }
-                if (this.memory.repairTarget != "none") {
-                    var target = Game.getObjectById(this.memory.repairTarget);
+                //fetch object pointed by memory
+                var target = Game.getObjectById(this.memory.repairTarget);
+                if (target && this.memory.repairTarget != "none") {
+                    
                     if (target.hits == target.hitsMax) {
                         this.memory.repairTarget = "none";
                     }
@@ -670,6 +675,7 @@ var systemPrototypes = {
                     }
                     return true; //move to next tick
                 }
+                this.memory.repairTarget = "none"; //set memory to none in case it is null
                 return false; //move to next task
             }
             

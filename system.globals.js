@@ -1,3 +1,5 @@
+const systemMemory = require("./system.memory");
+
 var systemGlobals = {
     run: function() {
         //global declarations of some things
@@ -30,6 +32,16 @@ var systemGlobals = {
         global.COLOR_ENERGY_SPEND = "1dde20";
         global.COLOR_ATTACK = "ff1900";
         global.COLOR_MOVE = "ffffff";
+
+        global.synchCreepCounts = function () {
+            var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
+            for (var room of myRooms) {
+                for (var role of Object.keys(Memory.roomsPersistent[room].creepCounts)) {
+                    var count = _.filter(Game.creeps, (creep) => creep.memory.role == role && creep.memory.spawnRoom == room).length;
+                    Memory.roomsPersistent[room].creepCounts[role] = count;
+                }
+            }
+        }
     }
 };
 
