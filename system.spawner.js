@@ -90,7 +90,11 @@ var systemSpawner2 = {
                 Memory.roomsPersistent[room].spawns = {};
             }
             Memory.roomsPersistent[room].spawns[spawn.name] = "none";
-            let hasRoads = Memory.roomsPersistent[room].roadsBuilt;
+            let hasRoads = true;
+
+            if (Memory.roomsPersistent[room].roomPlanning && Memory.roomsPersistent[room].roomPlanning.travelRoadsBuilt) {
+                hasRoads = Memory.roomsPersistent[room].roomPlanning.travelRoadsBuilt;
+            }
 
             /* TODO: FIND A BETTER PANIC CREEP METHOD
             //OH CRAP PANIC setup

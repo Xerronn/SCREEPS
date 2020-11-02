@@ -17,7 +17,7 @@ var systemRoomPlanner2 = {
                 {"x":5,"y":9},{"x":1,"y":10},{"x":2,"y":10},{"x":3,"y":10},{"x":4,"y":10},
                 {"x":6,"y":10},{"x":7,"y":10}]},
 
-            "road":{"pos":[{"x":3,"y":3}, {"x":5,"y":0},{"x":1,"y":1},{"x":4,"y":1},{"x":6,"y":1},
+            "road":{"pos":[{"x":0,"y":0},{"x":10,"y":0},{"x":0,"y":10},{"x":10,"y":10},{"x":3,"y":3}, {"x":5,"y":0},{"x":1,"y":1},{"x":4,"y":1},{"x":6,"y":1},
                 {"x":9,"y":1},{"x":2,"y":2},{"x":3,"y":2},{"x":7,"y":2},{"x":8,"y":2},
                 {"x":2,"y":3},{"x":7,"y":3},{"x":8,"y":3},{"x":1,"y":4},{"x":4,"y":4},
                 {"x":6,"y":4},{"x":9,"y":4},{"x":0,"y":5},{"x":5,"y":5},{"x":10,"y":5},
@@ -128,7 +128,7 @@ var systemRoomPlanner2 = {
 
                 //builds the appropriate number of each structure type
                 for (var type of typesToBuild) {
-                    //buildNewStructures(type, room, roomAnchor);
+                    buildNewStructures(type, room, roomAnchor);
                 }
 
                 if (roomController.level >= 2) {
@@ -144,6 +144,37 @@ var systemRoomPlanner2 = {
                             close.createConstructionSite(STRUCTURE_CONTAINER);
                         }
                         Memory.roomsPersistent[room].roomPlanning.containersBuilt = true;
+                    }
+
+                    //build roads to sources
+                    if (!Memory.roomsPersistent[room].roomPlanning.travelRoadsBuilt) {
+                        Memory.roomsPersistent[room].roomPlanning.travelRoadsBuilt = true;
+
+                        //define corners of the bunker
+                        let topRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y, room);
+                        let topLeft = roomAnchor;
+                        let bottomLeft = new RoomPosition(roomAnchor.x, roomAnchor.y + 10, room);
+                        let bottomRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 10, room);
+                        let corners = [topRight, topLeft, bottomLeft, bottomRight];
+
+                        let roadSites = [];
+
+                        var travelSources = Game.rooms[room].find(FIND_SOURCES);
+                        
+                        //build roads from the closest corner to the source
+                        for (var source of travelSources) {
+                            let selectedCorner = source.pos.findClosestByPath(corners);
+                            roadSites.push(selectedCorner.findPathTo(source, {range: 1, ignoreCreeps: true}));
+                        }
+
+                        let selectedCorner = roomController.pos.findClosestByPath(corners);
+                        roadSites.push(selectedCorner.findPathTo(roomController, {range: 1, ignoreCreeps: true}));
+
+                        for (var sites of roadSites) {
+                            for (var site of sites) {
+                                Game.rooms[room].createConstructionSite(site.x, site.y, STRUCTURE_ROAD);
+                            }
+                        }
                     }
                     
                 }
@@ -188,6 +219,7 @@ var systemRoomPlanner2 = {
 
                     for (var i = 0; i < numToBuild; i++) {
                         //first build controller link
+                        //TODO: this can break if the bunker is too close to the controller
                         if (!Memory.roomsPersistent[room].roomPlanning.controllerLink) {
                             let pathToController = roomAnchor.findPathTo(roomController.pos, {range: 2, ignoreCreeps: true})
                             let closestPosition = new RoomPosition(pathToController[pathToController.length - 1]["x"], pathToController[pathToController.length - 1]["y"], room);
