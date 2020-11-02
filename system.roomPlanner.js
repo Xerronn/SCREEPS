@@ -193,11 +193,11 @@ var systemRoomPlanner2 = {
    
                 if (roomController.level >= 4) {
                     //build ramparts
-                    var xMax = roomAnchor.x + 10;
-                    var yMax = roomAnchor.y + 10;
-                    for (var x = roomAnchor.x; x <= roomAnchor.x + 10; x++) {
-                        for (var y = roomAnchor.y; y <= roomAnchor.y + 10; y++) {
-                            if (x == roomAnchor.x || y == roomAnchor.y || x == xMax || y == yMax) {
+                    var xMax = roomAnchor.x + 12;
+                    var yMax = roomAnchor.y + 12;
+                    for (var x = roomAnchor.x - 1; x <= xMax; x++) {
+                        for (var y = roomAnchor.y - 1; y <= yMax; y++) {
+                            if (x == roomAnchor.x - 1 || y == roomAnchor.y - 1 || x == xMax || y == yMax) {
                                 Game.rooms[room].createConstructionSite(new RoomPosition(x, y, room), STRUCTURE_RAMPART);
                             }
                         }
