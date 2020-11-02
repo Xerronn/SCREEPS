@@ -66,13 +66,13 @@ var systemRoomPlanner2 = {
                     } else {
                         //find positions the bunker could fit
                         var candidates = [];
-                        for (var x = 1; x < 40; x++) {
-                            for (var y = 1; y < 40; y++) {
+                        for (var x = 2; x < 38; x++) {
+                            for (var y = 2; y < 38; y++) {
                                 let dq = false;
                                 for (var candidate of Game.rooms[room].lookAtArea(y, x, y + 10, x + 10, true)) {
                                     if (candidate["terrain"] == "wall") {
                                         dq = true;
-                                        break;
+                                        break; //break as soon as it is dq
                                     }
                                 }
                                 if (!dq) {
@@ -122,6 +122,7 @@ var systemRoomPlanner2 = {
                     }
                 }
                 //once you have an anchor make a live position of it
+                //TODO: factory is not building for some reason
                 var roomAnchor = new RoomPosition(Memory.roomsPersistent[room].roomPlanning.anchor["x"], Memory.roomsPersistent[room].roomPlanning.anchor["y"],room);
                 var typesToBuild = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_STORAGE, STRUCTURE_LINK, STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_TERMINAL];
 
@@ -166,6 +167,64 @@ var systemRoomPlanner2 = {
                         for (var y = roomAnchor.y; y <= roomAnchor.y + 10; y++) {
                             if (x == roomAnchor.x || y == roomAnchor.y || x == xMax || y == yMax) {
                                 Game.rooms[room].createConstructionSite(new RoomPosition(x, y, room), STRUCTURE_RAMPART);
+                            }
+                        }
+                    }
+                }
+
+                if (roomController.level >= 5) {
+                    //build links
+                    //find how many exist
+                    let numExist = Game.rooms[room].find(FIND_STRUCTURES, {
+                        filter: (structure) => {return structure.structureType == STRUCTURE_LINK}}).length;
+
+                    //find how many are building
+                    let numBuilding = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES, {
+                        filter: (structure) => {return structure.structureType == STRUCTURE_LINK}}).length;
+
+                    //find how many are possible to build at the current level
+                    let maxToBuild = CONTROLLER_STRUCTURES[STRUCTURE_LINK][Game.rooms[room].controller.level];
+                    let numToBuild = maxToBuild - (numExist + numBuilding);
+
+                    for (var i = 0; i < numToBuild; i++) {
+                        //first build controller link
+                        if (!Memory.roomsPersistent[room].roomPlanning.controllerLink) {
+                            let pathToController = roomAnchor.findPathTo(roomController.pos, {range: 2, ignoreCreeps: true})
+                            let closestPosition = new RoomPosition(pathToController[pathToController.length - 1]["x"], pathToController[pathToController.length - 1]["y"], room);
+                            closestPosition.createConstructionSite(STRUCTURE_LINK);
+                            Memory.roomsPersistent[room].roomPlanning.controllerLink = true;
+                            continue; //move to next iteration out of the num to build
+                        }
+                        let sources = Game.rooms[room].find(FIND_SOURCES);
+                        sources = _.sortBy(sources, source => roomAnchor.getRangeTo(source));
+
+                        //init sources room planning memory
+                        if (!Memory.roomsPersistent[room].roomPlanning.sourceLinks) {
+                            Memory.roomsPersistent[room].roomPlanning.sourceLinks = [];
+                        }
+                        if (Memory.roomsPersistent[room].roomPlanning.sourceLinks.length < sources.length) {
+                            //loop through sources until you find one not in memory
+                            for (source of sources) {
+                                if (!Memory.roomsPersistent[room].roomPlanning.sourceLinks.includes(source.id)) {
+
+                                    //once a source not in the memory is found, route to it and build a link on the last step of the route
+                                    let pathToSource = roomAnchor.findPathTo(source.pos, {range: 2, ignoreCreeps: true})
+                                    let closestPosition = new RoomPosition(pathToSource[pathToSource.length - 1]["x"], pathToSource[pathToSource.length - 1]["y"], room);
+
+                                    //find and delete the nearby container
+                                    let sourceContainer = closestPosition.findClosestByRange(FIND_STRUCTURES, {
+                                        filter: (structure) => { return structure.structureType == STRUCTURE_CONTAINER 
+                                            && closestPosition.inRangeTo(structure, 2)
+                                        }
+                                    });
+                                    if (sourceContainer) {
+                                        sourceContainer.destroy();
+                                    }
+                                    if (closestPosition.createConstructionSite(STRUCTURE_LINK) == 0) {
+                                        Memory.roomsPersistent[room].roomPlanning.sourceLinks.push(source.id);
+                                    }
+                                    break;
+                                }
                             }
                         }
                     }
