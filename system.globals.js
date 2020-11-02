@@ -33,6 +33,16 @@ var systemGlobals = {
         global.COLOR_ATTACK = "ff1900";
         global.COLOR_MOVE = "ffffff";
 
+        global.help = function () {
+            let functions = ["synchCreepCounts", "removeConstructionSites", "refreshAllStructures"];
+            
+            for (func of functions) {
+                console.log(func);
+            }
+            return functions.length + " functions available!";
+
+        }
+
         global.synchCreepCounts = function () {
             var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
             for (var room of myRooms) {
@@ -55,6 +65,14 @@ var systemGlobals = {
                 constructionSites[i].remove();
             }
             return count + " Construction sites removed!";
+        }
+
+        global.refreshAllStructures = function () {
+            var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
+            for (let room of myRooms) {
+                delete Memory.roomsCache[room].structures;
+            }
+            return "Deleted structure memory of " + myRooms.length + " rooms!";
         }
     }
 };

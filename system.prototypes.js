@@ -76,7 +76,7 @@ var systemPrototypes = {
                     if (sourceLinks.length > 0) {
                         this.memory.assignedSourceLink = sourceLinks[0].id;
                     } else {
-                        //remove link mining from potential tasks if there is no container
+                        //remove link mining from potential tasks if there is no link
                         let array = this.memory.tasks;
                         let index = array.indexOf(TASK_HARVEST_LINK);
                         if (index > -1) {
