@@ -30,6 +30,11 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_SALVAGE:
+                        if (creep.salvage() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_FILL_EXTENSION:
                         if (creep.fillExtensions() == true) {
                             taskCompleted = true;

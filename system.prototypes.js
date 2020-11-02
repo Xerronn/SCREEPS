@@ -236,6 +236,57 @@ var systemPrototypes = {
 
 
 
+        //task to pickup dropped energy
+        if (!Creep.prototype.salvage) {
+            Creep.prototype.salvage = function () {
+
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
+                //assign closest resource to creep
+                if (!this.memory.assignedSalvage || this.memory.assignedSalvage == "none") {
+                    let assignedSalvage = this.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {filter : resource => resource.resourceType == RESOURCE_ENERGY});
+                    if (assignedSalvage) {
+                        this.memory.assignedSalvage = assignedSalvage.id;
+                    } else {
+                        //if there is no salvage, remove this task
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_SALVAGE);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                        return false; //move to next task
+                    }
+                }
+                //fetch live object
+                var assignedSalvage = Game.getObjectById(this.memory.assignedSalvage);
+
+                if (!assignedSalvage) {
+                    this.memory.assignedSalvage = "none";
+                    return false; //move to next task
+                } else {
+                    if (this.pos.inRangeTo(assignedSalvage, 1)) {
+                        this.pickup(assignedSalvage);
+                    } else {
+                        this.moveTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    }
+                    return true; //move to next tick
+                }
+            }
+        }
+
+
+
         //task to withdraw from assigned source container
         if (!Creep.prototype.transport) {
             Creep.prototype.transport = function() {

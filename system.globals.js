@@ -10,6 +10,7 @@ var systemGlobals = {
         global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
         global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
         global.TASK_TRANSPORT = "transport"; //implemented
+        global.TASK_SALVAGE = "salvage"; //implemented
         
         global.TASK_FILL_EXTENSION = "fill_extension"; //implemented
         global.TASK_FILL_TOWER = "fill_tower"; //implemented
