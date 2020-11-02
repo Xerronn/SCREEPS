@@ -23,8 +23,9 @@ var systemGlobals = {
         global.TASK_REPAIR = "repair"; //implemented
         global.TASK_REPAIR_WALL = "repair_wall"; //implemented
 
-        global.TASK_REMOTE = "remote"; //task placed in highest priority to move a creep to a distance room
-        global.TASK_ROOM_CLAIM = "claim";
+        global.TASK_REMOTE = "remote"; //implemented
+        global.TASK_ROOM_SIGN = "sign"; //implemented
+        global.TASK_ROOM_CLAIM = "claim"; //implemented
         global.TASK_ROOM_RESERVE = "reserve";
 
         //color constants for actions
@@ -34,13 +35,18 @@ var systemGlobals = {
         global.COLOR_MOVE = "ffffff";
 
         global.help = function () {
-            let functions = ["synchCreepCounts", "removeConstructionSites", "refreshAllStructures"];
+            let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures"];
             
             for (func of functions) {
                 console.log(func);
             }
             return functions.length + " functions available!";
 
+        }
+
+        global.claimRoom = function (room) {
+            Memory.expansion.push(room);
+            return room + " has been added to expansion targets";
         }
 
         global.synchCreepCounts = function () {

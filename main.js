@@ -45,9 +45,8 @@ module.exports.loop = function () {
         taskExecution.run();
         
         //pixelsss
-        // if (Game.cpu["bucket"] > 9000) {
-        //     Game.cpu.generatePixel();
-        // }
-        //});
+        if (Game.cpu["bucket"] > 9000) {
+            Game.cpu.generatePixel();
+        }
     });
 }

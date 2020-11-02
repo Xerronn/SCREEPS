@@ -3,6 +3,7 @@ var systemGarbageCollection = {
         for(var name in Memory.creeps) {
             if(!Game.creeps[name]) {
                 try {
+                    //decrement the creep count
                     Memory.roomsPersistent[Memory.creeps[name].spawnRoom].creepCounts[Memory.creeps[name].role]--;
                     //remove the assigned worker from assignedSource memory
                     if (Memory.creeps[name].assignedSource) {

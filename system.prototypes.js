@@ -678,7 +678,84 @@ var systemPrototypes = {
                 this.memory.repairTarget = "none"; //set memory to none in case it is null
                 return false; //move to next task
             }
-            
+        }
+
+
+
+        //task to move to a remote room
+        if (!Creep.prototype.remote) {
+            Creep.prototype.remote = function () {
+                if (!this.memory.assignedRoom) {
+                    console.log("REMOTE CREEP HAS NO DESIGNATED ROOM!!");
+                    return true; //move to next tick
+                } else {
+                    if (this.room.name != this.memory.assignedRoom) {
+                        //avoid annoying bug where they get stuck on room edges
+                        if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
+                            this.moveTo(new RoomPosition(25,25, this.room.name));
+                        } else {
+                            this.moveTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
+                        }
+                        return true; //move to next tick
+                    } else {
+                        return false; //move to next task when inside the target room
+                    }
+                }
+            }
+        }
+
+
+
+        //task to sign a room controller
+        if (!Creep.prototype.sign) {
+            Creep.prototype.sign = function () {
+                var hollowKnightSigns = [
+                    "...Soul of Wyrm. Soul of Root. Heart of Void...",
+                    "Higher beings, these words are for you alone.",
+                    "No cost too great. No mind to think. No will to break. No voice to cry suffering.",
+                    "Born of God and Void. You shall seal the blinding light that plagues their dreams.",
+                    "You are the Vessel. You are the Hollow Knight.",
+                    "Our pure Vessel has ascended. Beyond lies only the refuse and regret of its creation.",
+                    "Bear witness to the last and only civilization, the eternal Kingdom. Hallownest.",
+                    "Vessel. Though bound, you shall know the state of the world. Hallownest will be whole again.",
+                    "The great gates have been sealed. None shall enter. None shall leave.",
+                    "Cursed are those who turn against the King.",
+                    "A true servant gives all for the Kingdom. Let Hallownest's Pale King relieve you of your burden.",
+                    "To witness secrets sealed, one must endure the harshest punishment.",
+                    "...Void... Power... Without unity..."
+                ];
+                var controller = Game.rooms[this.room.name].controller;
+                if (controller.sign.username != "Xerronn") {
+                    if (this.pos.inRangeTo(controller, 1)) {
+
+                        //selected a random message from the message array then sign it with that message
+                        let selectedMessage = hollowKnightSigns[Math.floor(Math.random() * hollowKnightSigns.length)];
+                        this.signController(controller, selectedMessage);
+                    } else {
+                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                    }
+                    return true; //move to next tick
+                }
+                return false; //move to next task
+            }
+        }
+
+
+
+        //task to claim a controller
+        if (!Creep.prototype.claim) {
+            Creep.prototype.claim = function () {
+                var controller = Game.rooms[this.room.name].controller;
+                if (!controller.my) {
+                    if (this.pos.inRangeTo(controller, 1)) {
+                        this.claimController(controller);
+                    } else {
+                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                    }
+                    return true; //move to next tick
+                }
+                return false; //move to next task
+            }
         }
     }
 };

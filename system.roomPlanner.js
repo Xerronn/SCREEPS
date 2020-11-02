@@ -126,6 +126,7 @@ var systemRoomPlanner2 = {
                 var roomAnchor = new RoomPosition(Memory.roomsPersistent[room].roomPlanning.anchor["x"], Memory.roomsPersistent[room].roomPlanning.anchor["y"],room);
                 var typesToBuild = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_STORAGE, STRUCTURE_LINK, STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_TERMINAL];
 
+                //TODO: DID NOT AUTOMATICALLY BUILD SPAWN ON CLAIM
                 //builds the appropriate number of each structure type
                 for (var type of typesToBuild) {
                     buildNewStructures(type, room, roomAnchor);

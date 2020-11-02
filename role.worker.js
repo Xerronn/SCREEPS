@@ -67,6 +67,21 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_REMOTE:
+                        if (creep.remote() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_ROOM_SIGN:
+                        if (creep.sign() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_ROOM_CLAIM:
+                        if (creep.claim() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                 }
                 //break the loop if it finds what it needs to do
                 if (taskCompleted) break;
