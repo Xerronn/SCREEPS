@@ -2,7 +2,7 @@ var systemRoomPlanner = {
     run: function() {
         if (!Memory.roomsPersistent["excluded"]) {
             //rooms that were already established before I implemented this
-            Memory.roomsPersistent["excluded"] = ["E44N23", "E45N22", "E42N22"];
+            Memory.roomsPersistent["excluded"] = ["E44N23", "E45N22", "E42N22", "E42N21"];
         }
         let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && !Memory.roomsPersistent["excluded"].includes(room) && Game.rooms[room].controller.level > 0);
         for (var room of myRooms) {

@@ -341,6 +341,7 @@ var systemSpawner2 = {
                     }
                     break;
                 case "transporter":
+                    //TODO: calculate how many parts there should be depending on distance
                     body = addMoves([CARRY], hasRoads);
                     body = buildComposition(spawnRoom, body, true, 800);
                     break;
@@ -359,7 +360,7 @@ var systemSpawner2 = {
                         body = addMoves([WORK, CARRY], hasRoads);
                     }
                     let storage = Game.rooms[spawnRoom].storage;
-                    if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 1.3)) {
+                    if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 2)) {
                         //Unlimited cost on upgraders if the storage gets above a certain capacity
                         body = buildComposition(spawnRoom, body, true);
                     } else {
@@ -367,8 +368,13 @@ var systemSpawner2 = {
                     }
                     break;
                 case "maintainer":
-                    body = addMoves([CARRY], hasRoads);
-                    body = buildComposition(spawnRoom, body, true, 700);
+                    if (!Game.rooms[spawnRoom].storage) {
+                        body = addMoves([WORK, CARRY, CARRY, CARRY], hasRoads);
+                        body = buildComposition(spawnRoom, body, true, 700);
+                    } else {
+                        body = addMoves([CARRY], hasRoads);
+                        body = buildComposition(spawnRoom, body, true, 700);
+                    }
                     break;
                 case "linker":
                     //doesn't matter if roads or not

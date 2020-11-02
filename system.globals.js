@@ -41,6 +41,20 @@ var systemGlobals = {
                     Memory.roomsPersistent[room].creepCounts[role] = count;
                 }
             }
+            return "Creep counts synced!";
+        }
+
+        global.removeConstructionSites = function (room, count = 0) {
+            //function to help test automatic building by alleviating the 100 cap
+            var constructionSites = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES);
+            if (count == 0) {
+                count = constructionSites.length;
+            }
+
+            for (var i = 0; i < count; i++) {
+                constructionSites[i].remove();
+            }
+            return count + " Construction sites removed!";
         }
     }
 };
