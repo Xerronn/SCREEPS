@@ -8,7 +8,8 @@ const taskExecution = require('system.taskManager');
 const garbageCollection = require('system.garbageCollection');
 
 const initializeGlobals = require('system.globals');
-const initializePrototypes = require('system.prototypes');
+const initializeWorkPrototypes = require('creep.prototypes.work');
+const initializeCombatPrototypes = require('creep.prototypes.combat');
 
 
 profiler.enable();
@@ -16,7 +17,8 @@ module.exports.loop = function () {
     profiler.wrap(function() {
         //initialization
         initializeGlobals.run();
-        initializePrototypes.run();
+        initializeWorkPrototypes.run();
+        initializeCombatPrototypes.run();
 
         //memory cleanup
         garbageCollection.run();

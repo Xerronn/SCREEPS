@@ -29,6 +29,8 @@ var systemGlobals = {
         global.TASK_ROOM_CLAIM = "claim"; //implemented
         global.TASK_ROOM_RESERVE = "reserve";
 
+        global.TASK_COMBAT_MELEE_DEFEND = "melee_defend";
+
         //color constants for actions
         global.COLOR_ENERGY_GET = "dae028";
         global.COLOR_ENERGY_SPEND = "1dde20";

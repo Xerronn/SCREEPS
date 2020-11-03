@@ -10,8 +10,10 @@ var systemSpawner2 = {
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT, TASK_FILL_STORAGE, TASK_FILL_EXTENSION];
         const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_FILL_EXTENSION];
-        const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_HARVEST, TASK_FILL_EXTENSION];
-        const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_HARVEST, TASK_BUILD];
+        const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_FILL_EXTENSION];
+        const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_BUILD, TASK_UPGRADE];
+
+        const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
         //TODO PROBABLY CAN COMBINE MAINTAINER AND FILLER AS LONG AS THERE ISN't AN ATTACK GOING ON
 
         //ADD IN PRIORITIZATION
@@ -40,27 +42,25 @@ var systemSpawner2 = {
             }
         }
 
-        //handles the automatic creation of remote builders in case of a new territory being claimed
+        //handles the automatic creation of remote workers in case of a new territory being claimed
         //first find any claimed controllers that do not have a spawn
-        var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER && (Memory.roomsCache[structure.pos.roomName].structures["spawns"].length < 1));
+        var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER && structure.level < 4);
         for (var controller of controllers) {
             if (Object.keys(Game.spawns).length > 0) { 
-                if (controller.room.find(FIND_MY_SPAWNS).length < 1) {
-                    //remove from memory expansions
-                    if (Memory.expansion.includes(controller.room.name)) {
-                        let index = Memory.expansion.indexOf(controller.room.name);
-                        Memory.expansion.splice(index, 1);
-                    }
-                    var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
-                    if (remoteBuilders.length < 3) {
-                        let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
-                        Memory.roomsCache[room].structures["spawns"].length > 0 && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
-                        var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
-                        let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
-                        let memory = {type: "worker", role: 'remoteBuilder', tasks: TASK_LIST_REMOTE_BUILDER, assignedRoom: controller.pos.roomName};
-                        spawnCreep(chosenSpawn, "remoteBuilder", memory);
-                    }
-                } 
+                //remove from memory expansions
+                if (Memory.expansion.includes(controller.room.name)) {
+                    let index = Memory.expansion.indexOf(controller.room.name);
+                    Memory.expansion.splice(index, 1);
+                }
+                var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
+                if (remoteBuilders.length < 3) {
+                    let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
+                    Memory.roomsCache[room].structures["spawns"].length > 0 && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
+                    var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
+                    let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
+                    let memory = {type: "worker", role: 'remoteBuilder', tasks: TASK_LIST_REMOTE_BUILDER, assignedRoom: controller.pos.roomName};
+                    spawnCreep(chosenSpawn, "remoteBuilder", memory);
+                }
             }
         }
 
@@ -103,9 +103,10 @@ var systemSpawner2 = {
             var numCreeps = Object.values(Memory.roomsPersistent[room].creepCounts);
             numCreeps = numCreeps.reduce((a,b) => a+b, 0);
             if (numCreeps < 2) {
-                let memory = {type: "worker", role: 'transporter', tasks: TASK_LIST_PANIC};
-                spawnCreep(spawn, "panic", memory, hasRoads);
-                Memory.roomsPersistent[room].creepCounts["panic"] ++;
+                let memory = {type: "worker", role: 'panic', tasks: TASK_LIST_PANIC};
+                if (spawnCreep(roomSpawns[0], "panic", memory, hasRoads) == true) {
+                    Memory.roomsPersistent[room].creepCounts["panic"] ++;
+                }
                 break;
             }
 
@@ -182,34 +183,33 @@ var systemSpawner2 = {
                 }
             }
 
-            /*TODO: Implement new remote defender
-            //remoteDefender spawning
-            if (!towers) {
-                let remoteDefenders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteDefender' && creep.memory.assignedRoom == room && creep.ticksToLive > 300);
-                if (remoteDefenders.length < 1) {
+            //remote defender spawning
+            var numTowers = Memory.roomsCache[room].structures.towers.length;
+            if (numTowers == 0) {
+                if (!Memory.roomsPersistent[room].creepCounts["remoteDefender"]) {
+                    Memory.roomsPersistent[room].creepCounts["remoteDefender"] = 0;
+                }
+                let numRemoteDefenders = Memory.roomsPersistent[room].creepCounts["remoteDefender"];
+                if (numRemoteDefenders < 1) {
                     let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
                     Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
                     if (expanderRooms.length > 0) {
                         var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
                         let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
-                        let memory = {role: 'remoteDefender', assignedRoom: room};
-                        spawnQueue.push({
-                            creepSpawn: chosenSpawn,
-                            creepName: "remoteDefender",
-                            creepMemory: memory,
-                            creepHasRoads: hasRoads
-                        });
+                        let memory = {type: 'attacker', role: "remoteDefender", assignedRoom: room, tasks: TASK_LIST_REMOTE_DEFENDER};
+                        if (spawnCreep(chosenSpawn, "remoteDefender", memory, hasRoads) == true) {
+                            Memory.roomsPersistent[room].creepCounts["remoteDefender"] ++;
+                        }
+                        break;
                     }
                 }
             }
-            */
 
             //repairer spawning
             if (!Memory.roomsPersistent[room].creepCounts["repairer"]) {
                 Memory.roomsPersistent[room].creepCounts["repairer"] = 0;
             }
             let numRepairers = Memory.roomsPersistent[room].creepCounts["repairer"]; 
-            var numTowers = Memory.roomsCache[room].structures.towers.length;
             
             if (containers.length > 0 && numTowers < 1){
                 if (numRepairers < 1) {
@@ -345,8 +345,9 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 800);
                     break;
                 case "panic":
-                    body = addMoves([WORK,CARRY, MOVE, MOVE], hasRoads);
-                    body = buildComposition(spawnRoom, body, true);
+                    body = addMoves([WORK, CARRY, CARRY, CARRY], hasRoads);
+                    console.log(body);
+                    body = buildComposition(spawnRoom, body, true, 300);
                     break;
                 case "builder":
                     body = addMoves([WORK, CARRY, CARRY], hasRoads);
@@ -431,7 +432,6 @@ var systemSpawner2 = {
             if (maxEnergy > Game.rooms[room].energyCapacityAvailable) {
                 maxEnergy = Game.rooms[room].energyCapacityAvailable;
             }
-            
             //calculate total cost and counts of the provided body
             var bodyCounts = {};
             var totalCost = 0;
@@ -446,8 +446,6 @@ var systemSpawner2 = {
                     bodyCounts[part] += 1;
                 }
             }
-
-
             //reduce the body if needed
             if (totalCost > maxEnergy) {
                 var mostCommon = WORK;
@@ -461,10 +459,11 @@ var systemSpawner2 = {
                     body.splice(index, 1);
                 }
                 //recursive call to decrease the array
-                return buildComposition(room, body, maxEnergy);
+                return buildComposition(room, body, increase, maxEnergy);
             }
 
             //increase the body if needed
+            
             else if (totalCost < maxEnergy && increase) {
                 for (let part of body) {
                     if (totalCost + BODYPART_COST[part] < maxEnergy) {
