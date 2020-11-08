@@ -119,7 +119,12 @@ var systemPrototypes = {
 
                 //now move to the target and then harvest the source
                 if (this.pos.inRangeTo(moveTarget, distanceToTarget)) {
-                    this._harvest(creepSource);
+                    let success = this._harvest(creepSource);
+                    if (success == 0) {
+                        let numWork = this.countBodyType(WORK);
+                        //TODO: rework this when boosting is possible
+                        Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
+                    }
                 } else {
                     this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
@@ -277,6 +282,7 @@ var systemPrototypes = {
                 } else {
                     if (this.pos.inRangeTo(assignedSalvage, 1)) {
                         this.pickup(assignedSalvage);
+                        //TODO: Track this in stats
                     } else {
                         this.moveTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
@@ -523,7 +529,11 @@ var systemPrototypes = {
                 }
                 if (!this.memory.harvesting) {
                     if (this.pos.inRangeTo(creepController, 3)) {
-                        this._upgradeController(creepController);
+                        let success = this._upgradeController(creepController);
+                        if (success == 0) {
+                            let numWork = this.countBodyType(WORK);
+                            Memory.roomsPersistent[this.room.name].stats.energySpentUpgrading += numWork;
+                        }
                     } else {
                         this.moveTo(creepController, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
@@ -712,11 +722,15 @@ var systemPrototypes = {
                         this.memory.repairTarget = "none";
                     }
                     if (this.pos.inRangeTo(target, 1)) {
-                        this._repair(target, RESOURCE_ENERGY);
+                        let success = this._repair(target, RESOURCE_ENERGY);
+                        if (success == 0) {
+                            let numWork = this.countBodyType(WORK);
+                            Memory.roomsPersistent[this.room.name].stats.energySpentRepairing += numWork;
+                        }
 
                         //set target to none when the creep runs out of energy to repair it
                         if (this.store.getUsedCapacity(RESOURCE_ENERGY) < 15) {
-                            let numWork = _.filter(this.body, function(bp){return bp == WORK;}).length;
+                            let numWork = this.countBodyType(WORK);
                             if (this.store.getUsedCapacity(RESOURCE_ENERGY) - numWork <= 0) {
                                 this.memory.repairTarget = "none";
                             }
@@ -806,6 +820,12 @@ var systemPrototypes = {
                     return true; //move to next tick
                 }
                 return false; //move to next task
+            }
+        }
+
+        if (!Creep.prototype.countBodyType) {
+            Creep.prototype.countBodyType = function (type) {
+                return _.filter(this.body, function(bp){return bp.type == type;}).length;
             }
         }
     }

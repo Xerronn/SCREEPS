@@ -3,6 +3,7 @@ var roleWorker = {
     /** @param {Creep} creep **/
     run: function(creep) {
         try {
+            //TODO: change this so the try is in the prototypes instead of here
             //iterate through tasks in order of importance(order)
             for (var task of creep.memory.tasks) {
                 //if this variable gets set to true, it will stop the iteration through tasks

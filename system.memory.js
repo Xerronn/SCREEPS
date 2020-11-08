@@ -72,6 +72,44 @@ var systemMemory = {
                     }
                 });
             }
+
+            //room statistics
+            if (!Memory.roomsPersistent[room].stats) {
+                Memory.roomsPersistent[room].stats = {};
+            }
+
+            //energy stats
+            //TODO ADD ALL SPENDS HERE
+            Memory.roomsPersistent[room].stats.energySpentTotal = 
+                Memory.roomsPersistent[room].stats.energySpentUpgrading + 
+                Memory.roomsPersistent[room].stats.energySpentTower +
+                Memory.roomsPersistent[room].stats.energySpentSpawning +
+                Memory.roomsPersistent[room].stats.energySpentRepairing;
+
+            if (!Memory.roomsPersistent[room].stats.energyHarvested) {
+                Memory.roomsPersistent[room].stats.energyHarvested = 0;
+            }
+
+            if (!Memory.roomsPersistent[room].stats.creepsSpawned) {
+                Memory.roomsPersistent[room].stats.creepsSpawned = 0;
+            }
+
+            if (!Memory.roomsPersistent[room].stats.energySpentUpgrading) {
+                Memory.roomsPersistent[room].stats.energySpentUpgrading = 0;
+            }
+
+            if (!Memory.roomsPersistent[room].stats.energySpentTower) {
+                Memory.roomsPersistent[room].stats.energySpentTower = 0;
+            }
+
+            if (!Memory.roomsPersistent[room].stats.energySpentSpawning) {
+                Memory.roomsPersistent[room].stats.energySpentSpawning = 0;
+            }
+
+            if (!Memory.roomsPersistent[room].stats.energySpentRepairing) {
+                Memory.roomsPersistent[room].stats.energySpentRepairing = 0;
+            }
+
         }
         
         

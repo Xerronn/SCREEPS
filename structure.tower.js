@@ -13,7 +13,10 @@ var structureTower = {
         //check for things to repair
         var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(closestHostile) {
-            tower.attack(closestHostile);
+            let success = tower.attack(closestHostile);
+            if (success == 0) {
+                Memory.roomsPersistent[tower.room.name].stats.energySpentTower += 10;
+            }
         }
 
         var targets = tower.room.find(FIND_STRUCTURES, {
@@ -28,8 +31,11 @@ var structureTower = {
                 }
         });
         var target =  _.sortBy(targets, (struc) => struc.hits/struc.hitsMax)[0];
-        if(target && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > 750) {
-            tower.repair(target);
+        if(target && !closestHostile && tower.store.getUsedCapacity(RESOURCE_ENERGY) > 250) {
+            let success = tower.repair(target);
+            if (success == 0) {
+                Memory.roomsPersistent[tower.room.name].stats.energySpentTower += 10;
+            }
         }
     }
 };
