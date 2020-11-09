@@ -22,13 +22,10 @@ var systemSpawner2 = {
         //
 
         //code snippet that handles expansions into new rooms
-        //Add a new expansion target by executing Memory.expansion.push(target) in console
+        //Add a new expansion target by executing Memory.config.expansion.push(target) in console
 
-        if (!Memory.expansion) {
-            Memory.expansion = [];
-        }
-        if (Memory.expansion.length > 0) {
-            for (var exp of Memory.expansion) {
+        if (Memory.config.expansion.length > 0) {
+            for (var exp of Memory.config.expansion) {
                 //finds the closest spawn
                 let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
                     Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 850);
@@ -48,9 +45,9 @@ var systemSpawner2 = {
         for (var controller of controllers) {
             if (Object.keys(Game.spawns).length > 0) { 
                 //remove from memory expansions
-                if (Memory.expansion.includes(controller.room.name)) {
-                    let index = Memory.expansion.indexOf(controller.room.name);
-                    Memory.expansion.splice(index, 1);
+                if (Memory.config.expansion.includes(controller.room.name)) {
+                    let index = Memory.config.expansion.indexOf(controller.room.name);
+                    Memory.config.expansion.splice(index, 1);
                 }
                 var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
                 if (remoteBuilders.length < 3) {
@@ -409,7 +406,7 @@ var systemSpawner2 = {
                 Memory.roomsPersistent[room].stats.creepsSpawned++;
                 
                 //keep track of energy spent on creeps
-                let totalCost;
+                let totalCost = 0;
                 for (let part of body) {
                     totalCost += BODYPART_COST[part];
                 }

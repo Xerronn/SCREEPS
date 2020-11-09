@@ -5,6 +5,11 @@ var systemGlobals = {
         if (!global.INITIALIZED) {
             //global declarations of some things
             global.INITIALIZED = true;
+            
+            //CONSTANTS
+            global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
+
+            //TASKS
             global.TASK_HARVEST = "harvest"; //implemented
             global.TASK_HARVEST_DROP = "harvest_drop"; //implemented
             global.TASK_HARVEST_LINK = "harvest_link"; //implemented
@@ -32,14 +37,14 @@ var systemGlobals = {
 
             global.TASK_COMBAT_MELEE_DEFEND = "melee_defend";
 
-            //color constants for actions
+            //COLORS
             global.COLOR_ENERGY_GET = "dae028";
             global.COLOR_ENERGY_SPEND = "1dde20";
             global.COLOR_ATTACK = "ff1900";
             global.COLOR_MOVE = "ffffff";
 
             global.help = function () {
-                let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures", "resetAllStats"];
+                let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures", "resetAllStats", "toggleUI"];
                 
                 for (func of functions) {
                     console.log(func);
@@ -49,7 +54,7 @@ var systemGlobals = {
             }
 
             global.claimRoom = function (room) {
-                Memory.expansion.push(room);
+                Memory.config.expansion.push(room);
                 return room + " has been added to expansion targets";
             }
 
@@ -92,6 +97,15 @@ var systemGlobals = {
                     delete Memory.roomsPersistent[statRoom].stats
                 }
                 return "Deleted stats memory of " + (counter - 1) + " rooms!";
+            }
+
+            global.toggleUI = function () {
+                Memory.config.ui.enabled = !Memory.config.ui.enabled;
+                if (Memory.config.ui.enabled) {
+                    return "Enabled UI!";
+                } else {
+                    return "Disabled UI!";
+                }
             }
         }
     }

@@ -250,19 +250,21 @@ var systemRoomPlanner2 = {
                                             && closestPosition.inRangeTo(structure, 2)
                                         }
                                     });
-                                    if (sourceContainer) {
-                                        sourceContainer.destroy();
-
-                                        //do our cache a favor and remove the id
-                                        let array = Memory.roomsCache[room].structures.containers;
-                                        let index = array.indexOf(sourceContainer.id);
-                                        if (index > -1) {
-                                            array.splice(index, 1);
-                                            Memory.roomsCache[room].structures.containers = array;
-                                        }
-                                    }
                                     if (closestPosition.createConstructionSite(STRUCTURE_LINK) == 0) {
                                         Memory.roomsPersistent[room].roomPlanning.sourceLinks.push(source.id);
+                                        
+                                        //remove sourceContainer if a link is successfully built
+                                        if (sourceContainer) {
+                                            sourceContainer.destroy();
+    
+                                            //do our cache a favor and remove the id
+                                            let array = Memory.roomsCache[room].structures.containers;
+                                            let index = array.indexOf(sourceContainer.id);
+                                            if (index > -1) {
+                                                array.splice(index, 1);
+                                                Memory.roomsCache[room].structures.containers = array;
+                                            }
+                                        }
                                     }
                                     break;
                                 }

@@ -16,9 +16,9 @@ var systemGarbageCollection = {
                         }
                     }
                     //remove the assigned transporter from assignedSource memory
-                    if (Memory.creeps[name].assignedSourceContainer) {
+                    if (Memory.creeps[name].assignedContainer && Memory.creeps[name].assignedContainerSource) {
                         let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);
-                        let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].miners;
+                        let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].transporters;
                         let index = array.indexOf(name);
                         if (index > -1) {
                             array.splice(index, 1);

@@ -1,5 +1,19 @@
 var systemMemory = {
     run: function() {
+        //CONFIG DATA
+        if (!Memory.config) {
+            Memory.config = {};
+        }
+
+        if (!Memory.config.expansion) {
+            Memory.config.expansion = [];
+        }
+
+        if (!Memory.config.ui) {
+            Memory.config.ui = {};
+            Memory.config.ui.enabled = false;
+        }
+
         //PERSISTENT DATA
         if (!Memory.roomsPersistent) {
             Memory.roomsPersistent = {}
@@ -86,6 +100,13 @@ var systemMemory = {
                 Memory.roomsPersistent[room].stats.energySpentSpawning +
                 Memory.roomsPersistent[room].stats.energySpentRepairing;
 
+            if (!Memory.roomsPersistent[room].stats.timeSinceReset) {
+                Memory.roomsPersistent[room].stats.timeSinceReset = 1;
+            } else {
+                
+                Memory.roomsPersistent[room].stats.timeSinceReset++;
+            }
+
             if (!Memory.roomsPersistent[room].stats.energyHarvested) {
                 Memory.roomsPersistent[room].stats.energyHarvested = 0;
             }
@@ -109,10 +130,10 @@ var systemMemory = {
             if (!Memory.roomsPersistent[room].stats.energySpentRepairing) {
                 Memory.roomsPersistent[room].stats.energySpentRepairing = 0;
             }
-
         }
         
         
+        //TODO: COMBINE THIS INTO PERSISTENT MEMORY AND RENAME IT TO JUST .rooms
         //ROOM CACHE MEMORY
         if (!Memory.roomsCache) {
             Memory.roomsCache = {};

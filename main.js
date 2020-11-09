@@ -38,7 +38,7 @@ module.exports.loop = function () {
         if (Memory.roomsCache) {
             populationControl.run();
             //rework UI
-            //renderUI.run();
+            renderUI.run();
             roomPlanner.run();
         } else {
             console.log("System tasks skipped due to absence of memory");

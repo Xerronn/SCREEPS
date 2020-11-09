@@ -27,14 +27,14 @@ function setupProfiler() {
     },
     restart() {
       if (Profiler.isProfiling()) {
-        const filter = Memory.profiler.filter;
+        const filter = Memory.config.profiler.filter;
         let duration = false;
-        if (!!Memory.profiler.disableTick) {
+        if (!!Memory.config.profiler.disableTick) {
           // Calculate the original duration, profile is enabled on the tick after the first call,
           // so add 1.
-          duration = Memory.profiler.disableTick - Memory.profiler.enabledTick + 1;
+          duration = Memory.config.profiler.disableTick - Memory.config.profiler.enabledTick + 1;
         }
-        const type = Memory.profiler.type;
+        const type = Memory.config.profiler.type;
         setupMemory(type, duration, filter);
       }
     },
@@ -48,8 +48,8 @@ function setupProfiler() {
 function setupMemory(profileType, duration, filter) {
   resetMemory();
   const disableTick = Number.isInteger(duration) ? Game.time + duration : false;
-  if (!Memory.profiler) {
-    Memory.profiler = {
+  if (!Memory.config.profiler) {
+    Memory.config.profiler = {
       map: {},
       totalTime: 0,
       enabledTick: Game.time + 1,
@@ -61,7 +61,7 @@ function setupMemory(profileType, duration, filter) {
 }
 
 function resetMemory() {
-  Memory.profiler = null;
+  Memory.config.profiler = null;
 }
 
 function overloadCPUCalc() {
@@ -74,7 +74,7 @@ function overloadCPUCalc() {
 }
 
 function getFilter() {
-  return Memory.profiler.filter;
+  return Memory.config.profiler.filter;
 }
 
 const functionBlackList = [
@@ -190,17 +190,17 @@ const Profiler = {
 
   output(passedOutputLengthLimit) {
     const outputLengthLimit = passedOutputLengthLimit || 1000;
-    if (!Memory.profiler || !Memory.profiler.enabledTick) {
+    if (!Memory.config.profiler || !Memory.config.profiler.enabledTick) {
       return 'Profiler not active.';
     }
 
-    const endTick = Math.min(Memory.profiler.disableTick || Game.time, Game.time);
-    const startTick = Memory.profiler.enabledTick + 1;
+    const endTick = Math.min(Memory.config.profiler.disableTick || Game.time, Game.time);
+    const startTick = Memory.config.profiler.enabledTick + 1;
     const elapsedTicks = endTick - startTick;
     const header = 'calls\t\ttime\t\tavg\t\tfunction';
     const footer = [
-      `Avg: ${(Memory.profiler.totalTime / elapsedTicks).toFixed(2)}`,
-      `Total: ${Memory.profiler.totalTime.toFixed(2)}`,
+      `Avg: ${(Memory.config.profiler.totalTime / elapsedTicks).toFixed(2)}`,
+      `Total: ${Memory.config.profiler.totalTime.toFixed(2)}`,
       `Ticks: ${elapsedTicks}`,
     ].join('\t');
 
@@ -223,8 +223,8 @@ const Profiler = {
   },
 
   lines() {
-    const stats = Object.keys(Memory.profiler.map).map(functionName => {
-      const functionCalls = Memory.profiler.map[functionName];
+    const stats = Object.keys(Memory.config.profiler.map).map(functionName => {
+      const functionCalls = Memory.config.profiler.map[functionName];
       return {
         name: functionName,
         calls: functionCalls.calls,
@@ -259,20 +259,20 @@ const Profiler = {
   ],
 
   record(functionName, time) {
-    if (!Memory.profiler.map[functionName]) {
-      Memory.profiler.map[functionName] = {
+    if (!Memory.config.profiler.map[functionName]) {
+      Memory.config.profiler.map[functionName] = {
         time: 0,
         calls: 0,
       };
     }
-    Memory.profiler.map[functionName].calls++;
-    Memory.profiler.map[functionName].time += time;
+    Memory.config.profiler.map[functionName].calls++;
+    Memory.config.profiler.map[functionName].time += time;
   },
 
   endTick() {
-    if (Game.time >= Memory.profiler.enabledTick) {
+    if (Game.time >= Memory.config.profiler.enabledTick) {
       const cpuUsed = Game.cpu.getUsed();
-      Memory.profiler.totalTime += cpuUsed;
+      Memory.config.profiler.totalTime += cpuUsed;
       Profiler.report();
     }
   },
@@ -286,25 +286,25 @@ const Profiler = {
   },
 
   isProfiling() {
-    if (!enabled || !Memory.profiler) {
+    if (!enabled || !Memory.config.profiler) {
       return false;
     }
-    return !Memory.profiler.disableTick || Game.time <= Memory.profiler.disableTick;
+    return !Memory.config.profiler.disableTick || Game.time <= Memory.config.profiler.disableTick;
   },
 
   type() {
-    return Memory.profiler.type;
+    return Memory.config.profiler.type;
   },
 
   shouldPrint() {
     const streaming = Profiler.type() === 'stream';
     const profiling = Profiler.type() === 'profile';
-    const onEndingTick = Memory.profiler.disableTick === Game.time;
+    const onEndingTick = Memory.config.profiler.disableTick === Game.time;
     return streaming || (profiling && onEndingTick);
   },
 
   shouldEmail() {
-    return Profiler.type() === 'email' && Memory.profiler.disableTick === Game.time;
+    return Profiler.type() === 'email' && Memory.config.profiler.disableTick === Game.time;
   },
 };
 
