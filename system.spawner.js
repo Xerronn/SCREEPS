@@ -9,7 +9,7 @@ var systemSpawner2 = {
         const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_BUILD, TASK_UPGRADE];
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT, TASK_FILL_STORAGE, TASK_FILL_EXTENSION];
-        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_FILL_EXTENSION];
+        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_FILL_EXTENSION, TASK_FILL_TOWER];
         const TASK_LIST_PANIC = [TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_FILL_EXTENSION];
         const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST, TASK_BUILD, TASK_UPGRADE];
 
@@ -229,7 +229,7 @@ var systemSpawner2 = {
                 }
                 let numMaintainers = Memory.roomsPersistent[room].creepCounts["maintainer"]; 
                 //maintainer spawning
-                if (numMaintainers < 1 && numTowers > 0) {
+                if (numMaintainers < 1 && numTowers > 0 && (Memory.roomsPersistent[room].attackStatus || !Game.rooms[room].storage)) {
                     if (!currentlySpawning.includes("maintainer")) {
                         spawnQueue.push({
                             creepName: "maintainer",

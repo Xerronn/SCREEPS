@@ -56,6 +56,7 @@ var systemRoomPlanner2 = {
 
                     //if this is the first room and you have to manually place your spawn, it will calculate the anchor off that placement
                     //TODO: figure out a way to avoid user error in spawn placement
+                    //TODO: allow for slight misfits in the 10x10 area. Sacrifice a few extensions
                     let spawns = Game.rooms[room].find(FIND_MY_SPAWNS);
                     if (spawns.length > 0) {
                         let spawnPos = {
@@ -126,6 +127,7 @@ var systemRoomPlanner2 = {
                 var roomAnchor = new RoomPosition(Memory.roomsPersistent[room].roomPlanning.anchor["x"], Memory.roomsPersistent[room].roomPlanning.anchor["y"],room);
                 var typesToBuild = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_STORAGE, STRUCTURE_LINK, STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_TERMINAL];
 
+                //TODO: build ramparts surrounding our miner boiis
                 //TODO: DID NOT AUTOMATICALLY BUILD SPAWN ON CLAIM
                 //builds the appropriate number of each structure type
                 for (var type of typesToBuild) {
@@ -237,19 +239,21 @@ var systemRoomPlanner2 = {
                         }
                         if (Memory.roomsPersistent[room].roomPlanning.sourceLinks.length < sources.length) {
                             //loop through sources until you find one not in memory
-                            for (source of sources) {
+                            for (var source of sources) {
                                 if (!Memory.roomsPersistent[room].roomPlanning.sourceLinks.includes(source.id)) {
 
-                                    //once a source not in the memory is found, route to it and build a link on the last step of the route
-                                    let pathToSource = roomAnchor.findPathTo(source.pos, {range: 2, ignoreCreeps: true})
-                                    let closestPosition = new RoomPosition(pathToSource[pathToSource.length - 1]["x"], pathToSource[pathToSource.length - 1]["y"], room);
-
-                                    //find and delete the nearby container
-                                    let sourceContainer = closestPosition.findClosestByRange(FIND_STRUCTURES, {
+                                    //find nearby container
+                                    let sourceContainer = source.pos.findClosestByRange(FIND_STRUCTURES, {
                                         filter: (structure) => { return structure.structureType == STRUCTURE_CONTAINER 
-                                            && closestPosition.inRangeTo(structure, 2)
+                                            && source.pos.inRangeTo(structure, 2)
                                         }
                                     });
+
+                                    //once a source not in the memory is found, route to it and build a link on the last step of the route
+                                    let pathToContainer = roomAnchor.findPathTo(sourceContainer.pos, {range: 1, ignoreCreeps: true})
+                                    let closestPosition = new RoomPosition(pathToContainer[pathToContainer.length - 1]["x"], pathToContainer[pathToContainer.length - 1]["y"], room);
+
+                                    
                                     if (closestPosition.createConstructionSite(STRUCTURE_LINK) == 0) {
                                         Memory.roomsPersistent[room].roomPlanning.sourceLinks.push(source.id);
                                         

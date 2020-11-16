@@ -4,6 +4,7 @@ const renderUI = require('system.ui');
 const memoryHandler = require('system.memory');
 const populationControl = require('system.spawner');
 const roomPlanner = require('system.roomPlanner');
+const logistics = require('system.logistics');
 const taskExecution = require('system.taskManager');
 const garbageCollection = require('system.garbageCollection');
 
@@ -37,12 +38,14 @@ module.exports.loop = function () {
         //other system stuff
         if (Memory.roomsCache) {
             populationControl.run();
-            //rework UI
             renderUI.run();
             roomPlanner.run();
         } else {
             console.log("System tasks skipped due to absence of memory");
         }
+        //terminal logistics
+        logistics.run();
+        
         //execute creep code
         taskExecution.run();
         

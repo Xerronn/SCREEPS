@@ -8,6 +8,7 @@ var systemGlobals = {
             
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
+            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //TASKS
             global.TASK_HARVEST = "harvest"; //implemented

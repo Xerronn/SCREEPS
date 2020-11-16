@@ -13,7 +13,7 @@ var systemPrototypes = {
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
-                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) < (this.countBodyType(WORK) * 2)) {
                     this.memory.harvesting = false;
                 }
 
@@ -636,7 +636,7 @@ var systemPrototypes = {
 
                 //do nothing if the creepLink is sitting at a good spot
                 if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 350 && creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 450 ) {
-                    return true; //move to next tick
+                    return false; //move to next task
                 }
                 if (this.memory.harvesting) {
                     //pull from the creepStorage creepLink if it is higher than the sweet spot

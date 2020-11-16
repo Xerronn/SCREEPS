@@ -84,6 +84,11 @@ var systemMemory = {
                     if(target && target.my) {
                         Memory.roomsPersistent[room].attackStatus = true;
                         Memory.roomsPersistent[room].attackStatusTimer = Game.time;
+                        
+                        let attacker = Game.getObjectById(event.objectId);
+                        Game.notify(
+                            attacker + " has attacked " + target + " in room " + room
+                        );
                     }
                 });
             }
