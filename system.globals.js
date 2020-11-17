@@ -11,17 +11,21 @@ var systemGlobals = {
             global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //TASKS
-            global.TASK_HARVEST = "harvest"; //implemented
-            global.TASK_HARVEST_DROP = "harvest_drop"; //implemented
-            global.TASK_HARVEST_LINK = "harvest_link"; //implemented
+            global.TASK_HARVEST_ENERGY = "harvest_energy"; //implemented
+            global.TASK_HARVEST_ENERGY_DROP = "harvest_energy_drop"; //implemented
+            global.TASK_HARVEST_ENERGY_LINK = "harvest_energy_link"; //implemented
+            global.TASK_HARVEST_MINERAL = "harvest_mineral";
+            global.TASK_HARVEST_MINERAL_DROP = "harvest_mineral_drop";
             global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
             global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
-            global.TASK_TRANSPORT = "transport"; //implemented
+            global.TASK_TRANSPORT_ENERGY = "transport_energy"; //implemented
+            global.TASK_TRANSPORT_MINERAL = "transport_mineral";
             global.TASK_SALVAGE = "salvage"; //implemented
             
             global.TASK_FILL_EXTENSION = "fill_extension"; //implemented
             global.TASK_FILL_TOWER = "fill_tower"; //implemented
             global.TASK_FILL_STORAGE = "fill_storage"; //implemented
+            global.TASK_FILL_TERMINAL = "fill_terminal";
             global.TASK_FILL_CONTAINER = "fill_container";//TODO
 
             global.TASK_UPGRADE = "upgrade"; //implemented

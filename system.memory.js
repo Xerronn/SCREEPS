@@ -192,11 +192,15 @@ var systemMemory = {
                 var ramparts = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_RAMPART});
     
-                var containers = Game.rooms[room].find(FIND_STRUCTURES, {
-                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER});
+                var sourceContainers = Game.rooms[room].find(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
+                    structure.pos.findInRange(FIND_SOURCES, 1).length > 0});
     
                 var towers = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_TOWER});
+
+                var extractors = Game.rooms[room].find(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType == STRUCTURE_EXTRACTOR});
 
                 var links = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_LINK});
@@ -224,11 +228,11 @@ var systemMemory = {
                     currentRoom["ramparts"].push(ramparts[i].id);
                 }
                 
-                if (!currentRoom["containers"]) {
-                    currentRoom["containers"] = [];
+                if (!currentRoom["sourceContainers"]) {
+                    currentRoom["sourceContainers"] = [];
                 }
-                for (var i in containers) {
-                    currentRoom["containers"].push(containers[i].id);
+                for (var i in sourceContainers) {
+                    currentRoom["sourceContainers"].push(sourceContainers[i].id);
                 }
                 
                 if (!currentRoom["towers"]) {
@@ -236,6 +240,13 @@ var systemMemory = {
                 }
                 for (var i in towers) {
                     currentRoom["towers"].push(towers[i].id);
+                }
+
+                if (!currentRoom["extractors"]) {
+                    currentRoom["extractors"] = [];
+                }
+                for (var i in extractors) {
+                    currentRoom["extractors"].push(extractors[i].id);
                 }
 
                 if (!currentRoom["links"]) {

@@ -2,14 +2,12 @@ var systemPrototypes = {
     run: function() {
         //prototype overrides
         //prototype returns true if the task is complete
+        //TODO: split this into multiple files sighhhh
+        //TODO: get rid of automatic task deleting. stupid idea
 
         //task to distribute to different sources and harvest them
-        if (!Creep.prototype._harvest) {
-            //store the original version of the function
-            Creep.prototype._harvest = Creep.prototype.harvest;
-
-            Creep.prototype.harvest = function() {
-                
+        if (!Creep.prototype.harvestEnergy) {
+            Creep.prototype.harvestEnergy = function() {    
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
@@ -18,7 +16,7 @@ var systemPrototypes = {
                 }
 
                 //skip all this if its already full from another task
-                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_DROP) && !this.memory.tasks.includes(TASK_HARVEST_LINK)) {
+                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP) && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK)) {
                     return false; //move to next task
                 }
 
@@ -53,7 +51,7 @@ var systemPrototypes = {
                     } else {
                         //remove drop mining from potential tasks if there is no container
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_HARVEST_DROP);
+                        let index = array.indexOf(TASK_HARVEST_ENERGY_DROP);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;
@@ -78,7 +76,7 @@ var systemPrototypes = {
                     } else {
                         //remove link mining from potential tasks if there is no link
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_HARVEST_LINK);
+                        let index = array.indexOf(TASK_HARVEST_ENERGY_LINK);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;
@@ -94,7 +92,7 @@ var systemPrototypes = {
                 }
                 
                 //ends the harvesting task if it doesn't need to harvest
-                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_DROP) && !this.memory.tasks.includes(TASK_HARVEST_LINK)) {
+                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP) && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK)) {
                     return false; //move to next task
                 }
 
@@ -112,19 +110,120 @@ var systemPrototypes = {
                 var distanceToTarget = 1;
                 var moveTarget = creepSource;
                 //if there is a container and no link we need to move to on top of it instead of the source, so that drop mining can occur
-                if (this.memory.assignedContainer != "none" && this.memory.assignedSourceLink == "none" && this.memory.tasks.includes(TASK_HARVEST_DROP)) {
+                if (this.memory.assignedContainer != "none" && this.memory.assignedSourceLink == "none" && this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP)) {
                     distanceToTarget = 0;
                     moveTarget = creepContainer;
                 }
 
                 //now move to the target and then harvest the source
                 if (this.pos.inRangeTo(moveTarget, distanceToTarget)) {
-                    let success = this._harvest(creepSource);
+                    let success = this.harvest(creepSource);
                     if (success == 0) {
                         let numWork = this.countBodyType(WORK);
                         //TODO: rework this when boosting is possible
                         Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     }
+                } else {
+                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to harvest from a mineral
+        if (!Creep.prototype.harvestMineral) {
+            //store the original version of the function
+            Creep.prototype.harvestMineral = function() {
+
+                //set state
+                if (this.store.getUsedCapacity() == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity() == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_MINERAL_DROP)) {
+                    return false; //move to next task
+                }
+
+                //find the extractor and assign it into memory
+                if (!this.memory.assignedExtractor) {
+                    let extractor = Memory.roomsCache[this.room.name].structures.extractors[0];
+                    if (extractor) {
+                        this.memory.assignedExtractor = extractor;
+                    } else {
+                        this.memory.assignedExtractor = "none";
+                    }
+                }
+
+                //find the mineral and assign it into memory
+                if (!this.memory.assignedMineral) {
+                    let mineral = Game.rooms[this.room.name].find(FIND_MINERALS)[0];
+                    
+                    if (mineral) {
+                        this.memory.assignedMineral = mineral;
+                    } else {
+                        this.memory.assignedExtractor = "none";
+                    }
+                }
+
+                //skip if it cannot be mined
+                if (this.memory.assignedMineral == "none" || this.memory.assignedExtractor == "none") {
+                    return false; //move to next task
+                }
+
+                //get live extractor and mineral object
+                var creepMineral = Game.getObjectById(this.memory.assignedMineral);
+                var creepExtractor = Game.getObjectById(this.memory.assignedExtractor);
+
+                if (creepExtractor.cooldown > 0) {
+                    return true; //move to next task
+                }
+
+                //now we check for containers for drop mining
+                if (!this.memory.assignedContainer) {
+                    //find any containers within range 1
+                    let extractorContainers = creepMineral.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}})
+                    if (extractorContainers.length > 0) {
+                        this.memory.assignedContainer = extractorContainers[0].id;
+                    } else {
+                        //remove drop mining from potential tasks if there is no container
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_HARVEST_MINERAL_DROP);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                        this.memory.assignedContainer = "none";
+                    }
+                }
+
+                let creepContainer;
+                //if we have a container, assign the object into a variable
+                if (this.memory.assignedContainer != "none") { 
+                    creepContainer = Game.getObjectById(this.memory.assignedContainer);
+                }
+
+                //at this point the creep either has to be harvesting or drop harvesting
+                var distanceToTarget = 1;
+                var moveTarget = creepMineral;
+                //if there is a container and no link we need to move to on top of it instead of the source, so that drop mining can occur
+                if (this.memory.assignedContainer != "none" && this.memory.tasks.includes(TASK_HARVEST_MINERAL_DROP)) {
+                    distanceToTarget = 0;
+                    moveTarget = creepContainer;
+                }
+
+                //now move to the target and then harvest the source
+                if (this.pos.inRangeTo(moveTarget, distanceToTarget)) {
+                    this.harvest(creepMineral);
+                    // if (success == 0) {
+                    //     let numWork = this.countBodyType(WORK);
+                    //     //TODO: rework this when boosting is possible
+                    //     Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
+                    // }
                 } else {
                     this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
@@ -294,9 +393,11 @@ var systemPrototypes = {
 
 
         //task to withdraw from assigned source container
-        if (!Creep.prototype.transport) {
-            Creep.prototype.transport = function() {
+        //TODO: check for energy to pick up along its path
+        if (!Creep.prototype.transportEnergy) {
+            Creep.prototype.transportEnergy = function() {
                 //TODO: fix the transporter having nothing to do if the source has no container
+                //TODO: allow transporters to do more than just energy from source transporting
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
@@ -332,7 +433,7 @@ var systemPrototypes = {
                 var creepSource = Game.getObjectById(this.memory.assignedContainerSource);
 
                 //now we check for a container to withdraw from
-                if (!this.memory.assignedSourceContainer) {
+                if (!this.memory.assignedContainer) {
                     //find any containers within range 1
                     let sourceContainers = creepSource.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}})
                     if (sourceContainers.length > 0) {
@@ -340,7 +441,7 @@ var systemPrototypes = {
                     } else {
                         //remove transport from potential tasks if there is no container
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_TRANSPORT);
+                        let index = array.indexOf(TASK_TRANSPORT_ENERGY);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;
@@ -484,9 +585,43 @@ var systemPrototypes = {
                 }
                 //fill the storage
                 if (this.pos.inRangeTo(creepStorage, 1)) {
-                    this.transfer(creepStorage, RESOURCE_ENERGY);
+                    for(var resourceType in this.carry) {
+                        this.transfer(creepStorage, resourceType);
+                    }
                 } else {
                     this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to fill a terminal
+        if (!Creep.prototype.fillTerminal) {
+            Creep.prototype.fillTerminal = function() {
+                //set state
+                var creepTerminal = this.room.terminal;
+                //skip the task if there is no terminal, the creep is harvesting or the creep has no energy
+                if (!creepTerminal || this.memory.harvesting || !this.store.getUsedCapacity() > 0) {
+                    //remove this task if there is no terminal
+                    if (!creepTerminal) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_FILL_TERMINAL);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is harvesting
+                }
+                //fill the terminal
+                if (this.pos.inRangeTo(creepTerminal, 1)) {
+                    for(var resourceType in this.carry) {
+                        this.transfer(creepTerminal, resourceType);
+                    }
+                } else {
+                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }

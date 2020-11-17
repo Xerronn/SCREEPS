@@ -9,10 +9,10 @@ var roleWorker = {
                 //if this variable gets set to true, it will stop the iteration through tasks
                 var taskCompleted = false;
                 switch(task) {
-                    case TASK_HARVEST://move to next
-                    case TASK_HARVEST_DROP://move to next
-                    case TASK_HARVEST_LINK:
-                        if (creep.harvest() == true) {
+                    case TASK_HARVEST_ENERGY://move to next
+                    case TASK_HARVEST_ENERGY_DROP://move to next
+                    case TASK_HARVEST_ENERGY_LINK:
+                        if (creep.harvestEnergy() == true) {
                             taskCompleted = true;
                         } 
                         break;
@@ -26,8 +26,8 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
-                    case TASK_TRANSPORT:
-                        if (creep.transport() == true) {
+                    case TASK_TRANSPORT_ENERGY:
+                        if (creep.transportEnergy() == true) {
                             taskCompleted = true;
                         }
                         break;

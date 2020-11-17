@@ -6,7 +6,7 @@ var systemGarbageCollection = {
                     //decrement the creep count
                     Memory.roomsPersistent[Memory.creeps[name].spawnRoom].creepCounts[Memory.creeps[name].role]--;
                     //remove the assigned worker from assignedSource memory
-                    if (Memory.creeps[name].assignedSource) {
+                    if (Memory.creeps[name].assignedSource && Memory.creeps[name].role == "miner") {
                         let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);
                         let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].miners;
                         let index = array.indexOf(name);
@@ -16,7 +16,7 @@ var systemGarbageCollection = {
                         }
                     }
                     //remove the assigned transporter from assignedSource memory
-                    if (Memory.creeps[name].assignedContainer && Memory.creeps[name].assignedContainerSource) {
+                    if (Memory.creeps[name].assignedContainerSource && Memory.creeps[name].role == "transporter") {
                         let assignedSource = Game.getObjectById(Memory.creeps[name].assignedContainerSource);
                         let array = Memory.roomsPersistent[assignedSource.room.name].sources[assignedSource.id].transporters;
                         let index = array.indexOf(name);
