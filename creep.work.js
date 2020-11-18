@@ -16,6 +16,12 @@ var roleWorker = {
                             taskCompleted = true;
                         } 
                         break;
+                    case TASK_HARVEST_MINERAL:
+                    case TASK_HARVEST_MINERAL_DROP:
+                        if (creep.harvestMineral() == true) {
+                            taskCompleted = true;
+                        } 
+                        break;
                     case TASK_WITHDRAW_STORAGE:
                         if (creep.withdrawStorage() == true) {
                             taskCompleted = true;
@@ -70,6 +76,11 @@ var roleWorker = {
                         break;
                     case TASK_MANAGE_LINK:
                         if (creep.manageLink() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_RENEW:
+                        if (creep.renew() == true) {
                             taskCompleted = true;
                         }
                         break;

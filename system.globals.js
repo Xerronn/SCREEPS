@@ -35,6 +35,7 @@ var systemGlobals = {
             global.TASK_REPAIR = "repair"; //implemented
             global.TASK_REPAIR_WALL = "repair_wall"; //implemented
 
+            global.TASK_RENEW = "renew";
             global.TASK_REMOTE = "remote"; //implemented
             global.TASK_ROOM_SIGN = "sign"; //implemented
             global.TASK_ROOM_CLAIM = "claim"; //implemented

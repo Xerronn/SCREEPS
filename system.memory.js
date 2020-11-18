@@ -195,6 +195,10 @@ var systemMemory = {
                 var sourceContainers = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
                     structure.pos.findInRange(FIND_SOURCES, 1).length > 0});
+
+                var mineralContainers = Game.rooms[room].find(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
+                    structure.pos.findInRange(FIND_MINERALS, 1).length > 0});
     
                 var towers = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_TOWER});
@@ -228,11 +232,19 @@ var systemMemory = {
                     currentRoom["ramparts"].push(ramparts[i].id);
                 }
                 
+                //TODO: change this to be nested in a containers object like links
                 if (!currentRoom["sourceContainers"]) {
                     currentRoom["sourceContainers"] = [];
                 }
                 for (var i in sourceContainers) {
                     currentRoom["sourceContainers"].push(sourceContainers[i].id);
+                }
+
+                if (!currentRoom["mineralContainers"]) {
+                    currentRoom["mineralContainers"] = [];
+                }
+                for (var i in mineralContainers) {
+                    currentRoom["mineralContainers"].push(mineralContainers[i].id);
                 }
                 
                 if (!currentRoom["towers"]) {

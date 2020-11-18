@@ -164,7 +164,7 @@ var systemPrototypes = {
                     let mineral = Game.rooms[this.room.name].find(FIND_MINERALS)[0];
                     
                     if (mineral) {
-                        this.memory.assignedMineral = mineral;
+                        this.memory.assignedMineral = mineral.id;
                     } else {
                         this.memory.assignedExtractor = "none";
                     }
@@ -957,6 +957,44 @@ var systemPrototypes = {
                 return false; //move to next task
             }
         }
+
+
+
+        //task to refresh body at nearest spawn
+        if (!Creep.prototype.renew) {
+            Creep.prototype.renew = function () {
+                if (this.ticksToLive < 50) {
+
+                    //find not busy spawn and set it to memory
+                    if (!this.memory.renewSpawn || this.memory.renewSpawn == "none") {
+                        let creepSpawns = Memory.roomsCache[this.room.name].structures.spawns;
+                        let freeSpawns = _.filter(creepSpawns, struc => !struc.spawning);
+                        if (freeSpawns && freeSpawns.length > 0) {
+                            creepSpawns = freeSpawns.map(struc => Game.getObjectById(struc));
+                            let selectedSpawn = this.pos.findClosestByRange(creepSpawns);
+                            this.memory.renewSpawn = selectedSpawn.id;
+                        }
+                    }
+
+                    //fetch live game object
+                    var creepSpawn = Game.getObjectById(this.memory.renewSpawn);
+
+                    if (this.pos.inRangeTo(creepSpawn, 1)) {
+                        let success = creepSpawn.renewCreep(this);
+
+                        if (success == 0) {
+                            this.memory.renewSpawn = "none";
+                        }
+                    } else {
+                        this.moveTo(creepSpawn, {visualizePathStyle: {stroke: COLOR_MOVE}})
+                    }
+                } else {
+                    return false; //move to next task
+                }
+            }
+        }
+
+
 
         if (!Creep.prototype.countBodyType) {
             Creep.prototype.countBodyType = function (type) {
