@@ -5,17 +5,19 @@ var systemSpawner2 = {
         const TASK_LIST_WALLER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_REPAIR_WALL];
         const TASK_LIST_REPAIRER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_REPAIR];
         const TASK_LIST_HARVESTER = [TASK_HARVEST_ENERGY, TASK_HARVEST_ENERGY_DROP, TASK_HARVEST_ENERGY_LINK, TASK_FILL_EXTENSION, TASK_BUILD, TASK_UPGRADE];//maybe make them put into container
+        const TASK_LIST_QUARRIER = [TASK_HARVEST_MINERAL, TASK_HARVEST_MINERAL_DROP, TASK_FILL_TERMINAL];
         const TASK_LIST_UPGRADER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER,TASK_HARVEST_ENERGY, TASK_UPGRADE, TASK_UPGRADE_LINK];
         const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT_ENERGY, TASK_FILL_STORAGE, TASK_FILL_EXTENSION];
+        const TASK_LIST_TRANSPORTER_MINERAL = [TASK_TRANSPORT_MINERALS, TASK_FILL_TERMINAL];
         const TASK_LIST_FILLER = [TASK_RENEW, TASK_WITHDRAW_STORAGE, TASK_FILL_EXTENSION, TASK_FILL_TOWER];
         const TASK_LIST_PANIC = [TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_EXTENSION];
         const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
 
         const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
         //TODO PROBABLY CAN COMBINE MAINTAINER AND FILLER AS LONG AS THERE ISN't AN ATTACK GOING ON
-
+        //TODO: REDO THIS... AGAIN creeps have too many move parts for some reason. except for wallers...
         //ADD IN PRIORITIZATION
         //TODO:
         //CHECK IF THERE IS AN ONGOING ATTACK, IF SO STALL ALL NON ESSENTIAL CREEP SPAWNING AND SPAWN DEFENDERS
@@ -298,6 +300,43 @@ var systemSpawner2 = {
                         }
                     }
                 }
+
+                //if there is an extractor, spawn quarrier
+                if (Memory.roomsCache[room].structures.extractors.length > 0) {
+                    if (!Memory.roomsPersistent[room].creepCounts["quarrier"]) {
+                        Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
+                    }
+                    let numquarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
+                    if (numquarriers < 1) {
+                        if (!currentlySpawning.includes("quarrier")) {
+                            spawnQueue.push({
+                                creepName: "quarrier",
+                                creepMemory: {type: "worker", role: "quarrier", tasks: TASK_LIST_QUARRIER},
+                                creepHasRoads: hasRoads
+                            });
+                        }
+                    }
+
+                    if (Memory.roomsCache[room].structures.mineralContainers.length > 0) {
+                        //spawn mineral transporter once the container is mostly full
+                        let container = Game.getObjectById(Memory.roomsCache[room].structures.mineralContainers[0]);
+                        if (container.store.getUsedCapacity() > 1100) {
+                            if (!Memory.roomsPersistent[room].creepCounts["mineralTransporter"]) {
+                                Memory.roomsPersistent[room].creepCounts["mineralTransporter"] = 0;
+                            }
+                            let nummineralTransporters = Memory.roomsPersistent[room].creepCounts["mineralTransporter"];
+                            if (nummineralTransporters < 1) {
+                                if (!currentlySpawning.includes("mineralTransporter")) {
+                                    spawnQueue.push({
+                                        creepName: "mineralTransporter",
+                                        creepMemory: {type: "worker", role: "mineralTransporter", tasks: TASK_LIST_TRANSPORTER_MINERAL},
+                                        creepHasRoads: hasRoads
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             //loop through each spawn in a room
@@ -346,14 +385,21 @@ var systemSpawner2 = {
                         body = buildComposition(spawnRoom, [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE], false);
                     }
                     break;
+                case "quarrier":
+                    body = addMoves([WORK], hasRoads);
+                    body = buildComposition(spawnRoom, body, true, 1000);
+                    break;
                 case "transporter":
                     //TODO: calculate how many parts there should be depending on distance
                     body = addMoves([CARRY], hasRoads);
                     body = buildComposition(spawnRoom, body, true, 800);
                     break;
+                case "mineralTransporter":
+                    body = addMoves([CARRY], hasRoads);
+                    body = buildComposition(spawnRoom, body, true, 800);
+                    break;
                 case "panic":
                     body = addMoves([WORK, CARRY, CARRY, CARRY], hasRoads);
-                    console.log(body);
                     body = buildComposition(spawnRoom, body, true, 300);
                     break;
                 case "builder":
@@ -392,7 +438,7 @@ var systemSpawner2 = {
                     break;
                 case "filler":
                     body = addMoves([CARRY], hasRoads);
-                    body = buildComposition(spawnRoom, body, true, 800);
+                    body = buildComposition(spawnRoom, body, true, 1200);
                     break;
             }
             memory["spawnRoom"] = spawnRoom;

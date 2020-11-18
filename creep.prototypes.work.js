@@ -470,6 +470,53 @@ var systemPrototypes = {
 
 
 
+        if (!Creep.prototype.transportMinerals) {
+            Creep.prototype.transportMinerals = function() {
+                if (this.store.getUsedCapacity() == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity() == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
+                //assign creep to source that has the least transporters
+                if (!this.memory.assignedContainer) {
+                    let creepContainer = Memory.roomsCache[this.room.name].structures.mineralContainers[0];
+                    if (creepContainer) {
+                        this.memory.assignedContainer = creepContainer;
+                    } else {
+                        this.memory.assignedContainer = "none";
+                    }
+                }
+
+                if (this.memory.assignedContainer == "none") {
+                    return false; //move to next task if no container
+                }
+
+                var creepContainer = Game.getObjectById(this.memory.assignedContainer);
+
+                //only do something when the container has enough to fill
+                if (creepContainer.store.getUsedCapacity() >= this.store.getCapacity()) {
+                    if (this.pos.inRangeTo(creepContainer, 1)) {
+                        for(var resourceType in creepContainer.store) {
+                            console.log(resourceType)
+                            this.withdraw(creepContainer, resourceType);
+                        }
+                    } else {
+                        this.moveTo(creepContainer);
+                    }
+                    return true; //move to next tick
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
         //task to fill extensions and spawn
         if (!Creep.prototype.fillExtensions) {
             Creep.prototype.fillExtensions = function() {
@@ -585,7 +632,7 @@ var systemPrototypes = {
                 }
                 //fill the storage
                 if (this.pos.inRangeTo(creepStorage, 1)) {
-                    for(var resourceType in this.carry) {
+                    for(var resourceType in this.store) {
                         this.transfer(creepStorage, resourceType);
                     }
                 } else {
@@ -617,7 +664,7 @@ var systemPrototypes = {
                 }
                 //fill the terminal
                 if (this.pos.inRangeTo(creepTerminal, 1)) {
-                    for(var resourceType in this.carry) {
+                    for(var resourceType in this.store) {
                         this.transfer(creepTerminal, resourceType);
                     }
                 } else {
@@ -963,7 +1010,15 @@ var systemPrototypes = {
         //task to refresh body at nearest spawn
         if (!Creep.prototype.renew) {
             Creep.prototype.renew = function () {
-                if (this.ticksToLive < 50) {
+                if (this.ticksToLive < 100 || this.memory.renewing) {
+
+                    if (this.ticksToLive < 100) {
+                        this.memory.renewing = true;
+                    }
+
+                    if (this.ticksToLive > 1400) {
+                        this.memory.renewing = false;
+                    }
 
                     //find not busy spawn and set it to memory
                     if (!this.memory.renewSpawn || this.memory.renewSpawn == "none") {
@@ -979,15 +1034,21 @@ var systemPrototypes = {
                     //fetch live game object
                     var creepSpawn = Game.getObjectById(this.memory.renewSpawn);
 
+                    //only move towards spawn when nearby
+                    if (!this.pos.inRangeTo(creepSpawn, 6)) {
+                        return false; //move to next task
+                    }
+
                     if (this.pos.inRangeTo(creepSpawn, 1)) {
                         let success = creepSpawn.renewCreep(this);
 
-                        if (success == 0) {
+                        if (success == -4) {
                             this.memory.renewSpawn = "none";
                         }
                     } else {
                         this.moveTo(creepSpawn, {visualizePathStyle: {stroke: COLOR_MOVE}})
                     }
+                    return true; // move to next tick
                 } else {
                     return false; //move to next task
                 }

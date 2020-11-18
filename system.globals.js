@@ -19,7 +19,7 @@ var systemGlobals = {
             global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
             global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
             global.TASK_TRANSPORT_ENERGY = "transport_energy"; //implemented
-            global.TASK_TRANSPORT_MINERAL = "transport_mineral";
+            global.TASK_TRANSPORT_MINERALS = "transport_minerals";
             global.TASK_SALVAGE = "salvage"; //implemented
             
             global.TASK_FILL_EXTENSION = "fill_extension"; //implemented

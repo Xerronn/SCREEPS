@@ -37,6 +37,11 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_TRANSPORT_MINERALS:
+                        if (creep.transportMinerals() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_SALVAGE:
                         if (creep.salvage() == true) {
                             taskCompleted = true;
@@ -54,6 +59,11 @@ var roleWorker = {
                         break;
                     case TASK_FILL_STORAGE:
                         if (creep.fillStorage() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_FILL_TERMINAL:
+                        if (creep.fillTerminal() == true) {
                             taskCompleted = true;
                         }
                         break;
