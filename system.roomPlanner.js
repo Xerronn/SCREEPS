@@ -44,6 +44,7 @@ var systemRoomPlanner2 = {
             if (Memory.roomsPersistent[room].roomPlanning.rank != Game.rooms[room].controller.level) {
 
                 //clear out any buildings left by enemies
+                //TODO: might want to leave structures with significant loot to steal
                 let enemyBuildings = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => {return structure.my == false}});
                 for (var struct of enemyBuildings) {
@@ -71,9 +72,19 @@ var systemRoomPlanner2 = {
                             for (var y = 2; y < 38; y++) {
                                 let dq = false;
                                 for (var candidate of Game.rooms[room].lookAtArea(y, x, y + 10, x + 10, true)) {
+                                    let wallCounter = 0;
                                     if (candidate["terrain"] == "wall") {
-                                        dq = true;
-                                        break; //break as soon as it is dq
+                                        //if it is an edge, give some slack
+                                        if (candidate.x == x || candidate.x == x+10 || candidate.y == y || candidate.y == y+10) {
+                                            wallCounter++;
+                                            if (wallCounter > 3) {
+                                                dq = true;
+                                                break;
+                                            }
+                                        } else {
+                                            dq = true;
+                                            break; //break as soon as it is dq
+                                        }
                                     }
                                 }
                                 if (!dq) {
@@ -127,8 +138,18 @@ var systemRoomPlanner2 = {
                 var roomAnchor = new RoomPosition(Memory.roomsPersistent[room].roomPlanning.anchor["x"], Memory.roomsPersistent[room].roomPlanning.anchor["y"],room);
                 var typesToBuild = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_STORAGE, STRUCTURE_LINK, STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_TERMINAL];
 
+                //hande reliable first spawn building
+                if (Game.rooms[room].find(FIND_MY_SPAWNS).length < 1) {
+                    for (var i =0; i < 10; i++) { 
+                        let success = Game.rooms[room].createConstructionSite(
+                            roomAnchor.x + bunker["spawn"]["pos"][0].x, roomAnchor.y + bunker["spawn"]["pos"][0].y, STRUCTURE_SPAWN);
+                        
+                        if (success == 0) {
+                            break;
+                        }
+                    }
+                }
                 //TODO: build ramparts surrounding our miner boiis
-                //TODO: DID NOT AUTOMATICALLY BUILD SPAWN ON CLAIM
                 //builds the appropriate number of each structure type
                 for (var type of typesToBuild) {
                     buildNewStructures(type, room, roomAnchor);

@@ -13,7 +13,7 @@ const initializeWorkPrototypes = require('creep.prototypes.work');
 const initializeCombatPrototypes = require('creep.prototypes.combat');
 
 
-profiler.enable();
+//profiler.enable();
 module.exports.loop = function () {
     profiler.wrap(function() {
         //initialization

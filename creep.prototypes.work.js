@@ -1008,6 +1008,7 @@ var systemPrototypes = {
 
 
         //task to refresh body at nearest spawn
+        //TODO: needs work
         if (!Creep.prototype.renew) {
             Creep.prototype.renew = function () {
                 if (this.ticksToLive < 100 || this.memory.renewing) {
@@ -1016,7 +1017,7 @@ var systemPrototypes = {
                         this.memory.renewing = true;
                     }
 
-                    if (this.ticksToLive > 1400) {
+                    if (this.ticksToLive > 600) {
                         this.memory.renewing = false;
                     }
 

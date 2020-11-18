@@ -50,7 +50,7 @@ var systemGlobals = {
             global.COLOR_MOVE = "ffffff";
 
             global.help = function () {
-                let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures", "resetAllStats", "toggleUI"];
+                let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures", "resetAllStats", "toggleUI", "changeTasksForRole"];
                 
                 for (func of functions) {
                     console.log(func);
@@ -112,6 +112,14 @@ var systemGlobals = {
                 } else {
                     return "Disabled UI!";
                 }
+            }
+
+            global.changeTasksForRole = function(role, tasks) {
+                let selectedCreeps = _.filter(Game.creeps, creep => creep.memory.role == role);
+                for (let selected of selectedCreeps) {
+                    selected.memory.tasks = tasks;
+                }
+                return "Changed tasks for " + selectedCreeps.length + " creeps!"
             }
         }
     }
