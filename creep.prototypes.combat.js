@@ -83,7 +83,7 @@ var systemCombatPrototypes = {
                         this.memory.attackTarget = "none";
                         return true; //move to next tick
                     }
-                    if (this.inRangeTo(creepTarget), 1) {
+                    if (this.pos.inRangeTo(creepTarget, 1)) {
                         this.attack(creepTarget);
                     } else {
                         this.moveTo(creepTarget, {visualizePathStyle: {stroke: COLOR_ATTACK}});
@@ -101,7 +101,7 @@ var systemCombatPrototypes = {
                         this.memory.attackTarget = "none";
                         return true; //move to next tick
                     }
-                    if (this.inRangeTo(creepTarget), 1) {
+                    if (this.pos.inRangeTo(creepTarget, 1)) {
                         this.attack(creepTarget);
                     } else {
                         this.moveTo(creepTarget, {visualizePathStyle: {stroke: COLOR_ATTACK}});

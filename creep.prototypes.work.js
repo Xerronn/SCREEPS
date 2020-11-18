@@ -943,7 +943,9 @@ var systemPrototypes = {
                         }
                         return false; //move to next task if it is a drainer
                     }
-                    if (this.room.name != this.memory.assignedRoom) {
+                    //if it is not in the room or on the edge of that room
+                    if (this.room.name != this.memory.assignedRoom || 
+                        (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49)) {
                         //avoid annoying bug where they get stuck on room edges
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
                             this.moveTo(new RoomPosition(25,25, this.room.name));
