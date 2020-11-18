@@ -19,7 +19,7 @@ var systemTaskManager = {
             }
         }
         //loop through all rooms
-        var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my);
+        var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my);
         for (var room of myRooms) {
             //find all structures in each room that have something to execute
             var structures = Game.rooms[room].find(FIND_STRUCTURES, {

@@ -29,7 +29,7 @@ var systemSpawner2 = {
         if (Memory.config.expansion.length > 0) {
             for (var exp of Memory.config.expansion) {
                 //finds the closest spawn
-                let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
+                let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && 
                     Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 850);
                 var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(exp, room))[0];
                 var claimers = _.filter(Game.creeps, (creep) => creep.memory.role == 'claimer' && creep.memory.assignedRoom == exp);
@@ -64,7 +64,7 @@ var systemSpawner2 = {
         }
 
         //iterate through rooms that I own and have at least one spawn
-        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Memory.roomsCache[room].structures["spawns"].length > 0);
+        let myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Memory.roomsCache[room].structures["spawns"].length > 0);
         for (var room of myRooms) {
             
             //begin of spawning loop. Loop through each spawn in the room and save the spawns and controller to variables

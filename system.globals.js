@@ -42,6 +42,9 @@ var systemGlobals = {
             global.TASK_ROOM_RESERVE = "reserve";
 
             global.TASK_COMBAT_MELEE_DEFEND = "melee_defend";
+            global.TASK_COMBAT_ATTACK_DRAIN = "turret_drain";
+            global.TASK_COMBAT_HEAL_SELF = "heal_self";
+            global.TASK_COMBAT_ATTACK_ROOM = "attack_room";
 
             //COLORS
             global.COLOR_ENERGY_GET = "dae028";
@@ -121,7 +124,15 @@ var systemGlobals = {
                 }
                 return "Changed tasks for " + selectedCreeps.length + " creeps!"
             }
+
+            //TODO: everything
+            global.drainTurrets = function(room) {
+                //lol
+                //Game.spawns["Spawn1"].spawnCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL], "test2", {memory: {type: "attacker", role: "driainer", assignedRoom: "E41N24", tasks: [TASK_COMBAT_HEAL_SELF, TASK_REMOTE, TASK_COMBAT_ATTACK_DRAIN]}});
+                //Game.spawns["Spawn1"].spawnCreep([MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK], "test3", {memory: {type: "attacker", role: "roomKiller", assignedRoom: "E41N24", tasks: [TASK_REMOTE, TASK_COMBAT_ATTACK_ROOM]}});
+            }
         }
+        
     }
 };
 

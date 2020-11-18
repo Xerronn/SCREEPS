@@ -19,8 +19,7 @@ var systemMemory = {
         if (!Memory.roomsPersistent) {
             Memory.roomsPersistent = {}
         }
-        var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
-        for (let room of myRooms) {
+        for (let room of MY_ROOMS) {
             //initialization of the persistent room memory
             if (!Memory.roomsPersistent[room]){
                 Memory.roomsPersistent[room] = {};
@@ -146,7 +145,7 @@ var systemMemory = {
         }
 
         //iterate over each room
-        for (var room of myRooms) {
+        for (var room of MY_ROOMS) {
             //init a room memory for each room
             if (!Memory.roomsCache[room]) {
                 Memory.roomsCache[room] = {};

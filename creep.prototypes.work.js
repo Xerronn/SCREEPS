@@ -936,6 +936,13 @@ var systemPrototypes = {
                     console.log("REMOTE CREEP HAS NO DESIGNATED ROOM!!");
                     return true; //move to next tick
                 } else {
+                    if (this.memory.tasks.includes(TASK_COMBAT_ATTACK_DRAIN) && this.hits < this.hitsMax) {
+                        //move off the edge
+                        if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
+                            this.moveTo(new RoomPosition(25,25, this.room.name));
+                        }
+                        return false; //move to next task if it is a drainer
+                    }
                     if (this.room.name != this.memory.assignedRoom) {
                         //avoid annoying bug where they get stuck on room edges
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {

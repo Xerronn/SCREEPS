@@ -18,6 +18,21 @@ var roleCombat = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_COMBAT_ATTACK_DRAIN:
+                        if (creep.drainTurret() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_COMBAT_HEAL_SELF:
+                        if (creep.healSelf() == true) {
+                            taskCompleted = true;
+                        }
+                        break; 
+                    case TASK_COMBAT_ATTACK_ROOM:
+                        if (creep.attackRoom() == true) {
+                            taskCompleted = true;
+                        }
+                        break; 
                 }
                 //break the loop if it finds what it needs to do
                 if (taskCompleted) break;

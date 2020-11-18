@@ -37,7 +37,7 @@ var systemRoomPlanner2 = {
             "nuker":{"pos":[{"x":6,"y":7}]},
             "lab":{"pos":[{"x":8,"y":7},{"x":9,"y":7},{"x":7,"y":8},{"x":9,"y":8},{"x":10,"y":8},{"x":7,"y":9},{"x":8,"y":9},{"x":10,"y":9},{"x":8,"y":10},{"x":9,"y":10}]}}
         
-        var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0 && Memory.roomsPersistent[room].roomPlanning);
+        var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0 && Memory.roomsPersistent[room].roomPlanning);
         //loops through all rooms in roomPlanning
         for (var room of myRooms) {
             //check if the room controller has changed level at all
@@ -77,7 +77,7 @@ var systemRoomPlanner2 = {
                                         //if it is an edge, give some slack
                                         if (candidate.x == x || candidate.x == x+10 || candidate.y == y || candidate.y == y+10) {
                                             wallCounter++;
-                                            if (wallCounter > 3) {
+                                            if (wallCounter > 5) {
                                                 dq = true;
                                                 break;
                                             }
