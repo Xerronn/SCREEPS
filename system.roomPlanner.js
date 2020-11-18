@@ -44,9 +44,8 @@ var systemRoomPlanner2 = {
             if (Memory.roomsPersistent[room].roomPlanning.rank != Game.rooms[room].controller.level) {
 
                 //clear out any buildings left by enemies
-                //TODO: might want to leave structures with significant loot to steal
                 let enemyBuildings = Game.rooms[room].find(FIND_STRUCTURES, {
-                    filter: (structure) => {return structure.my == false}});
+                    filter: (structure) => {return structure.my == false && struc.structureType != STRUCTURE_STORAGE && struc.structureType != STRUCTURE_TERMINAL}});
                 for (var struct of enemyBuildings) {
                     struct.destroy();
                 }

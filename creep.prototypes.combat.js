@@ -48,10 +48,11 @@ var systemCombatPrototypes = {
 
 
         //prototype to drain turrets in a room
+        //TODO: this needs so much more polishing
         if (!Creep.prototype.drainTurret) {
             Creep.prototype.drainTurret = function() {
                 //if hits are less than half, move out of assigned room
-                if (this.hits < this.hitsMax && this.room.name == this.memory.assignedRoom) {
+                if (this.hits < this.hitsMax/3 && this.room.name == this.memory.assignedRoom) {
                     this.moveTo(this.pos.findClosestByRange(FIND_EXIT));
                 }
 
@@ -66,13 +67,65 @@ var systemCombatPrototypes = {
 
 
         //prototype for attacking things in a room
+        //TODO: make this way better. lots of code can be deleted here
         if (!Creep.prototype.attackRoom) {
             Creep.prototype.attackRoom = function () {
                 //find all targets
                 let hostiles = this.room.find(FIND_HOSTILE_CREEPS);
-                let hostileBuildings = this.room.find(FIND_HOSTILE_STRUCTURES);
+                let hostileCombatants = _.filter(hostiles, hst => hst.getActiveBodyparts(ATTACK) > 0 || hst.getActiveBodyparts(RANGED_ATTACK) > 0)
+                let hostileBuildings = this.room.find(FIND_HOSTILE_STRUCTURES, {filter: struc => struc.structureType != STRUCTURE_CONTROLLER && struc.structureType != STRUCTURE_STORAGE});
+                let hostileTowers = this.room.find(FIND_HOSTILE_STRUCTURES, {filter: struc => struc.structureType == STRUCTURE_TOWER})
+                let hostileSpawns = this.room.find(FIND_HOSTILE_SPAWNS);
 
                 //creeps first
+                if (hostileCombatants && hostileCombatants.length > 0) {
+                    if (!this.memory.attackTarget || this.memory.attackTarget == "none") {
+                        let nearestCreep = this.pos.findClosestByRange(hostileCombatants);
+                        this.memory.attackTarget = nearestCreep.id;
+                    }
+                    let creepTarget = Game.getObjectById(this.memory.attackTarget);
+                    if (!creepTarget) {
+                        this.memory.attackTarget = "none";
+                        return true; //move to next tick
+                    }
+                    if (this.pos.inRangeTo(creepTarget, 1)) {
+                        this.attack(creepTarget);
+                    } else {
+                        this.moveTo(creepTarget, {visualizePathStyle: {stroke: COLOR_ATTACK}});
+                    }
+                    return true; //move to next tick
+
+                }
+
+                //buildings next
+                if (hostileBuildings && hostileBuildings.length > 0) {
+                    if (!this.memory.attackTarget || this.memory.attackTarget == "none") {
+                        let nearestBuilding;
+                        //towers first
+                        if (hostileTowers && hostileTowers.length > 0){
+                            nearestBuilding = this.pos.findClosestByRange(hostileTowers);
+                        } else if (hostileSpawns && hostileSpawns.length > 0){
+                            //spawns second
+                            nearestBuilding = this.pos.findClosestByRange(hostileSpawns);
+                        } else {
+                            nearestBuilding = this.pos.findClosestByRange(hostileBuildings);
+                        }
+                        this.memory.attackTarget = nearestBuilding.id;
+                    }
+                    let creepTarget = Game.getObjectById(this.memory.attackTarget);
+                    if (!creepTarget) {
+                        this.memory.attackTarget = "none";
+                        return true; //move to next tick
+                    }
+                    if (this.pos.inRangeTo(creepTarget, 1)) {
+                        this.attack(creepTarget);
+                    } else {
+                        this.moveTo(creepTarget, {visualizePathStyle: {stroke: COLOR_ATTACK}});
+                    }
+                    return true; //move to next tick
+                }
+
+                //regular creeps last
                 if (hostiles && hostiles.length > 0) {
                     if (!this.memory.attackTarget || this.memory.attackTarget == "none") {
                         let nearestCreep = this.pos.findClosestByRange(hostiles);
@@ -89,25 +142,8 @@ var systemCombatPrototypes = {
                         this.moveTo(creepTarget, {visualizePathStyle: {stroke: COLOR_ATTACK}});
                     }
                     return true; //move to next tick
+                }
 
-                }
-                if (hostileBuildings && hostileBuildings.length > 0) {
-                    if (!this.memory.attackTarget || this.memory.attackTarget == "none") {
-                        let nearestBuilding = this.pos.findClosestByRange(hostileBuildings);
-                        this.memory.attackTarget = nearestBuilding.id;
-                    }
-                    let creepTarget = Game.getObjectById(this.memory.attackTarget);
-                    if (!creepTarget) {
-                        this.memory.attackTarget = "none";
-                        return true; //move to next tick
-                    }
-                    if (this.pos.inRangeTo(creepTarget, 1)) {
-                        this.attack(creepTarget);
-                    } else {
-                        this.moveTo(creepTarget, {visualizePathStyle: {stroke: COLOR_ATTACK}});
-                    }
-                    return true; //move to next tick
-                }
             }
         }
 
