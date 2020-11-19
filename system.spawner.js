@@ -386,8 +386,9 @@ var systemSpawner2 = {
                     }
                     break;
                 case "quarrier":
-                    body = addMoves([WORK], hasRoads);
-                    body = buildComposition(spawnRoom, body, true, 1000);
+                    //body = addMoves([WORK], hasRoads);
+                    //body = buildComposition(spawnRoom, body, true, 2000);
+                    body = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     break;
                 case "transporter":
                     //TODO: calculate how many parts there should be depending on distance

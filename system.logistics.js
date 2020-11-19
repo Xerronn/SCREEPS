@@ -24,9 +24,9 @@ var systemLogistics = {
             }
 
             //loop through sell orders
+            Memory.roomsPersistent[room].logistics.selling = {};
             for (order of roomOrders) {
                 //set it back to zero, then increment it to cover cases where there are multiple orders
-                Memory.roomsPersistent[room].logistics.selling[order.resourceType] = 0;
                 Memory.roomsPersistent[room].logistics.selling[order.resourceType] += order.remainingAmount;
                 if (order.remainingAmount == 0) {
                     Game.market.cancelOrder(order.id);
@@ -78,7 +78,6 @@ var systemLogistics = {
                     let mineralInfoToday = mineralInfo[mineralInfo.length - 1];
                     let amountToSell = Memory.roomsPersistent[room].logistics.haves[extra];
                     let price = (mineralInfoToday["avgPrice"] * 0.85).toFixed(3);
-
                     let success = Game.market.createOrder({
                         type: ORDER_SELL,
                         resourceType: extra,
@@ -87,7 +86,7 @@ var systemLogistics = {
                         roomName: room   
                     });
 
-                    //if the deal is successfully placed, add it to the selling memory
+                    // if the deal is successfully placed, add it to the selling memory
                     if (success == 0) {
                         Memory.roomsPersistent[room].logistics.selling[extra] += amountToSell;
                     }
