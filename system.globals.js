@@ -32,6 +32,7 @@ var systemGlobals = {
             global.TASK_UPGRADE_LINK = "upgrade_link"; //implemented
             global.TASK_BUILD = "build"; //implemented
             global.TASK_MANAGE_LINK = "manage_link"; //implemented
+            global.TASK_MANAGE_TERMINAL = "manage_terminal";
             global.TASK_REPAIR = "repair"; //implemented
             global.TASK_REPAIR_WALL = "repair_wall"; //implemented
 
@@ -51,6 +52,17 @@ var systemGlobals = {
             global.COLOR_ENERGY_SPEND = "1dde20";
             global.COLOR_ATTACK = "ff1900";
             global.COLOR_MOVE = "ffffff";
+
+            global.MINERALS = [
+                RESOURCE_HYDROGEN,
+                RESOURCE_OXYGEN,
+                RESOURCE_UTRIUM,
+                RESOURCE_LEMERGIUM,
+                RESOURCE_KEANIUM,
+                RESOURCE_ZYNTHIUM,
+                RESOURCE_CATALYST,
+                RESOURCE_GHODIUM
+            ];
 
             global.help = function () {
                 let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures", "resetAllStats", "toggleUI", "changeTasksForRole"];

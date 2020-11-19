@@ -498,18 +498,16 @@ var systemPrototypes = {
                 }
 
                 var creepContainer = Game.getObjectById(this.memory.assignedContainer);
-
-                //only do something when the container has enough to fill
-                if (creepContainer.store.getUsedCapacity() >= this.store.getCapacity()) {
-                    if (this.pos.inRangeTo(creepContainer, 1)) {
+                
+                if (this.pos.inRangeTo(creepContainer, 1)) {
+                    //only do something when the container has enough to fill
+                    if (creepContainer.store.getUsedCapacity() >= this.store.getCapacity()) {
                         for(var resourceType in creepContainer.store) {
-                            console.log(resourceType)
                             this.withdraw(creepContainer, resourceType);
                         }
-                    } else {
-                        this.moveTo(creepContainer);
                     }
-                    return true; //move to next tick
+                } else {
+                    this.moveTo(creepContainer);
                 }
                 return true; //move to next tick
             }
@@ -667,6 +665,37 @@ var systemPrototypes = {
                     for(var resourceType in this.store) {
                         this.transfer(creepTerminal, resourceType);
                     }
+                } else {
+                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        if (!Creep.prototype.manageTerminal) {
+            Creep.prototype.manageTerminal = function () {
+                var creepTerminal = this.room.terminal;
+                //skip the task if there is no terminal, the creep is harvesting or the creep has no energy
+                if (!creepTerminal || this.memory.harvesting || !this.store.getUsedCapacity() > 0) {
+                    //remove this task if there is no terminal
+                    if (!creepTerminal) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_MAINTAIN_TERMINAL);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is harvesting
+                }
+                //fill the terminal
+                if (creepTerminal.store.getUsedCapacity(RESOURCE_ENERGY) > 20000) {
+                    return false; //move to next task
+                }
+                if (this.pos.inRangeTo(creepTerminal, 1)) {
+                    this.transfer(creepTerminal, RESOURCE_ENERGY);
                 } else {
                     this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }

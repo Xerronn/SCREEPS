@@ -3,6 +3,8 @@ const systemMemory = require("./system.memory");
 var systemRoomPlanner2 = {
     run: function() {
         //predefined bunker layout
+        //TODO: add utilization of the container in the bunker instead of pulling from the storage itself.
+        //have all the storage withdrawing be handled by the linker
         var bunker = {
             "extension":{"pos":[{"x":1,"y":0},{"x":2,"y":0},{"x":3,"y":0},{"x":4,"y":0},
                 {"x":6,"y":0},{"x":7,"y":0},{"x":8,"y":0},{"x":9,"y":0},{"x":0,"y":1},

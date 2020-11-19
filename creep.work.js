@@ -89,6 +89,11 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_MANAGE_TERMINAL:
+                        if (creep.manageTerminal() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_RENEW:
                         if (creep.renew() == true) {
                             taskCompleted = true;
