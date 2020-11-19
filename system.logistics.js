@@ -1,7 +1,8 @@
 var systemLogistics = {
     run: function() {
         //the amount we should store of each mineral
-        const BUFFER = 5000;
+        const STORE_BUFFER = 5000;
+        const SELL_BUFFER = 5000;
 
         //iterate through every room with a terminal
         for (var room of MY_ROOMS_TERMINAL) {
@@ -24,23 +25,29 @@ var systemLogistics = {
 
             //loop through sell orders
             for (order of roomOrders) {
-                Memory.roomsPersistent[room].logistics.selling[order.resourceType] = order.remainingAmount;
+                //set it back to zero, then increment it to cover cases where there are multiple orders
+                Memory.roomsPersistent[room].logistics.selling[order.resourceType] = 0;
+                Memory.roomsPersistent[room].logistics.selling[order.resourceType] += order.remainingAmount;
+                if (order.remainingAmount == 0) {
+                    Game.market.cancelOrder(order.id);
+                }
             }
             
             //loop through contents and append resources that are in excess
             for (var mineral of MINERALS) {
-                //subtract the amount we are selling from the amount we have
+                //set the selling memory to zero if it doesn't exist
                 if (!Object.keys(Memory.roomsPersistent[room].logistics.selling).includes(mineral)) {
                     Memory.roomsPersistent[room].logistics.selling[mineral] = 0;
                 }
-                amountStored = roomTerminal.store[mineral] - Memory.roomsPersistent[room].logistics.selling[mineral];
-                if (amountStored > BUFFER) {
+                //subtract the amount we are selling from the amount we have
+                let amountStored = roomTerminal.store[mineral] - Memory.roomsPersistent[room].logistics.selling[mineral];
+                if (amountStored > STORE_BUFFER) {
                     //store in memory how much extra we have in the terminal
-                    Memory.roomsPersistent[room].logistics.haves[mineral] = amountStored - BUFFER;
+                    Memory.roomsPersistent[room].logistics.haves[mineral] = amountStored - STORE_BUFFER;
                     Memory.roomsPersistent[room].logistics.needs[mineral] = 0;
                 } else {
                     //store how much we need to get to our buffer
-                    Memory.roomsPersistent[room].logistics.needs[mineral] = BUFFER - amountStored;
+                    Memory.roomsPersistent[room].logistics.needs[mineral] = STORE_BUFFER - amountStored;
                     Memory.roomsPersistent[room].logistics.haves[mineral] = 0;
                 }
             }
@@ -66,11 +73,11 @@ var systemLogistics = {
 
             //loop through haves and if there is a lot of extras, sell them
             for (var extra of Object.keys(Memory.roomsPersistent[room].logistics.haves)) {
-                if (roomTerminal.store[extra] -  Memory.roomsPersistent[room].logistics.selling[extra] > BUFFER * 2) {
+                if (Memory.roomsPersistent[room].logistics.haves[extra] > SELL_BUFFER) {
                     let mineralInfo = Game.market.getHistory(extra);
                     let mineralInfoToday = mineralInfo[mineralInfo.length - 1];
-                    let amountToSell = roomTerminal.store[extra] - (BUFFER * 2);
-                    let price = (mineralInfoToday["avgPrice"] * 0.9).toFixed(3);
+                    let amountToSell = Memory.roomsPersistent[room].logistics.haves[extra];
+                    let price = (mineralInfoToday["avgPrice"] * 0.85).toFixed(3);
 
                     let success = Game.market.createOrder({
                         type: ORDER_SELL,
@@ -82,7 +89,7 @@ var systemLogistics = {
 
                     //if the deal is successfully placed, add it to the selling memory
                     if (success == 0) {
-                        Memory.roomsPersistent[room].logistics.selling[extra] = amountToSell;
+                        Memory.roomsPersistent[room].logistics.selling[extra] += amountToSell;
                     }
                     break;
                 }

@@ -65,7 +65,8 @@ var systemGlobals = {
             ];
 
             global.help = function () {
-                let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", "refreshAllStructures", "resetAllStats", "toggleUI", "changeTasksForRole"];
+                let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", 
+                "refreshAllStructures", "resetAllStats", "toggleUI", "changeTasksForRole", "deleteOrders"];
                 
                 for (func of functions) {
                     console.log(func);
@@ -134,7 +135,7 @@ var systemGlobals = {
                 for (let selected of selectedCreeps) {
                     selected.memory.tasks = tasks;
                 }
-                return "Changed tasks for " + selectedCreeps.length + " creeps!"
+                return "Changed tasks for " + selectedCreeps.length + " creeps!";
             }
 
             //TODO: everything
@@ -142,6 +143,25 @@ var systemGlobals = {
                 //lol
                 //Game.spawns["Spawn1"].spawnCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL], "test2", {memory: {type: "attacker", role: "driainer", assignedRoom: "E41N24", tasks: [TASK_COMBAT_HEAL_SELF, TASK_REMOTE, TASK_COMBAT_ATTACK_DRAIN]}});
                 //Game.spawns["Spawn1"].spawnCreep([MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK], "test3", {memory: {type: "attacker", role: "roomKiller", assignedRoom: "E41N24", tasks: [TASK_REMOTE, TASK_COMBAT_ATTACK_ROOM]}});
+            }
+
+            /**
+             * function to clear orders from any or all rooms
+             * @param string room to remove orders from. Leave blank if all rooms
+             */
+            global.deleteOrders = function (room="all rooms") {
+                let roomOrders;
+                if (room == "all rooms") {
+                    roomOrders = _.filter(Game.market.orders);
+                } else {
+                    roomOrders = _.filter(Game.market.orders, order => order.roomName == room);
+                }
+
+                for (order of roomOrders) {
+                    Game.market.cancelOrder(order.id);
+                }
+
+                return "Deleted " + roomOrders.length + " orders from " + room + "!";
             }
         }
         
