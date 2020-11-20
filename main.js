@@ -14,7 +14,7 @@ const initializeWorkPrototypes = require('creep.prototypes.work');
 const initializeCombatPrototypes = require('creep.prototypes.combat');
 
 
-//Sprofiler.enable();
+profiler.enable();
 module.exports.loop = function () {
     //memhack
     if(Game.time != global.memhack_lastTime) {

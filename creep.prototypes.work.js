@@ -42,6 +42,14 @@ var systemPrototypes = {
                 //once the creep definitely has an assigned source, we can use a variable to reference the game object
                 var creepSource = Game.getObjectById(this.memory.assignedSource);
 
+                //skip all this if the source is empty
+                if (creepSource.energy == 0) {
+                    if (this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP) || this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK)) {
+                        return true; //move to next tick
+                    }
+                    return false; //move to next task
+                } 
+
                 //now we check for containers for drop mining
                 if (!this.memory.assignedContainer) {
                     //find any containers within range 1
@@ -179,7 +187,11 @@ var systemPrototypes = {
                 var creepMineral = Game.getObjectById(this.memory.assignedMineral);
                 var creepExtractor = Game.getObjectById(this.memory.assignedExtractor);
 
-                if (creepExtractor.cooldown > 0) {
+                if (creepExtractor.cooldown > 0 || creepMineral.mineralAmount == 0) {
+                    if (creepMineral.mineralAmount == 0) {
+                        Memory.roomsPersistent[this.room.name].mineralFull = false;
+                        Memory.roomsPersistent[this.room.name].mineralTimer = Game.time + creepMineral.ticksToRegeneration;
+                    }
                     return true; //move to next task
                 }
 

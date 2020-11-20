@@ -135,6 +135,12 @@ var systemMemory = {
             if (!Memory.roomsPersistent[room].stats.energySpentRepairing) {
                 Memory.roomsPersistent[room].stats.energySpentRepairing = 0;
             }
+
+            //Mineral memory
+            if (!Memory.roomsPersistent[room].mineralFull || 
+                Memory.roomsPersistent[this.room.name].mineralTimer && Memory.roomsPersistent[this.room.name].mineralTimer < Game.time) {
+                Memory.roomsPersistent[room].mineralFull = true;
+            }
         }
         
         

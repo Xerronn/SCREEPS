@@ -307,7 +307,7 @@ var systemSpawner2 = {
                         Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
                     }
                     let numquarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
-                    if (numquarriers < 1) {
+                    if (numquarriers < 1 && Memory.roomsPersistent[this.room.name].mineralFull) {
                         if (!currentlySpawning.includes("quarrier")) {
                             spawnQueue.push({
                                 creepName: "quarrier",
