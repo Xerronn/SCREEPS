@@ -101,7 +101,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepLink, 1)) {
                         this.transfer(creepLink, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.travelTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }
@@ -124,7 +124,7 @@ var systemPrototypes = {
                         Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     }
                 } else {
-                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.travelTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -225,7 +225,7 @@ var systemPrototypes = {
                     //     Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     // }
                 } else {
-                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.travelTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -265,7 +265,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(creepStorage, 1)) {
                     this.withdraw(creepStorage, RESOURCE_ENERGY);
                 } else {
-                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.travelTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -331,7 +331,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepContainerTarget, 1)) {
                         this.withdraw(creepContainerTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                        this.travelTo(creepContainerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -383,7 +383,7 @@ var systemPrototypes = {
                         this.pickup(assignedSalvage);
                         //TODO: Track this in stats
                     } else {
-                        this.moveTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                        this.travelTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }
@@ -462,7 +462,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(creepContainer, 1)) {
                     this.withdraw(creepContainer, RESOURCE_ENERGY);
                 } else {
-                    this.moveTo(creepContainer, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.travelTo(creepContainer, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -507,7 +507,7 @@ var systemPrototypes = {
                         }
                     }
                 } else {
-                    this.moveTo(creepContainer);
+                    this.travelTo(creepContainer);
                 }
                 return true; //move to next tick
             }
@@ -553,7 +553,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepFillTarget, 1)) {
                         this.transfer(creepFillTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepFillTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.travelTo(creepFillTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -601,7 +601,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepTowerTarget, 1)) {
                         this.transfer(creepTowerTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepTowerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.travelTo(creepTowerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -634,7 +634,7 @@ var systemPrototypes = {
                         this.transfer(creepStorage, resourceType);
                     }
                 } else {
-                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    this.travelTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -666,7 +666,7 @@ var systemPrototypes = {
                         this.transfer(creepTerminal, resourceType);
                     }
                 } else {
-                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    this.travelTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -697,7 +697,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(creepTerminal, 1)) {
                     this.transfer(creepTerminal, RESOURCE_ENERGY);
                 } else {
-                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    this.travelTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -746,7 +746,7 @@ var systemPrototypes = {
                             Memory.roomsPersistent[this.room.name].stats.energySpentUpgrading += numWork;
                         }
                     } else {
-                        this.moveTo(creepController, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.travelTo(creepController, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 } else {
@@ -755,7 +755,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.withdraw(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.moveTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                            this.travelTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                         }
                         return true; //move to next tick
                     } else {
@@ -811,7 +811,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepSiteTarget, 1)) {
                         this._build(creepSiteTarget, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.travelTo(creepSiteTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -855,7 +855,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.withdraw(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.moveTo(creepLink);
+                            this.travelTo(creepLink);
                         }
                         return true; //move to next tick
                     }
@@ -864,7 +864,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepStorage, 1)) {
                         this.withdraw(creepStorage, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepStorage);
+                        this.travelTo(creepStorage);
                     }
                     return true; //move to next tick     
                 } else {
@@ -873,7 +873,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.transfer(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.moveTo(creepLink);
+                            this.travelTo(creepLink);
                         }
                         return true; //move to next tick
                     }
@@ -882,7 +882,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepStorage, 1)) {
                         this.transfer(creepStorage, RESOURCE_ENERGY);
                     } else {
-                        this.moveTo(creepStorage);
+                        this.travelTo(creepStorage);
                     }
                     return true; //move to next tick
                 }
@@ -947,7 +947,7 @@ var systemPrototypes = {
                             }
                         }
                     } else {
-                        this.moveTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.travelTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }
@@ -968,7 +968,7 @@ var systemPrototypes = {
                     if (this.memory.tasks.includes(TASK_COMBAT_ATTACK_DRAIN) && this.hits < this.hitsMax) {
                         //move off the edge
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                            this.moveTo(new RoomPosition(25,25, this.room.name));
+                            this.travelTo(new RoomPosition(25,25, this.room.name));
                         }
                         return false; //move to next task if it is a drainer
                     }
@@ -977,9 +977,9 @@ var systemPrototypes = {
                         (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49)) {
                         //avoid annoying bug where they get stuck on room edges
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                            this.moveTo(new RoomPosition(25,25, this.room.name));
+                            this.travelTo(new RoomPosition(25,25, this.room.name));
                         } else {
-                            this.moveTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
+                            this.travelTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
                         }
                         return true; //move to next tick
                     } else {
@@ -1017,7 +1017,7 @@ var systemPrototypes = {
                         let selectedMessage = hollowKnightSigns[Math.floor(Math.random() * hollowKnightSigns.length)];
                         this.signController(controller, selectedMessage);
                     } else {
-                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                        this.travelTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
                     }
                     return true; //move to next tick
                 }
@@ -1035,7 +1035,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(controller, 1)) {
                         this.claimController(controller);
                     } else {
-                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                        this.travelTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
                     }
                     return true; //move to next tick
                 }
@@ -1085,7 +1085,7 @@ var systemPrototypes = {
                             this.memory.renewSpawn = "none";
                         }
                     } else {
-                        this.moveTo(creepSpawn, {visualizePathStyle: {stroke: COLOR_MOVE}})
+                        this.travelTo(creepSpawn, {visualizePathStyle: {stroke: COLOR_MOVE}})
                     }
                     return true; // move to next tick
                 } else {

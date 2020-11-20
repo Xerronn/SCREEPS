@@ -1,4 +1,5 @@
-const profiler = require('screeps-profiler');
+const profiler = require('imports.screeps-profiler');
+const traveler = require('imports.traveler');
 
 const renderUI = require('system.ui');
 const memoryHandler = require('system.memory');
