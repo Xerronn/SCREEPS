@@ -301,7 +301,7 @@ var systemPrototypes = {
                 }
 
                 //containers from memory
-                var allContainers = Memory.roomsCache[this.room.name].structures.containers.map(
+                var allContainers = Memory.roomsCache[this.room.name].structures.sourceContainers.map(
                     container => Game.getObjectById(container)
                 );
                 //all containers that have energy in them
