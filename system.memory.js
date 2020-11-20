@@ -138,7 +138,7 @@ var systemMemory = {
 
             //Mineral memory
             if (!Memory.roomsPersistent[room].mineralFull || 
-                Memory.roomsPersistent[this.room.name].mineralTimer && Memory.roomsPersistent[this.room.name].mineralTimer < Game.time) {
+                Memory.roomsPersistent[room].mineralTimer && Memory.roomsPersistent[room].mineralTimer < Game.time) {
                 Memory.roomsPersistent[room].mineralFull = true;
             }
         }
