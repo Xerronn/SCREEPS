@@ -14,7 +14,7 @@ var roleWorker = {
                     case TASK_HARVEST_ENERGY_LINK:
                         if (creep.harvestEnergy() == true) {
                             taskCompleted = true;
-                        } 
+                        }
                         break;
                     case TASK_HARVEST_MINERAL:
                     case TASK_HARVEST_MINERAL_DROP:

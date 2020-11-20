@@ -13,36 +13,33 @@ const initializeWorkPrototypes = require('creep.prototypes.work');
 const initializeCombatPrototypes = require('creep.prototypes.combat');
 
 
-profiler.enable();
+//Sprofiler.enable();
 module.exports.loop = function () {
-    profiler.wrap(function() {
-        let testCpu = Game.cpu.getUsed();
-        //memhack
-        if(Game.time != global.memhack_lastTime) {
-            if(global.memhack_lastTime && global.memhack_LastMemory && Game.time == (global.memhack_lastTime + 1)){
-                delete global.Memory;
-                global.Memory = global.memhack_LastMemory;
-                RawMemory._parsed = global.memhack_LastMemory;
-            }else{
-                Memory;
-                if(!Game.rooms['sim']) {
-                    global.memhack_LastMemory = RawMemory._parsed;
-                    global.memhack_lastTime = Game.time;
-                }
-            }
-        } else {
+    //memhack
+    if(Game.time != global.memhack_lastTime) {
+        if(global.memhack_lastTime && global.memhack_LastMemory && Game.time == (global.memhack_lastTime + 1)){
+            delete global.Memory;
+            global.Memory = global.memhack_LastMemory;
+            RawMemory._parsed = global.memhack_LastMemory;
+        }else{
             Memory;
-            global.memhack_LastMemory = RawMemory._parsed;
-            global.memhack_lastTime = Game.time;
+            if(!Game.rooms['sim']) {
+                global.memhack_LastMemory = RawMemory._parsed;
+                global.memhack_lastTime = Game.time;
+            }
         }
-        console.log(Memory.roomsPersistent);
-        console.log(Game.cpu.getUsed() - testCpu);
-
+    } else {
+        Memory;
+        global.memhack_LastMemory = RawMemory._parsed;
+        global.memhack_lastTime = Game.time;
+    }
+    
+    profiler.wrap(function() {
         //initialization
         initializeGlobals.run();
         initializeWorkPrototypes.run();
         initializeCombatPrototypes.run();
-
+        
         //memory cleanup
         garbageCollection.run();
         
@@ -58,18 +55,18 @@ module.exports.loop = function () {
         memoryHandler.run();
 
         //other system stuff
-        if (Memory.roomsCache) {
-            populationControl.run();
+        if (Memory.roomsCache) {        
+            populationControl.run(); //optimize!! using 1-3 CPU
             renderUI.run();
             roomPlanner.run();
         } else {
             console.log("System tasks skipped due to absence of memory");
         }
-        //terminal logistics
+        //terminal logistics 
         logistics.run();
         
         //execute creep code
-        taskExecution.run();
+        taskExecution.run(); //optimize!! using 11-17 CPU!
         
         //pixelsss
         if (Game.cpu["bucket"] > 9000) {

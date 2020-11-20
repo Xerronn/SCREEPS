@@ -16,7 +16,6 @@ var systemSpawner2 = {
         const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
 
         const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
-        //TODO PROBABLY CAN COMBINE MAINTAINER AND FILLER AS LONG AS THERE ISN't AN ATTACK GOING ON
         //TODO: REDO THIS... AGAIN creeps have too many move parts for some reason. except for wallers...
         //ADD IN PRIORITIZATION
         //TODO:
@@ -42,22 +41,23 @@ var systemSpawner2 = {
         }
 
         //handles the automatic creation of remote workers in case of a new territory being claimed
-        //first find any claimed controllers that do not have a spawn
-        var controllers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_CONTROLLER && !structure.room.storage);
-        for (var controller of controllers) {
+        //first find any rooms that the bot owns that do not have spawns
+        var newRooms = _.filter(Game.rooms, room => room.controller && room.controller.my && Memory.roomsCache[room.name].structures["spawns"].length == 0);
+        for (var newRoom of newRooms) {
+            //check to make sure that I have spawns to spawn helpers from
             if (Object.keys(Game.spawns).length > 0) { 
                 //remove from memory expansions
-                if (Memory.config.expansion.includes(controller.room.name)) {
-                    let index = Memory.config.expansion.indexOf(controller.room.name);
+                if (Memory.config.expansion.includes(newRoom.name)) {
+                    let index = Memory.config.expansion.indexOf(newRoom.name);
                     Memory.config.expansion.splice(index, 1);
                 }
-                var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == controller.pos.roomName);
+                var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == newRoom.name);
                 if (remoteBuilders.length < 3) {
                     let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
-                    Memory.roomsCache[room].structures["spawns"].length > 0 && room != "sim" && room != controller.room.name && Game.rooms[room].energyCapacityAvailable > 700);
-                    var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
+                    Memory.roomsCache[room].structures["spawns"].length > 0 && room != "sim" && room != newRoom.name && Game.rooms[room].energyCapacityAvailable > 700);
+                    var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(newRoom.name, room))[0];
                     let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
-                    let memory = {type: "worker", role: 'remoteBuilder', tasks: TASK_LIST_REMOTE_BUILDER, assignedRoom: controller.pos.roomName};
+                    let memory = {type: "worker", role: 'remoteBuilder', tasks: TASK_LIST_REMOTE_BUILDER, assignedRoom: newRoom.name};
                     spawnCreep(chosenSpawn, "remoteBuilder", memory);
                 }
             }
