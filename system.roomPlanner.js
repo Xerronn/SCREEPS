@@ -4,41 +4,7 @@ var systemRoomPlanner2 = {
     run: function() {
         //predefined bunker layout
         //TODO: add utilization of the container in the bunker instead of pulling from the storage itself.
-        //have all the storage withdrawing be handled by the linker
-        var bunker = {
-            "extension":{"pos":[{"x":1,"y":0},{"x":2,"y":0},{"x":3,"y":0},{"x":4,"y":0},
-                {"x":6,"y":0},{"x":7,"y":0},{"x":8,"y":0},{"x":9,"y":0},{"x":0,"y":1},
-                {"x":2,"y":1},{"x":3,"y":1},{"x":5,"y":1},{"x":7,"y":1},{"x":8,"y":1},
-                {"x":10,"y":1},{"x":0,"y":2},{"x":1,"y":2},{"x":5,"y":2},{"x":6,"y":2},
-                {"x":9,"y":2},{"x":10,"y":2},{"x":0,"y":3},{"x":1,"y":3},{"x":6,"y":3},
-                {"x":9,"y":3},{"x":10,"y":3},{"x":0,"y":4},{"x":7,"y":4},{"x":8,"y":4},
-                {"x":10,"y":4},{"x":1,"y":5},{"x":2,"y":5},{"x":8,"y":5},{"x":9,"y":5},
-                {"x":0,"y":6},{"x":2,"y":6},{"x":3,"y":6},{"x":10,"y":6},{"x":0,"y":7},
-                {"x":1,"y":7},{"x":4,"y":7},{"x":10,"y":7},{"x":0,"y":8},{"x":1,"y":8},
-                {"x":4,"y":8},{"x":5,"y":8},{"x":0,"y":9},{"x":2,"y":9},{"x":3,"y":9},
-                {"x":5,"y":9},{"x":1,"y":10},{"x":2,"y":10},{"x":3,"y":10},{"x":4,"y":10},
-                {"x":6,"y":10},{"x":7,"y":10}]},
-
-            "road":{"pos":[{"x":0,"y":0},{"x":10,"y":0},{"x":0,"y":10},{"x":10,"y":10},{"x":3,"y":3}, {"x":5,"y":0},{"x":1,"y":1},{"x":4,"y":1},{"x":6,"y":1},
-                {"x":9,"y":1},{"x":2,"y":2},{"x":3,"y":2},{"x":7,"y":2},{"x":8,"y":2},
-                {"x":2,"y":3},{"x":7,"y":3},{"x":8,"y":3},{"x":1,"y":4},{"x":4,"y":4},
-                {"x":6,"y":4},{"x":9,"y":4},{"x":0,"y":5},{"x":5,"y":5},{"x":10,"y":5},
-                {"x":1,"y":6},{"x":4,"y":6},{"x":6,"y":6},{"x":9,"y":6},{"x":2,"y":7},
-                {"x":3,"y":7},{"x":7,"y":7},{"x":2,"y":8},{"x":3,"y":8},{"x":8,"y":8},
-                {"x":1,"y":9},{"x":4,"y":9},{"x":6,"y":9},{"x":9,"y":9},{"x":5,"y":10}]},
-                
-            "spawn":{"pos":[{"x":4,"y":2},{"x":2,"y":4},{"x":6,"y":8}]},
-            "container":{"pos":[{"x":3,"y":3}]},
-            "observer":{"pos":[{"x":4,"y":3}]},
-            "tower":{"pos":[{"x":5,"y":3},{"x":5,"y":4},{"x":3,"y":5},{"x":7,"y":5},{"x":5,"y":6},{"x":5,"y":7}]},
-            "link":{"pos":[{"x":3,"y":4}]},
-            "storage":{"pos":[{"x":4,"y":5}]},
-            "terminal":{"pos":[{"x":6,"y":5}]},
-            "factory":{"pos":[{"x":7,"y":6}]},
-            "powerSpawn":{"pos":[{"x":8,"y":6}]},
-            "nuker":{"pos":[{"x":6,"y":7}]},
-            "lab":{"pos":[{"x":8,"y":7},{"x":9,"y":7},{"x":7,"y":8},{"x":9,"y":8},{"x":10,"y":8},{"x":7,"y":9},{"x":8,"y":9},{"x":10,"y":9},{"x":8,"y":10},{"x":9,"y":10}]}}
-        
+        //have all the storage withdrawing be handled by the linker 
         var myRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0 && Memory.roomsPersistent[room].roomPlanning);
         //loops through all rooms in roomPlanning
         for (var room of myRooms) {
@@ -57,13 +23,12 @@ var systemRoomPlanner2 = {
                 if (!Memory.roomsPersistent[room].roomPlanning.anchor) {
 
                     //if this is the first room and you have to manually place your spawn, it will calculate the anchor off that placement
-                    //TODO: figure out a way to avoid user error in spawn placement
-                    //TODO: allow for slight misfits in the 10x10 area. Sacrifice a few extensions
+                    //TODO: figure out a way to avoid user error in spawn placement. possible switch around spawn positions
                     let spawns = Game.rooms[room].find(FIND_MY_SPAWNS);
                     if (spawns.length > 0) {
                         let spawnPos = {
-                            "x": spawns[0].pos.x - bunker["spawn"]["pos"][0].x,
-                            "y": spawns[0].pos.y - bunker["spawn"]["pos"][0].y
+                            "x": spawns[0].pos.x - BUNKER["spawn"]["pos"][0].x,
+                            "y": spawns[0].pos.y - BUNKER["spawn"]["pos"][0].y
                         }
                         Memory.roomsPersistent[room].roomPlanning.anchor = spawnPos;
                     } else {
@@ -72,8 +37,8 @@ var systemRoomPlanner2 = {
                         for (var x = 2; x < 38; x++) {
                             for (var y = 2; y < 38; y++) {
                                 let dq = false;
+                                let wallCounter = 0;
                                 for (var candidate of Game.rooms[room].lookAtArea(y, x, y + 10, x + 10, true)) {
-                                    let wallCounter = 0;
                                     if (candidate["terrain"] == "wall") {
                                         //if it is an edge, give some slack
                                         if (candidate.x == x || candidate.x == x+10 || candidate.y == y || candidate.y == y+10) {
@@ -92,7 +57,8 @@ var systemRoomPlanner2 = {
                                     //if the position does not contain a wall, push it to possibles
                                     candidates.push({
                                         "x": x,
-                                        "y": y
+                                        "y": y,
+                                        "walls": wallCounter
                                     });
                                 } 
                             }
@@ -122,7 +88,8 @@ var systemRoomPlanner2 = {
                         for (var candidate of candidates) {
                             var position = new RoomPosition(candidate["x"] + 5, candidate["y"] + 5, room);
                             
-                            var candidateScore = position.findPathTo(centroidPos).length;
+                            //score is a function of how many walls are in the edges and distance to the centroid
+                            var candidateScore = position.findPathTo(centroidPos).length + Math.pow(1.75, candidate["walls"]);
                             if (bestCandidate["score"] > candidateScore) {
                                 bestCandidate["score"] = candidateScore;
                                 bestCandidate["x"] = candidate["x"];
@@ -143,7 +110,7 @@ var systemRoomPlanner2 = {
                 if (Game.rooms[room].find(FIND_MY_SPAWNS).length < 1) {
                     for (var i =0; i < 10; i++) { 
                         let success = Game.rooms[room].createConstructionSite(
-                            roomAnchor.x + bunker["spawn"]["pos"][0].x, roomAnchor.y + bunker["spawn"]["pos"][0].y, STRUCTURE_SPAWN);
+                            roomAnchor.x + BUNKER["spawn"]["pos"][0].x, roomAnchor.y + BUNKER["spawn"]["pos"][0].y, STRUCTURE_SPAWN);
                         
                         if (success == 0) {
                             break;
@@ -209,8 +176,12 @@ var systemRoomPlanner2 = {
                     //build bunker roads
                     if (!Memory.roomsPersistent[room].roomPlanning.bunkerRoadsBuilt) {
                         Memory.roomsPersistent[room].roomPlanning.bunkerRoads= true;
-                        for (var pos of bunker["road"]["pos"]) {
-                            Game.rooms[room].createConstructionSite(new RoomPosition(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], room), STRUCTURE_ROAD);
+                        for (var pos of BUNKER["road"]["pos"]) {
+                            //do not build tunnels
+                            if (Game.rooms[room].lookAt(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], LOOK_TERRAIN)["terrain"] != "wall") {
+                                Game.rooms[room].createConstructionSite(new RoomPosition(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], room), STRUCTURE_ROAD);
+                                
+                            }
                         }
                     }
                 }
@@ -313,7 +284,7 @@ var systemRoomPlanner2 = {
 
             //find how many are possible to build at the current level
             let maxToBuild = CONTROLLER_STRUCTURES[structureConstant][Game.rooms[room].controller.level];
-            if (maxToBuild > bunker[structureConstant]["pos"].length) maxToBuild = bunker[structureConstant]["pos"].length;
+            if (maxToBuild > BUNKER[structureConstant]["pos"].length) maxToBuild = BUNKER[structureConstant]["pos"].length;
 
             //calculate the number to build
             let numToBuild = maxToBuild - (numExist + numBuilding);
@@ -322,7 +293,7 @@ var systemRoomPlanner2 = {
                 //build the structure
                 let index = numExist + numBuilding;
                 for (let i = 0; i < numToBuild; i++) {
-                    let pos = bunker[structureConstant]["pos"][index + i];
+                    let pos = BUNKER[structureConstant]["pos"][index + i];
                     Game.rooms[room].createConstructionSite(new RoomPosition(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], room), structureConstant);
                 }
             }

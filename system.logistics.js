@@ -1,7 +1,7 @@
 var systemLogistics = {
     run: function() {
         //the amount we should store of each mineral
-        const STORE_BUFFER = 5000;
+        const STORE_BUFFER = 10000;
         const SELL_BUFFER = 5000;
 
         //iterate through every room with a terminal
@@ -57,40 +57,44 @@ var systemLogistics = {
             }
 
             //check if other terminals need resources this one has
+            let sentResource = false;
             outerLoop:
             for (var otherRoom of MY_ROOMS_TERMINAL) {
                 for (var extra of Object.keys(Memory.roomsPersistent[room].logistics.haves)) {
                     let extrasAmount = Memory.roomsPersistent[room].logistics.haves[extra];
                     let needAmount = Memory.roomsPersistent[otherRoom].logistics.needs[extra];
-                    if (needAmount > 0) {
+                    if (needAmount > 0 && extrasAmount > 0) {
                         let amountToSend = Math.min(extrasAmount, needAmount);
-                        roomTerminal.send(extra, amountToSend, otherRoom, 
+                        let success = roomTerminal.send(extra, amountToSend, otherRoom, 
                             "Routine supplies shipment of " + extra + " from " + room + " to " + otherRoom);
+                        sentResource = true;
                         break outerLoop;
                     }
                 }
             }
 
             //loop through haves and if there is a lot of extras, sell them
-            for (var extra of Object.keys(Memory.roomsPersistent[room].logistics.haves)) {
-                if (Memory.roomsPersistent[room].logistics.haves[extra] > SELL_BUFFER) {
-                    let mineralInfo = Game.market.getHistory(extra);
-                    let mineralInfoToday = mineralInfo[mineralInfo.length - 1];
-                    let amountToSell = Memory.roomsPersistent[room].logistics.haves[extra];
-                    let price = (mineralInfoToday["avgPrice"] * 0.85).toFixed(3);
-                    let success = Game.market.createOrder({
-                        type: ORDER_SELL,
-                        resourceType: extra,
-                        price: price,
-                        totalAmount: amountToSell,
-                        roomName: room   
-                    });
+            if (!sentResource) {
+                for (var extra of Object.keys(Memory.roomsPersistent[room].logistics.haves)) {
+                    if (Memory.roomsPersistent[room].logistics.haves[extra] > SELL_BUFFER) {
+                        let mineralInfo = Game.market.getHistory(extra);
+                        let mineralInfoToday = mineralInfo[mineralInfo.length - 1];
+                        let amountToSell = Memory.roomsPersistent[room].logistics.haves[extra];
+                        let price = (mineralInfoToday["avgPrice"] * 0.85).toFixed(3);
+                        let success = Game.market.createOrder({
+                            type: ORDER_SELL,
+                            resourceType: extra,
+                            price: price,
+                            totalAmount: amountToSell,
+                            roomName: room   
+                        });
 
-                    // if the deal is successfully placed, add it to the selling memory
-                    if (success == 0) {
-                        Memory.roomsPersistent[room].logistics.selling[extra] += amountToSell;
+                        // if the deal is successfully placed, add it to the selling memory
+                        if (success == 0) {
+                            Memory.roomsPersistent[room].logistics.selling[extra] += amountToSell;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }

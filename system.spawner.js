@@ -307,7 +307,7 @@ var systemSpawner2 = {
                         Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
                     }
                     let numquarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
-                    if (numquarriers < 1 && Memory.roomsPersistent[room].mineralFull) {
+                    if (numquarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time) {
                         if (!currentlySpawning.includes("quarrier")) {
                             spawnQueue.push({
                                 creepName: "quarrier",
@@ -414,7 +414,7 @@ var systemSpawner2 = {
                         body = addMoves([WORK, CARRY], hasRoads);
                     }
                     let storage = Game.rooms[spawnRoom].storage;
-                    if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 2)) {
+                    if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 5)) {
                         //Unlimited cost on upgraders if the storage gets above a certain capacity
                         body = buildComposition(spawnRoom, body, true);
                     } else {

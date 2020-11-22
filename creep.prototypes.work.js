@@ -189,7 +189,6 @@ var systemPrototypes = {
 
                 if (creepExtractor.cooldown > 0 || creepMineral.mineralAmount == 0) {
                     if (creepMineral.mineralAmount == 0) {
-                        Memory.roomsPersistent[this.room.name].mineralFull = false;
                         Memory.roomsPersistent[this.room.name].mineralTimer = Game.time + creepMineral.ticksToRegeneration;
                     }
                     return true; //move to next task
@@ -913,10 +912,10 @@ var systemPrototypes = {
                     var checkList = [];
                     //variable target checking depending on assigned tasks
                     if (this.memory.tasks.includes(TASK_REPAIR_WALL)) {
-                        checkList.push(STRUCTURE_WALL, STRUCTURE_RAMPART);
+                        checkList.push(STRUCTURE_RAMPART);
                     }
                     if (this.memory.tasks.includes(TASK_REPAIR)) {
-                        checkList.push(STRUCTURE_ROAD, STRUCTURE_CONTAINER);
+                        checkList.push(STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_WALL);
                     }
                     //find the closest of all the structures you are searching for
                     var targets = this.room.find(FIND_STRUCTURES, {

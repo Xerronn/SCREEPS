@@ -64,6 +64,41 @@ var systemGlobals = {
                 RESOURCE_GHODIUM
             ];
 
+            global.BUNKER = {
+                "extension":{"pos":[{"x":1,"y":0},{"x":2,"y":0},{"x":3,"y":0},{"x":4,"y":0},
+                    {"x":6,"y":0},{"x":7,"y":0},{"x":8,"y":0},{"x":9,"y":0},{"x":0,"y":1},
+                    {"x":2,"y":1},{"x":3,"y":1},{"x":5,"y":1},{"x":7,"y":1},{"x":8,"y":1},
+                    {"x":10,"y":1},{"x":0,"y":2},{"x":1,"y":2},{"x":5,"y":2},{"x":6,"y":2},
+                    {"x":9,"y":2},{"x":10,"y":2},{"x":0,"y":3},{"x":1,"y":3},{"x":6,"y":3},
+                    {"x":9,"y":3},{"x":10,"y":3},{"x":0,"y":4},{"x":7,"y":4},{"x":8,"y":4},
+                    {"x":10,"y":4},{"x":1,"y":5},{"x":2,"y":5},{"x":8,"y":5},{"x":9,"y":5},
+                    {"x":0,"y":6},{"x":2,"y":6},{"x":3,"y":6},{"x":10,"y":6},{"x":0,"y":7},
+                    {"x":1,"y":7},{"x":4,"y":7},{"x":10,"y":7},{"x":0,"y":8},{"x":1,"y":8},
+                    {"x":4,"y":8},{"x":5,"y":8},{"x":0,"y":9},{"x":2,"y":9},{"x":3,"y":9},
+                    {"x":5,"y":9},{"x":1,"y":10},{"x":2,"y":10},{"x":3,"y":10},{"x":4,"y":10},
+                    {"x":6,"y":10},{"x":7,"y":10}]},
+    
+                "road":{"pos":[{"x":0,"y":0},{"x":10,"y":0},{"x":0,"y":10},{"x":10,"y":10},{"x":3,"y":3}, {"x":5,"y":0},{"x":1,"y":1},{"x":4,"y":1},{"x":6,"y":1},
+                    {"x":9,"y":1},{"x":2,"y":2},{"x":3,"y":2},{"x":7,"y":2},{"x":8,"y":2},
+                    {"x":2,"y":3},{"x":7,"y":3},{"x":8,"y":3},{"x":1,"y":4},{"x":4,"y":4},
+                    {"x":6,"y":4},{"x":9,"y":4},{"x":0,"y":5},{"x":5,"y":5},{"x":10,"y":5},
+                    {"x":1,"y":6},{"x":4,"y":6},{"x":6,"y":6},{"x":9,"y":6},{"x":2,"y":7},
+                    {"x":3,"y":7},{"x":7,"y":7},{"x":2,"y":8},{"x":3,"y":8},{"x":8,"y":8},
+                    {"x":1,"y":9},{"x":4,"y":9},{"x":6,"y":9},{"x":9,"y":9},{"x":5,"y":10}]},
+                    
+                "spawn":{"pos":[{"x":4,"y":2},{"x":2,"y":4},{"x":6,"y":8}]},
+                "container":{"pos":[{"x":3,"y":3}]},
+                "observer":{"pos":[{"x":4,"y":3}]},
+                "tower":{"pos":[{"x":5,"y":3},{"x":5,"y":4},{"x":3,"y":5},{"x":7,"y":5},{"x":5,"y":6},{"x":5,"y":7}]},
+                "link":{"pos":[{"x":3,"y":4}]},
+                "storage":{"pos":[{"x":4,"y":5}]},
+                "terminal":{"pos":[{"x":6,"y":5}]},
+                "factory":{"pos":[{"x":7,"y":6}]},
+                "powerSpawn":{"pos":[{"x":8,"y":6}]},
+                "nuker":{"pos":[{"x":6,"y":7}]},
+                "lab":{"pos":[{"x":8,"y":7},{"x":9,"y":7},{"x":7,"y":8},{"x":9,"y":8},{"x":10,"y":8},{"x":7,"y":9},{"x":8,"y":9},{"x":10,"y":9},{"x":8,"y":10},{"x":9,"y":10}]}};
+
+            //global functions
             global.help = function () {
                 let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", 
                 "refreshAllStructures", "resetAllStats", "toggleUI", "changeTasksForRole", "deleteOrders"];
@@ -163,8 +198,100 @@ var systemGlobals = {
 
                 return "Deleted " + roomOrders.length + " orders from " + room + "!";
             }
-        }
-        
+
+            /**
+             * function to replan a room into a bunker layout
+             * @param string room to perform the action on
+             * @param {anchor, roads, extensions, towers} action to perform
+             */
+            global.rePlan = function(room, action = "anchor", numRebuild = 5) {
+                if (action == "anchor") {
+                    //find positions the bunker could fit
+                    var candidates = [];
+                    for (var x = 2; x < 38; x++) {
+                        for (var y = 2; y < 38; y++) {
+                            let dq = false;
+                            let wallCounter = 0;
+                            for (var candidate of Game.rooms[room].lookAtArea(y, x, y + 10, x + 10, true)) {
+                                if (candidate["terrain"] == "wall") {
+                                    //if it is an edge, give some slack
+                                    if (candidate.x == x || candidate.x == x+10 || candidate.y == y || candidate.y == y+10) {
+                                        wallCounter++;
+                                        if (wallCounter > 7) {
+                                            dq = true;
+                                            break;
+                                        }
+                                    } else {
+                                        dq = true;
+                                        break; //break as soon as it is dq
+                                    }
+                                }
+                            }
+                            if (!dq) {
+                                //if the position does not contain a wall, push it to possibles
+                                candidates.push({
+                                    "x": x,
+                                    "y": y,
+                                    "walls": wallCounter
+                                });
+                            } 
+                        }
+                    }
+                    //find all the things we want to be close to
+                    var POVs = [];
+                    var sources = Game.rooms[room].find(FIND_SOURCES);
+                    for (var source of sources) {
+                        POVs.push(source.pos);
+                    }
+                    POVs.push(Game.rooms[room].controller.pos);
+
+                    //centroid calculation
+                    var centroid = {
+                        "x": 0,
+                        "y": 0
+                    };
+                    for (var pov of POVs) {
+                        centroid["x"] += pov.x;
+                        centroid["y"] += pov.y;
+                    }
+                    centroid["x"] = Math.floor(centroid["x"] / POVs.length);
+                    centroid["y"] = Math.floor(centroid["y"] / POVs.length);
+                    var centroidPos = new RoomPosition(centroid["x"], centroid["y"], room);
+
+                    var bestCandidate = {"score": 100};
+                    for (var candidate of candidates) {
+                        var position = new RoomPosition(candidate["x"] + 5, candidate["y"] + 5, room);
+                        
+                        //score is a function of how many walls are in the edges and distance to the centroid
+                        var candidateScore = position.findPathTo(centroidPos).length + Math.pow(1.75, candidate["walls"]);
+                        if (bestCandidate["score"] > candidateScore) {
+                            bestCandidate["score"] = candidateScore;
+                            bestCandidate["x"] = candidate["x"];
+                            bestCandidate["y"] = candidate["y"];
+                        }
+                    }
+
+                    //set the anchor to the best candidate
+                    Game.rooms[room].visual.rect(bestCandidate.x, bestCandidate.y, 10, 10, {opacity: 0.4});
+                    Memory.roomsPersistent[room].rePlanning = {};
+                    Memory.roomsPersistent[room].rePlanning.anchor = bestCandidate;
+                    return "Room replanning anchor set!"
+                } else if (action == "roads") {
+                    if (!Memory.roomsPersistent[room].rePlanning && !Memory.roomsPersistent[room].rePlanning) {
+                        return "No anchor set! Run anchor action first";
+                    }
+                    let roomAnchor = new RoomPosition(Memory.roomsPersistent[room].rePlanning.anchor.x, Memory.roomsPersistent[room].rePlanning.anchor.y, room);
+                    for (var pos of BUNKER["road"]["pos"]) {
+                        //do not build tunnels
+                        if (Game.rooms[room].lookAt(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], LOOK_TERRAIN)["terrain"] != "wall") {
+                            Game.rooms[room].createConstructionSite(new RoomPosition(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], room), STRUCTURE_ROAD);
+                            
+                        }
+                    }
+                    return "Roads planned!"
+                }
+            }
+        }  
     }
 };
 
