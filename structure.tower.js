@@ -9,7 +9,7 @@ var structureTower = {
         // if(closestDamagedStructure) {
         //     tower.repair(closestDamagedStructure);
         // }
-        
+        //TODO: rewrite
         //check for things to repair
         var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(closestHostile) {
@@ -22,7 +22,7 @@ var structureTower = {
         var targets = tower.room.find(FIND_STRUCTURES, {
                 filter: function (structure) {
                     let shouldHeal = true;
-                    if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(structure.structureType) && structure.hits > 1000) {
+                    if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(structure.structureType) && structure.hits > 2000) {
                         shouldHeal = false;
                     }
                     //disabled walls but added ramparts back to get them kickstarted

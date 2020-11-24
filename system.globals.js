@@ -8,7 +8,8 @@ var systemGlobals = {
             
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
-            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
+            //REMOVE E42N22 when terminal is moved!
+            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => room != "E42N22" && Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //TASKS
             global.TASK_HARVEST_ENERGY = "harvest_energy"; //implemented
@@ -18,6 +19,7 @@ var systemGlobals = {
             global.TASK_HARVEST_MINERAL_DROP = "harvest_mineral_drop";
             global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
             global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
+            global.TASK_WITHDRAW_TERMINAL = "withdraw_terminal";
             global.TASK_TRANSPORT_ENERGY = "transport_energy"; //implemented
             global.TASK_TRANSPORT_MINERALS = "transport_minerals";
             global.TASK_SALVAGE = "salvage"; //implemented
@@ -165,8 +167,15 @@ var systemGlobals = {
                 }
             }
 
-            global.changeTasksForRole = function(role, tasks) {
-                let selectedCreeps = _.filter(Game.creeps, creep => creep.memory.role == role);
+            global.changeTasksForRole = function(role, tasks, room="all") {
+                let selectedCreeps;
+
+                if (room == "all") {
+                    selectedCreeps = _.filter(Game.creeps, creep => creep.memory.role == role);
+                } else {
+                    selectedCreeps = _.filter(Game.creeps, creep => creep.memory.role == role && creep.spawnRoom == room);
+                }
+
                 for (let selected of selectedCreeps) {
                     selected.memory.tasks = tasks;
                 }
@@ -202,7 +211,7 @@ var systemGlobals = {
             /**
              * function to replan a room into a bunker layout
              * @param string room to perform the action on
-             * @param {anchor, roads, extensions, towers} action to perform
+             * @param string action to perform. either anchor, roads, or structureType
              */
             global.rePlan = function(room, action = "anchor", numRebuild = 5) {
                 if (action == "anchor") {
@@ -289,6 +298,61 @@ var systemGlobals = {
                         }
                     }
                     return "Roads planned!"
+                } else {
+                    let roomAnchor = new RoomPosition(Memory.roomsPersistent[room].rePlanning.anchor.x, Memory.roomsPersistent[room].rePlanning.anchor.y, room);
+
+                    if (action == STRUCTURE_RAMPART) {
+                         //build ramparts
+                        var xMax = roomAnchor.x + 11;
+                        var yMax = roomAnchor.y + 11;
+                        for (var x = roomAnchor.x - 1; x <= xMax; x++) {
+                            for (var y = roomAnchor.y - 1; y <= yMax; y++) {
+                                if (x == roomAnchor.x - 1 || y == roomAnchor.y - 1 || x == xMax || y == yMax) {
+                                    Game.rooms[room].createConstructionSite(new RoomPosition(x, y, room), STRUCTURE_RAMPART);
+                                }
+                            }
+                        }
+                        return "Ramparts built!";
+                    }
+
+                    //find how many exist
+                    let exist = Game.rooms[room].find(FIND_STRUCTURES, {
+                        filter: (structure) => {return structure.structureType == action}});
+                    let numExist = exist.length;
+
+                    //find how many are building
+                    let numBuilding = Game.rooms[room].find(FIND_MY_CONSTRUCTION_SITES, {
+                        filter: (structure) => {return structure.structureType == action}}).length;
+
+                    //find how many are possible to build at the current level
+                    let maxToBuild = CONTROLLER_STRUCTURES[action][Game.rooms[room].controller.level];
+                    if (maxToBuild > BUNKER[action]["pos"].length) maxToBuild = BUNKER[action]["pos"].length;
+
+                    if (numExist + numBuilding == maxToBuild) {
+                        let counter = 0;
+                        for (struc of exist) {
+                            if (counter > numRebuild - 1) {
+                                break;
+                            }
+                            if (struc.pos.x < roomAnchor.x || struc.pos.x > roomAnchor.x + 10 && struc.pos.y < roomAnchor.y || struc.pos.y > roomAnchor.y + 10) {
+                                struc.destroy();
+                                counter++;
+                            }
+                        }
+                        numExist -= numRebuild;
+                    }
+                    console.log(maxToBuild)
+                    if (numExist + numBuilding < maxToBuild) {
+                        //build the structure
+                        console.log("yeet");
+                        for (let i = 0; i < BUNKER[action]["pos"].length; i++) {
+                            let pos = BUNKER[action]["pos"][i];
+                            console.log(pos);
+                            Game.rooms[room].createConstructionSite(new RoomPosition(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], room), action);
+                        }
+                    }
+
+                    return "structures scheduled to build!";
                 }
             }
         }  

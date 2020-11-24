@@ -7,12 +7,12 @@ var systemSpawner2 = {
         const TASK_LIST_HARVESTER = [TASK_HARVEST_ENERGY, TASK_HARVEST_ENERGY_DROP, TASK_HARVEST_ENERGY_LINK, TASK_FILL_EXTENSION, TASK_BUILD, TASK_UPGRADE];//maybe make them put into container
         const TASK_LIST_QUARRIER = [TASK_HARVEST_MINERAL, TASK_HARVEST_MINERAL_DROP, TASK_FILL_TERMINAL];
         const TASK_LIST_UPGRADER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER,TASK_HARVEST_ENERGY, TASK_UPGRADE, TASK_UPGRADE_LINK];
-        const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
+        const TASK_LIST_BUILDER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
-        const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT_ENERGY, TASK_FILL_STORAGE, TASK_FILL_EXTENSION];
+        const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT_ENERGY, TASK_FILL_STORAGE, TASK_FILL_TERMINAL, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER_MINERAL = [TASK_TRANSPORT_MINERALS, TASK_FILL_TERMINAL];
-        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_FILL_EXTENSION, TASK_RENEW, TASK_FILL_TOWER, TASK_MANAGE_TERMINAL]; //TODO: potential terminal manager?
-        const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_EXTENSION];
+        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_FILL_EXTENSION, TASK_RENEW, TASK_FILL_TOWER, TASK_MANAGE_TERMINAL]; //TODO: potential terminal manager?
+        const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_EXTENSION];
         const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
 
         const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
@@ -68,35 +68,62 @@ var systemSpawner2 = {
         for (var room of myRooms) {
             
             //begin of spawning loop. Loop through each spawn in the room and save the spawns and controller to variables
-            var roomSpawns = Memory.roomsCache[room].structures["spawns"].map(spawnID => Game.getObjectById(spawnID));
+            var roomSpawns = Memory.roomsCache[room].structures["spawns"].map(
+                function (spawnID) {
+                    let liveObj = Game.getObjectById(spawnID);
+                    if (liveObj) {
+                        return liveObj
+                    } else {
+                        //if a spawn no longer exists, delete it from memory
+                        let array = Memory.roomsCache[room].structures["spawns"];
+                        let index = array.indexOf(spawnID);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            let array = Memory.roomsCache[room].structures["spawns"] = array;
+                        }
+                    }
+                }
+                
+            );
+            //get live roomController
             var roomController = Game.rooms[room].controller;
 
             //find what the other spawner is spawning right now
             //downside of this is that it two spawns cant collaborate to spawn a single type of creep
             //they both have to be spawning some thing different. room for improvement for sure.
+            //TODO: improve this system with something better. maybe alternate spawns on different ticks
             var currentlySpawning = [];
             for (var spawn of roomSpawns) {
-                if (!Memory.roomsPersistent[room].spawns) {
-                    Memory.roomsPersistent[room].spawns = {};
+                if (spawn) {
+                    if (!Memory.roomsPersistent[room].spawns) {
+                        Memory.roomsPersistent[room].spawns = {};
+                    }
+                    currentlySpawning.push(Memory.roomsPersistent[room].spawns[spawn.name]);
+                } else {
+                    console.log(spawn);
                 }
-                currentlySpawning.push(Memory.roomsPersistent[room].spawns[spawn.name]);
             }
-            //list to hold everything that needs to spawn
-            var spawnQueue = [];
+            //list to hold everything that needs to spawn at different priorities. avoids sorting
+            var spawnQueue = {};
+            //6 priorities 0-5
+            for (var i = 0; i < 6; i++) {
+                spawnQueue[i] = [];
+            }
             
             //set spawning memory to not spawning
             if (!Memory.roomsPersistent[room].spawns) {
                 Memory.roomsPersistent[room].spawns = {};
             }
+
+            //TODO fix this
             Memory.roomsPersistent[room].spawns[spawn.name] = "none";
-            let hasRoads = true;
+            var hasRoads = true;
 
             if (Memory.roomsPersistent[room].roomPlanning && Memory.roomsPersistent[room].roomPlanning.travelRoadsBuilt) {
                 hasRoads = Memory.roomsPersistent[room].roomPlanning.bunkerRoads;
             }
 
             //last resort room bootstrapping
-            //TODO: BUGGED AF
             if (!Memory.roomsPersistent[room].creepCounts["panic"]) {
                 Memory.roomsPersistent[room].creepCounts["panic"] = 0;
             }
@@ -111,22 +138,19 @@ var systemSpawner2 = {
             }
 
             //transporter spawning
-            //TODO: breaking with containerse on extractors
             if (!Memory.roomsPersistent[room].creepCounts["transporter"]) {
                 Memory.roomsPersistent[room].creepCounts["transporter"] = 0;
             }
             var containers = Memory.roomsCache[room].structures.sourceContainers;
             for (var container of containers) {
                 let numTransporters = _.filter(Game.creeps, (creep) => creep.memory.role == 'transporter' && creep.memory.assignedContainer == container).length;
-                if (numTransporters < 1) {
-                    if (!currentlySpawning.includes("transporter")) {
-                        let memory = {type: 'worker', role: 'transporter', tasks: TASK_LIST_TRANSPORTER}
-                        spawnQueue.unshift({
-                            creepName: "transporter",
-                            creepMemory: memory,
-                            creepHasRoads: hasRoads
-                        });
-                    }
+                if (numTransporters < 1 && !currentlySpawning.includes("transporter")) {
+                    let memory = {type: 'worker', role: 'transporter', tasks: TASK_LIST_TRANSPORTER}
+                    spawnQueue[3].push({
+                        creepName: "transporter",
+                        creepMemory: memory,
+                        creepHasRoads: hasRoads
+                    });
                 }
             }
 
@@ -138,15 +162,13 @@ var systemSpawner2 = {
             for (var source of sources) {
                 //TODO: FIGURE OUT HOW TO HANDLE creep.ticksToLive > 100 with my new source assignment
                 let numWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source).length;      
-                if (numWorker < 1) {
-                    if (!currentlySpawning.includes("miner")) {
-                        let memory = {type: "worker", role: 'miner', tasks: TASK_LIST_HARVESTER};
-                        spawnQueue.unshift({
-                            creepName: "miner",
-                            creepMemory: memory,
-                            creepHasRoads: hasRoads
-                        });
-                    }
+                if (numWorker < 1 && !currentlySpawning.includes("miner")) {
+                    let memory = {type: "worker", role: 'miner', tasks: TASK_LIST_HARVESTER};
+                    spawnQueue[3].push({
+                        creepName: "miner",
+                        creepMemory: memory,
+                        creepHasRoads: hasRoads
+                    });
                 }
             }
             
@@ -156,14 +178,12 @@ var systemSpawner2 = {
             }
             let numConstructionSites = Memory.roomsCache[room].constructionSites.length;
             let numBuilders = Memory.roomsPersistent[room].creepCounts["builder"]; 
-            if (numBuilders < 2 && numConstructionSites > 0) {
-                if (!currentlySpawning.includes("builder")) {
-                    spawnQueue.push({
-                        creepName: "builder",
-                        creepMemory: {type: "worker", role: "builder", tasks: TASK_LIST_BUILDER},
-                        creepHasRoads: hasRoads
-                    });
-                }
+            if (numBuilders < 2 && numConstructionSites > 0 && !currentlySpawning.includes("builder")) {
+                spawnQueue[4].push({
+                    creepName: "builder",
+                    creepMemory: {type: "worker", role: "builder", tasks: TASK_LIST_BUILDER},
+                    creepHasRoads: hasRoads
+                });
             }
 
 
@@ -174,14 +194,13 @@ var systemSpawner2 = {
             let numUpgraders = Memory.roomsPersistent[room].creepCounts["upgrader"];
             let numToSpawn = 1;
             if (roomController.level < 4) numToSpawn = 3;
-            if (numUpgraders < numToSpawn) {
-                if (!currentlySpawning.includes("upgrader")) {
-                    spawnQueue.push({
-                        creepName: "upgrader",
-                        creepMemory: {type: "worker", role: "upgrader", tasks: TASK_LIST_UPGRADER},
-                        creepHasRoads: hasRoads
-                    });
-                }
+            if (numUpgraders < numToSpawn && !currentlySpawning.includes("upgrader")) {
+                spawnQueue[5].push({
+                    priority: 0,
+                    creepName: "upgrader",
+                    creepMemory: {type: "worker", role: "upgrader", tasks: TASK_LIST_UPGRADER},
+                    creepHasRoads: hasRoads
+                });
             }
 
             //remote defender spawning
@@ -213,14 +232,12 @@ var systemSpawner2 = {
             let numRepairers = Memory.roomsPersistent[room].creepCounts["repairer"]; 
             
             if (containers.length > 0 && !Game.rooms[room].storage){
-                if (numRepairers < 1) {
-                    if (!currentlySpawning.includes("repairer")) {
-                        spawnQueue.push({
-                            creepName: "repairer",
-                            creepMemory: {type: "worker", role: "repairer", tasks: TASK_LIST_REPAIRER},
-                            creepHasRoads: hasRoads
-                        });
-                    }
+                if (numRepairers < 1 && !currentlySpawning.includes("repairer")) {
+                    spawnQueue[4].push({
+                        creepName: "repairer",
+                        creepMemory: {type: "worker", role: "repairer", tasks: TASK_LIST_REPAIRER},
+                        creepHasRoads: hasRoads
+                    });
                 }
             }
             
@@ -232,14 +249,12 @@ var systemSpawner2 = {
                 }
                 let numMaintainers = Memory.roomsPersistent[room].creepCounts["maintainer"]; 
                 //maintainer spawning
-                if (numMaintainers < 1 && numTowers > 0 && (Memory.roomsPersistent[room].attackStatus || !Game.rooms[room].storage)) {
-                    if (!currentlySpawning.includes("maintainer")) {
-                        spawnQueue.push({
-                            creepName: "maintainer",
-                            creepMemory: {type: "worker", role: "maintainer", tasks: TASK_LIST_MAINTAINER},
-                            creepHasRoads: hasRoads
-                        });
-                    }
+                if (numMaintainers < 1 && !currentlySpawning.includes("maintainer") && numTowers > 0 && (Memory.roomsPersistent[room].attackStatus || !Game.rooms[room].storage)) {
+                    spawnQueue[4].push({
+                        creepName: "maintainer",
+                        creepMemory: {type: "worker", role: "maintainer", tasks: TASK_LIST_MAINTAINER},
+                        creepHasRoads: hasRoads
+                    });
                 }
 
                 //waller spawning
@@ -247,58 +262,46 @@ var systemSpawner2 = {
                     Memory.roomsPersistent[room].creepCounts["waller"] = 0;
                 }
                 let numWallers = Memory.roomsPersistent[room].creepCounts["waller"];
-                if (numWallers < 1) {
-                    if (!currentlySpawning.includes("waller")) {
-                        spawnQueue.push({
-                            creepName: "waller",
-                            creepMemory: {type: "worker", role: "waller", tasks: TASK_LIST_WALLER},
-                            creepHasRoads: hasRoads
-                        });
-                    }
+                if (numWallers < 1 && !currentlySpawning.includes("waller")) {
+                    spawnQueue[4].push({
+                        creepName: "waller",
+                        creepMemory: {type: "worker", role: "waller", tasks: TASK_LIST_WALLER},
+                        creepHasRoads: hasRoads
+                    });
                 }
                 
                 //once the room can have links
                 if (roomController.level > 4) {
+
+                    //if there is a storage, create dedicated filler role
+                    if (Game.rooms[room].storage) {
+                        //filler spawning
+                        if (!Memory.roomsPersistent[room].creepCounts["filler"]) {
+                            Memory.roomsPersistent[room].creepCounts["filler"] = 0;
+                        }
+                        let numFillers = Memory.roomsPersistent[room].creepCounts["filler"];
+                        if (numFillers < 1 && !currentlySpawning.includes("filler")) {      
+                            spawnQueue[1].push({
+                                creepName: "filler",
+                                creepMemory: {type: "worker", role: "filler", tasks: TASK_LIST_FILLER},
+                                creepHasRoads: hasRoads
+                            });  
+                        }
+                    }
+
                     //linker spawning
                     if (!Memory.roomsPersistent[room].creepCounts["linker"]) {
                         Memory.roomsPersistent[room].creepCounts["linker"] = 0;
                     }
                     let numLinkers = Memory.roomsPersistent[room].creepCounts["linker"];
                     let numStorageLinks = Memory.roomsCache[room].structures.links.storage.length;
-                    if (numLinkers < 1 && numStorageLinks > 0) {
-                        if (!currentlySpawning.includes("linker")) {
-                            spawnQueue.push({
-                                creepName: "linker",
-                                creepMemory: {type: "worker", role: "linker", tasks: [TASK_MANAGE_LINK]},
-                                creepHasRoads: hasRoads
-                            });
-                        }
+                    if (numLinkers < 1 && numStorageLinks > 0 && !currentlySpawning.includes("linker")) {
+                        spawnQueue[2].push({
+                            creepName: "linker",
+                            creepMemory: {type: "worker", role: "linker", tasks: [TASK_MANAGE_LINK]},
+                            creepHasRoads: hasRoads
+                        });
                     } 
-                }
-                //if there is a storage, create dedicated filler role
-                if (Game.rooms[room].storage) {
-                    //filler spawning
-                    if (!Memory.roomsPersistent[room].creepCounts["filler"]) {
-                        Memory.roomsPersistent[room].creepCounts["filler"] = 0;
-                    }
-                    let numFillers = Memory.roomsPersistent[room].creepCounts["filler"];
-                    if (numFillers < 1) {
-                        if (!currentlySpawning.includes("filler")) {
-                            if (Game.rooms[room].storage.store.getUsedCapacity() > 10000) {
-                                spawnQueue.unshift({
-                                    creepName: "filler",
-                                    creepMemory: {type: "worker", role: "filler", tasks: TASK_LIST_FILLER},
-                                    creepHasRoads: hasRoads
-                                });
-                            } else {
-                                spawnQueue.push({
-                                    creepName: "filler",
-                                    creepMemory: {type: "worker", role: "filler", tasks: TASK_LIST_FILLER},
-                                    creepHasRoads: hasRoads
-                                });
-                            }
-                        }
-                    }
                 }
 
                 //if there is an extractor, spawn quarrier
@@ -307,14 +310,12 @@ var systemSpawner2 = {
                         Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
                     }
                     let numquarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
-                    if (numquarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time) {
-                        if (!currentlySpawning.includes("quarrier")) {
-                            spawnQueue.push({
-                                creepName: "quarrier",
-                                creepMemory: {type: "worker", role: "quarrier", tasks: TASK_LIST_QUARRIER},
-                                creepHasRoads: hasRoads
-                            });
-                        }
+                    if (numquarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time && !currentlySpawning.includes("quarrier")) {
+                        spawnQueue[5].push({
+                            creepName: "quarrier",
+                            creepMemory: {type: "worker", role: "quarrier", tasks: TASK_LIST_QUARRIER},
+                            creepHasRoads: hasRoads
+                        });
                     }
 
                     if (Memory.roomsCache[room].structures.mineralContainers.length > 0) {
@@ -325,14 +326,12 @@ var systemSpawner2 = {
                                 Memory.roomsPersistent[room].creepCounts["mineralTransporter"] = 0;
                             }
                             let nummineralTransporters = Memory.roomsPersistent[room].creepCounts["mineralTransporter"];
-                            if (nummineralTransporters < 1) {
-                                if (!currentlySpawning.includes("mineralTransporter")) {
-                                    spawnQueue.push({
-                                        creepName: "mineralTransporter",
-                                        creepMemory: {type: "worker", role: "mineralTransporter", tasks: TASK_LIST_TRANSPORTER_MINERAL},
-                                        creepHasRoads: hasRoads
-                                    });
-                                }
+                            if (nummineralTransporters < 1 && !currentlySpawning.includes("mineralTransporter")) {
+                                spawnQueue[5].push({
+                                    creepName: "mineralTransporter",
+                                    creepMemory: {type: "worker", role: "mineralTransporter", tasks: TASK_LIST_TRANSPORTER_MINERAL},
+                                    creepHasRoads: hasRoads
+                                });
                             }
                         }
                     }
@@ -351,13 +350,17 @@ var systemSpawner2 = {
                         {align: 'left', opacity: 0.8});
                     continue;
                 }
-    
-                if (spawnQueue.length > 0) {
-                    //if the spawn is successful, remove the spawned creep from the queue then move to next spawn.
-                    if (spawnCreep(spawn, spawnQueue[0]["creepName"], spawnQueue[0]["creepMemory"], spawnQueue[0]["creepHasRoads"])) {
-                        spawnQueue.shift();
+
+                //iterate over the priorities
+                for (var i = 0; i < 6; i++) {
+                    if (spawnQueue[i].length > 0) {
+                        //if the spawn is successful, remove the spawned creep from the queue then move to next spawn.
+                        if (spawnCreep(spawn, spawnQueue[i][0]["creepName"], spawnQueue[i][0]["creepMemory"], spawnQueue[i][0]["creepHasRoads"])) {
+                            spawnQueue[i].shift();
+                            break;
+                        }
                     }
-                }          
+                }         
             }
         }
 
@@ -405,7 +408,7 @@ var systemSpawner2 = {
                     break;
                 case "builder":
                     body = addMoves([WORK, CARRY, CARRY], hasRoads);
-                    body = buildComposition(spawnRoom, body, true, 1000);
+                    body = buildComposition(spawnRoom, body, true, 2000);
                     break;
                 case "upgrader":
                     if (Memory.roomsCache[spawnRoom].structures.links.controller && Memory.roomsCache[spawnRoom].structures.links.controller.length > 0) {
@@ -414,7 +417,7 @@ var systemSpawner2 = {
                         body = addMoves([WORK, CARRY], hasRoads);
                     }
                     let storage = Game.rooms[spawnRoom].storage;
-                    if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 5)) {
+                    if (storage && storage.store.getUsedCapacity() > (storage.store.getCapacity() / 3)) {
                         //Unlimited cost on upgraders if the storage gets above a certain capacity
                         body = buildComposition(spawnRoom, body, true);
                     } else {

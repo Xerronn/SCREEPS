@@ -254,13 +254,8 @@ var systemPrototypes = {
                     this.memory.harvesting = false;
                 }
 
-                //skip all this if its already full from another task
-                if (!this.memory.harvesting) {
-                    return false; //move to next task
-                }
-
                 var creepStorage = this.room.storage;
-                if (!creepStorage || !this.memory.harvesting) {
+                if (!creepStorage || !this.memory.harvesting || creepStorage.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     //remove this task if there is no storage
                     if (!creepStorage) {
                         let array = this.memory.tasks;
@@ -344,6 +339,46 @@ var systemPrototypes = {
                     } else {
                         this.travelTo(creepContainerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to withdraw from a storage
+        if (!Creep.prototype.withdrawTerminal) {
+            Creep.prototype.withdrawTerminal = function() {
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
+                var creepTerminal = this.room.terminal;
+                if (!creepTerminal || !this.memory.harvesting) {
+                    //remove this task if there is no terminal
+                    if (!creepTerminal) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_WITHDRAW_STORAGE);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is full or if there is no terminal
+                }
+                //withdraw from the terminal
+                if (this.pos.inRangeTo(creepTerminal, 1)) {
+                    this.withdraw(creepTerminal, RESOURCE_ENERGY);
+                } else {
+                    this.travelTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -537,7 +572,7 @@ var systemPrototypes = {
                         let creepFillTarget = Game.getObjectById(this.memory.fillTarget);
 
                         //set the memory to none if it is full
-                        if (creepFillTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                        if (!creepFillTarget || creepFillTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                             this.memory.fillTarget = "none";
                         }
                     }
@@ -583,7 +618,7 @@ var systemPrototypes = {
                         let creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
 
                         //set the memory to none if it is full
-                        if (creepTowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                        if (!creepTowerTarget || creepTowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                             this.memory.towerTarget = "none";
                         }
                     }
@@ -693,7 +728,7 @@ var systemPrototypes = {
                     //remove this task if there is no terminal
                     if (!creepTerminal) {
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_MAINTAIN_TERMINAL);
+                        let index = array.indexOf(TASK_MANAGE_TERMINAL);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;
@@ -701,8 +736,12 @@ var systemPrototypes = {
                     }
                     return false; //move to next task if creep is harvesting
                 }
+
                 //fill the terminal
-                if (creepTerminal.store.getUsedCapacity(RESOURCE_ENERGY) > 20000) {
+                let fillAmount = 20000; //default amount
+                //amount to use if we are moving all contents to the terminal
+                if (Memory.roomsPersistent[this.room.name].rePlanning) filAmount = creepTerminal.store.getCapacity();
+                if (creepTerminal.store.getUsedCapacity(RESOURCE_ENERGY) > fillAmount) {
                     return false; //move to next task
                 }
                 if (this.pos.inRangeTo(creepTerminal, 1)) {

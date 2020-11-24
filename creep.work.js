@@ -32,6 +32,11 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_WITHDRAW_TERMINAL:
+                        if (creep.withdrawTerminal() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_TRANSPORT_ENERGY:
                         if (creep.transportEnergy() == true) {
                             taskCompleted = true;

@@ -10,10 +10,6 @@ var systemLogistics = {
             var roomTerminal = roomObject.terminal;
             var roomOrders = _.filter(Game.market.orders, order => order.roomName == room);
 
-            // for (order of Object.keys(myOrders)) {
-            //     Game.market.cancelOrder(order);
-            // }
-
             //init memory
             if (!Memory.roomsPersistent[room].logistics) {
                 Memory.roomsPersistent[room].logistics = {};
