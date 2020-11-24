@@ -11,8 +11,18 @@ var structureTower = {
         // }
         //TODO: rewrite
         //check for things to repair
+
+        //TODO
+        // var enemies = tower.pos.room.find(FIND_HOSTILE_CREEPS);
+        // var hostiles;
+
+        //TODO
+        // if (enemies.length > 0) {
+        //     hostiles = _.sortBy(enemies, hst => hst.getActiveBodyparts(ATTACK) > 0 || hst.getActiveBodyparts(RANGED_ATTACK) > 0);
+        // }
         var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(closestHostile) {
+            
             let success = tower.attack(closestHostile);
             if (success == 0) {
                 Memory.roomsPersistent[tower.room.name].stats.energySpentTower += 10;

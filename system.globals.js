@@ -1,4 +1,8 @@
 const systemMemory = require("./system.memory");
+const prototypeWork = require("./creep.prototypes.work");
+const prototypeWorkHarvest = require("./creep.prototypes.work.harvest");
+const prototypeWorkTransport = require("./creep.prototypes.work.transport");
+const prototypeCombat = require("./creep.prototypes.combat");
 
 var systemGlobals = {
     run: function() {
@@ -11,43 +15,11 @@ var systemGlobals = {
             //REMOVE E42N22 when terminal is moved!
             global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => room != "E42N22" && Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
-            //TASKS
-            global.TASK_HARVEST_ENERGY = "harvest_energy"; //implemented
-            global.TASK_HARVEST_ENERGY_DROP = "harvest_energy_drop"; //implemented
-            global.TASK_HARVEST_ENERGY_LINK = "harvest_energy_link"; //implemented
-            global.TASK_HARVEST_MINERAL = "harvest_mineral";
-            global.TASK_HARVEST_MINERAL_DROP = "harvest_mineral_drop";
-            global.TASK_WITHDRAW_STORAGE = "withdraw_storage"; //implemented
-            global.TASK_WITHDRAW_CONTAINER = "withdraw_container"; //implemented
-            global.TASK_WITHDRAW_TERMINAL = "withdraw_terminal";
-            global.TASK_TRANSPORT_ENERGY = "transport_energy"; //implemented
-            global.TASK_TRANSPORT_MINERALS = "transport_minerals";
-            global.TASK_SALVAGE = "salvage"; //implemented
-            
-            global.TASK_FILL_EXTENSION = "fill_extension"; //implemented
-            global.TASK_FILL_TOWER = "fill_tower"; //implemented
-            global.TASK_FILL_STORAGE = "fill_storage"; //implemented
-            global.TASK_FILL_TERMINAL = "fill_terminal";
-            global.TASK_FILL_CONTAINER = "fill_container";//TODO
-
-            global.TASK_UPGRADE = "upgrade"; //implemented
-            global.TASK_UPGRADE_LINK = "upgrade_link"; //implemented
-            global.TASK_BUILD = "build"; //implemented
-            global.TASK_MANAGE_LINK = "manage_link"; //implemented
-            global.TASK_MANAGE_TERMINAL = "manage_terminal";
-            global.TASK_REPAIR = "repair"; //implemented
-            global.TASK_REPAIR_WALL = "repair_wall"; //implemented
-
-            global.TASK_RENEW = "renew";
-            global.TASK_REMOTE = "remote"; //implemented
-            global.TASK_ROOM_SIGN = "sign"; //implemented
-            global.TASK_ROOM_CLAIM = "claim"; //implemented
-            global.TASK_ROOM_RESERVE = "reserve";
-
-            global.TASK_COMBAT_MELEE_DEFEND = "melee_defend";
-            global.TASK_COMBAT_ATTACK_DRAIN = "turret_drain";
-            global.TASK_COMBAT_HEAL_SELF = "heal_self";
-            global.TASK_COMBAT_ATTACK_ROOM = "attack_room";
+            //CREEP PROTOTYPES
+            prototypeWork.run();
+            prototypeWorkHarvest.run();
+            prototypeWorkTransport.run();
+            prototypeCombat.run();
 
             //COLORS
             global.COLOR_ENERGY_GET = "dae028";

@@ -36,10 +36,9 @@ module.exports.loop = function () {
     }
     
     profiler.wrap(function() {
+        //TODO: make code CPU aware
         //initialization
         initializeGlobals.run();
-        initializeWorkPrototypes.run();
-        initializeCombatPrototypes.run();
         
         //memory cleanup
         garbageCollection.run();

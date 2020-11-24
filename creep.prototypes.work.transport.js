@@ -1,20 +1,294 @@
-/**
- * Definitions of creep prototypes for actions
- */
 var systemPrototypes = {
     run: function() {
-        global.TASK_UPGRADE = "upgrade";
-        global.TASK_UPGRADE_LINK = "upgrade_link";
-        global.TASK_BUILD = "build";
-        global.TASK_MANAGE_LINK = "manage_link";
-        global.TASK_MANAGE_TERMINAL = "manage_terminal";
-        global.TASK_REPAIR = "repair";
-        global.TASK_REPAIR_WALL = "repair_wall";
-        global.TASK_RENEW = "renew";
-        global.TASK_REMOTE = "remote";
-        global.TASK_ROOM_SIGN = "sign";
-        global.TASK_ROOM_CLAIM = "claim";
-        global.TASK_ROOM_RESERVE = "reserve";
+        global.TASK_TRANSPORT_ENERGY = "transport_energy"; 
+        global.TASK_TRANSPORT_MINERALS = "transport_minerals";
+        global.TASK_FILL_EXTENSION = "fill_extension"; 
+        global.TASK_FILL_TOWER = "fill_tower"; 
+        global.TASK_FILL_STORAGE = "fill_storage"; 
+        global.TASK_FILL_TERMINAL = "fill_terminal";
+        global.TASK_FILL_CONTAINER = "fill_container";//TODO
+
+        //task to withdraw from assigned source container
+        //TODO: check for energy to pick up along its path?
+        if (!Creep.prototype.transportEnergy) {
+            Creep.prototype.transportEnergy = function() {
+                //TODO: fix the transporter having nothing to do if the source has no container
+                //TODO: allow transporters to do more than just energy from source transporting
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
+                //assign creep to source that has the least transporters
+                if (!this.memory.assignedContainerSource) {
+                    var sourceList = Memory.roomsPersistent[this.room.name].sources;
+                    var leastAttended = "none";
+                    //find the source with the least number of transporters
+                    for (var source of Object.keys(sourceList)) {
+                        let sourceMemory = Memory.roomsPersistent[this.room.name].sources[source]
+                        if (!sourceMemory.transporters) {
+                            sourceMemory.transporters = [];
+                        }
+                        if (leastAttended == "none" || sourceMemory.transporters.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].transporters.length) {
+                            leastAttended = source;
+                        }
+                    }
+                    //set the creep memory to that least attended source so we never have to do this again
+                    this.memory.assignedContainerSource = leastAttended;
+                    Memory.roomsPersistent[this.room.name].sources[leastAttended].transporters.push(this.name);
+                }
+
+                //once the creep definitely has an assigned source, we can use a variable to reference the game object
+                var creepSource = Game.getObjectById(this.memory.assignedContainerSource);
+
+                //now we check for a container to withdraw from
+                if (!this.memory.assignedContainer) {
+                    //find any containers within range 1
+                    let sourceContainers = creepSource.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}})
+                    if (sourceContainers.length > 0) {
+                        this.memory.assignedContainer = sourceContainers[0].id;
+                    } else {
+                        //remove transport from potential tasks if there is no container
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_TRANSPORT_ENERGY);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                        return false; //move to next task if there is no container to transport from
+                    }
+                }
+
+                //get live object of our container
+                var creepContainer = Game.getObjectById(this.memory.assignedContainer);
+                
+                //ends the withdraw if there it is done
+                if (!this.memory.harvesting) {
+                    return false; //move to next task if full
+                }
+
+                //now move to the container and withdraw
+                if (this.pos.inRangeTo(creepContainer, 1)) {
+                    this.withdraw(creepContainer, RESOURCE_ENERGY);
+                } else {
+                    this.travelTo(creepContainer, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        if (!Creep.prototype.transportMinerals) {
+            Creep.prototype.transportMinerals = function() {
+                if (this.store.getUsedCapacity() == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity() == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
+                //assign creep to source that has the least transporters
+                if (!this.memory.assignedContainer) {
+                    let creepContainer = Memory.roomsCache[this.room.name].structures.mineralContainers[0];
+                    if (creepContainer) {
+                        this.memory.assignedContainer = creepContainer;
+                    } else {
+                        this.memory.assignedContainer = "none";
+                    }
+                }
+
+                if (this.memory.assignedContainer == "none") {
+                    return false; //move to next task if no container
+                }
+
+                var creepContainer = Game.getObjectById(this.memory.assignedContainer);
+                
+                if (this.pos.inRangeTo(creepContainer, 1)) {
+                    //only do something when the container has enough to fill
+                    if (creepContainer.store.getUsedCapacity() >= this.store.getCapacity()) {
+                        for(var resourceType in creepContainer.store) {
+                            this.withdraw(creepContainer, resourceType);
+                        }
+                    }
+                } else {
+                    this.travelTo(creepContainer);
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to fill extensions and spawn
+        if (!Creep.prototype.fillExtensions) {
+            Creep.prototype.fillExtensions = function() {
+                //check memory if the room needs to be filled
+                if (!Memory.roomsPersistent[this.pos.roomName].extensionsFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
+                    //find the closest extensions
+                    //TODO: optimize this somehow more
+                    if (this.memory.fillTarget && this.memory.fillTarget != "none") {
+                        let creepFillTarget = Game.getObjectById(this.memory.fillTarget);
+
+                        //set the memory to none if it is full
+                        if (!creepFillTarget || creepFillTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                            this.memory.fillTarget = "none";
+                        }
+                    }
+
+                    //assign a new object that needs filling to be the target
+                    if (!this.memory.fillTarget || this.memory.fillTarget == "none") {
+                        let closestFillTarget = this.pos.findClosestByPath(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
+                                });
+                        if (closestFillTarget) {
+                            this.memory.fillTarget = closestFillTarget.id;
+                        }
+                    }
+                    
+                } else {
+                    return false; //move to next task
+                }
+
+                //if there is a target, move towards it and transfer
+                var creepFillTarget = Game.getObjectById(this.memory.fillTarget);
+                if(creepFillTarget) {
+                    if (this.pos.inRangeTo(creepFillTarget, 1)) {
+                        this.transfer(creepFillTarget, RESOURCE_ENERGY);
+                    } else {
+                        this.travelTo(creepFillTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    }
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+        //task to fill tower
+        if (!Creep.prototype.fillTowers) {
+            Creep.prototype.fillTowers = function() {
+                //check memory if the room needs to be filled
+                if (!Memory.roomsPersistent[this.pos.roomName].towersFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
+                    //find the closest extensions
+                    //TODO: optimize this somehow more
+                    if (this.memory.towerTarget && this.memory.towerTarget != "none") {
+                        let creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
+
+                        //set the memory to none if it is full
+                        if (!creepTowerTarget || creepTowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                            this.memory.towerTarget = "none";
+                        }
+                    }
+
+                    //assign a new object that needs towering to be the target
+                    if (!this.memory.towerTarget || this.memory.towerTarget == "none") {
+                        var towerTarget = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_TOWER) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
+                                });
+                        if (towerTarget) {
+                            this.memory.towerTarget = towerTarget.id;
+                        } else {
+                            return false; //move to next task
+                        }
+                    }
+                    
+                } else {
+                    return false; //move to next task
+                }
+
+                //if there is a target, move towards it and transfer
+                var creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
+                if(creepTowerTarget) {
+                    if (this.pos.inRangeTo(creepTowerTarget, 1)) {
+                        this.transfer(creepTowerTarget, RESOURCE_ENERGY);
+                    } else {
+                        this.travelTo(creepTowerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    }
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to fill a storage
+        if (!Creep.prototype.fillStorage) {
+            Creep.prototype.fillStorage = function() {
+                //set state
+                var creepStorage = this.room.storage;
+                //skip the task if there is no storage, the creep is harvesting or the creep has no energy
+                if (!creepStorage || this.memory.harvesting || !this.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                    //remove this task if there is no storage
+                    if (!creepStorage) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_FILL_STORAGE);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is harvesting
+                }
+                //fill the storage
+                if (this.pos.inRangeTo(creepStorage, 1)) {
+                    for(var resourceType in this.store) {
+                        this.transfer(creepStorage, resourceType);
+                    }
+                } else {
+                    this.travelTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to fill a terminal
+        if (!Creep.prototype.fillTerminal) {
+            Creep.prototype.fillTerminal = function() {
+                //set state
+                var creepTerminal = this.room.terminal;
+                //skip the task if there is no terminal, the creep is harvesting or the creep has no energy
+                if (!creepTerminal || this.memory.harvesting || !this.store.getUsedCapacity() > 0) {
+                    //remove this task if there is no terminal
+                    if (!creepTerminal) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_FILL_TERMINAL);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is harvesting
+                }
+                //fill the terminal
+                if (this.pos.inRangeTo(creepTerminal, 1)) {
+                    for(var resourceType in this.store) {
+                        this.transfer(creepTerminal, resourceType);
+                    }
+                } else {
+                    this.travelTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
 
         if (!Creep.prototype.manageTerminal) {
             Creep.prototype.manageTerminal = function () {
@@ -392,7 +666,7 @@ var systemPrototypes = {
 
 
         //task to refresh body at nearest spawn
-        //TODO: needs alot of work
+        //TODO: needs work
         if (!Creep.prototype.renew) {
             Creep.prototype.renew = function () {
                 if (this.ticksToLive < 100 || this.memory.renewing) {

@@ -17,7 +17,6 @@ var systemSpawner2 = {
 
         const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
         //TODO: REDO THIS... AGAIN creeps have too many move parts for some reason. except for wallers...
-        //ADD IN PRIORITIZATION
         //TODO:
         //CHECK IF THERE IS AN ONGOING ATTACK, IF SO STALL ALL NON ESSENTIAL CREEP SPAWNING AND SPAWN DEFENDERS
         //
@@ -321,7 +320,7 @@ var systemSpawner2 = {
                     if (Memory.roomsCache[room].structures.mineralContainers.length > 0) {
                         //spawn mineral transporter once the container is mostly full
                         let container = Game.getObjectById(Memory.roomsCache[room].structures.mineralContainers[0]);
-                        if (container.store.getUsedCapacity() > 1100) {
+                        if (container && container.store.getUsedCapacity() > 1100) {
                             if (!Memory.roomsPersistent[room].creepCounts["mineralTransporter"]) {
                                 Memory.roomsPersistent[room].creepCounts["mineralTransporter"] = 0;
                             }
@@ -364,6 +363,8 @@ var systemSpawner2 = {
             }
         }
 
+        //TODO: REDO
+        //TODO: scale based on energy available to the room
         function spawnCreep(spawn, role, memory, hasRoads=true) {
             let body;
             let spawnRoom = spawn.room.name;

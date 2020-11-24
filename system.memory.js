@@ -1,6 +1,6 @@
 var systemMemory = {
     run: function() {
-        //TODO: POTENTIALLY LOAD MEMORY IN GLOBAL MEMORY!!
+
         //CONFIG DATA
         if (!Memory.config) {
             Memory.config = {};
