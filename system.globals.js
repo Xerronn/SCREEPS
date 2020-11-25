@@ -13,7 +13,7 @@ var systemGlobals = {
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
             //REMOVE E42N22 when terminal is moved!
-            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => room != "E42N22" && Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
+            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //CREEP PROTOTYPES
             prototypeWork.run();
@@ -270,7 +270,21 @@ var systemGlobals = {
                         }
                     }
                     return "Roads planned!"
-                } else {
+                } else if (action == "roads") {
+                    if (numExist + numBuilding == maxToBuild) {
+                        let counter = 0;
+                        for (struc of exist) {
+                            if (counter > numRebuild - 1) {
+                                break;
+                            }
+                            if (struc.pos.x < roomAnchor.x || struc.pos.x > roomAnchor.x + 10 && struc.pos.y < roomAnchor.y || struc.pos.y > roomAnchor.y + 10) {
+                                struc.destroy();
+                                counter++;
+                            }
+                        }
+                        numExist -= numRebuild;
+                    }
+               }  else {
                     let roomAnchor = new RoomPosition(Memory.roomsPersistent[room].rePlanning.anchor.x, Memory.roomsPersistent[room].rePlanning.anchor.y, room);
 
                     if (action == STRUCTURE_RAMPART) {

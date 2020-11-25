@@ -64,7 +64,7 @@ var systemPrototypes = {
                     if (Memory.roomsCache[this.room.name].structures.links.controller.length > 0) {
                         this.memory.assignedControllerLink = Memory.roomsCache[this.room.name].structures.links.controller[0];
                         //get rid of all other tasks if there is a link
-                        this.memory.tasks = [TASK_UPGRADE_LINK];
+                        //this.memory.tasks = [TASK_UPGRADE_LINK];
                     } else {
                         //remove link upgrading if there is no link
                         let array = this.memory.tasks;
@@ -172,15 +172,9 @@ var systemPrototypes = {
                 //assign the room storage and storage link to memory
                 var creepStorage = this.room.storage;
                 var creepLink = Game.getObjectById(Memory.roomsCache[this.room.name].structures.links.storage[0]);
-                //remove this task if there is no storage or storage link
+                
+                //move to next task if there isn't one of these
                 if (!creepStorage || !creepLink) {
-                    //remove this task if there is no storage or storage link
-                    let array = this.memory.tasks;
-                    let index = array.indexOf(TASK_MANAGE_LINK);
-                    if (index > -1) {
-                        array.splice(index, 1);
-                        this.memory.tasks = array;
-                    }
                     return false; //move to next task
                 }
 

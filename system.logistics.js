@@ -1,6 +1,7 @@
 var systemLogistics = {
     run: function() {
         //the amount we should store of each mineral
+        const ENERGY_STORE = 50000;
         const STORE_BUFFER = 10000;
         const SELL_BUFFER = 5000;
 
@@ -29,6 +30,8 @@ var systemLogistics = {
                 }
             }
             
+            //mineral demand and excess
+
             //loop through contents and append resources that are in excess
             for (var mineral of MINERALS) {
                 //set the selling memory to zero if it doesn't exist
@@ -46,6 +49,24 @@ var systemLogistics = {
                     Memory.roomsPersistent[room].logistics.needs[mineral] = STORE_BUFFER - amountStored;
                     Memory.roomsPersistent[room].logistics.haves[mineral] = 0;
                 }
+            }
+
+            //Energy demand and excess
+
+            //init memory object for selling energy TODO: actually sell energy?
+            if (!Object.keys(Memory.roomsPersistent[room].logistics.selling).includes(RESOURCE_ENERGY)) {
+                Memory.roomsPersistent[room].logistics.selling[RESOURCE_ENERGY] = 0;
+            }
+            //subtract the amount we are selling from the amount we have
+            let amountStored = roomTerminal.store[RESOURCE_ENERGY] - Memory.roomsPersistent[room].logistics.selling[RESOURCE_ENERGY];
+            if (amountStored > ENERGY_STORE) {
+                //store in memory how much extra we have in the terminal
+                Memory.roomsPersistent[room].logistics.haves[RESOURCE_ENERGY] = amountStored - ENERGY_STORE;
+                Memory.roomsPersistent[room].logistics.needs[RESOURCE_ENERGY] = 0;
+            } else {
+                //store how much we need to get to our buffer
+                Memory.roomsPersistent[room].logistics.needs[RESOURCE_ENERGY] = ENERGY_STORE - amountStored;
+                Memory.roomsPersistent[room].logistics.haves[RESOURCE_ENERGY] = 0;
             }
 
             if (roomTerminal.cooldown > 0) {
