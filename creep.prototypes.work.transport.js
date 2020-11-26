@@ -101,7 +101,7 @@ var systemPrototypes = {
 
                 //assign creep to source that has the least transporters
                 if (!this.memory.assignedContainer) {
-                    let creepContainer = Memory.roomsCache[this.room.name].structures.mineralContainers[0];
+                    let creepContainer = Memory.roomsCache[this.room.name].structures.containers.mineral[0];
                     if (creepContainer) {
                         this.memory.assignedContainer = creepContainer;
                     } else {

@@ -299,8 +299,8 @@ var systemPrototypesHarvest = {
                     return false; //move to next task
                 }
 
-                //containers from memory
-                var allContainers = Memory.roomsCache[this.room.name].structures.sourceContainers.map(
+                //all containers from memory
+                var allContainers = Object.keys(Memory.roomsCache[this.room.name].structures.containers.all).map(
                     container => Game.getObjectById(container)
                 );
                 //all containers that have energy in them
@@ -371,7 +371,7 @@ var systemPrototypesHarvest = {
                     //remove this task if there is no terminal
                     if (!creepTerminal) {
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_WITHDRAW_STORAGE);
+                        let index = array.indexOf(TASK_WITHDRAW_TERMINAL);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;

@@ -13,7 +13,7 @@ var systemGlobals = {
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
             //REMOVE E42N22 when terminal is moved!
-            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => room != "E42N22" && Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
+            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //CREEP PROTOTYPES
             prototypeWork.run();
@@ -257,7 +257,7 @@ var systemGlobals = {
                     Memory.roomsPersistent[room].rePlanning = {};
                     Memory.roomsPersistent[room].rePlanning.anchor = bestCandidate;
                     return "Room replanning anchor set!"
-                } else if (action == "roads") {
+                } else if (action == "bunkerRoads") {
                     if (!Memory.roomsPersistent[room].rePlanning && !Memory.roomsPersistent[room].rePlanning) {
                         return "No anchor set! Run anchor action first";
                     }
@@ -270,7 +270,16 @@ var systemGlobals = {
                         }
                     }
                     return "Roads planned!"
-                } else {
+                } else if (action == "roads") {
+                    let roomAnchor = new RoomPosition(Memory.roomsPersistent[room].rePlanning.anchor.x, Memory.roomsPersistent[room].rePlanning.anchor.y, room);
+                    let roads = Game.rooms[room].find(FIND_STRUCTURES, {filter:{structureType: STRUCTURE_ROAD}});
+
+                    for (struc of roads) {
+                        if (struc.pos.x < roomAnchor.x || struc.pos.x > roomAnchor.x + 10 || struc.pos.y < roomAnchor.y || struc.pos.y > roomAnchor.y + 10) {
+                            struc.destroy();
+                        }
+                    }
+               }  else {
                     let roomAnchor = new RoomPosition(Memory.roomsPersistent[room].rePlanning.anchor.x, Memory.roomsPersistent[room].rePlanning.anchor.y, room);
 
                     if (action == STRUCTURE_RAMPART) {

@@ -197,13 +197,8 @@ var systemMemory = {
                 var ramparts = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_RAMPART});
     
-                var sourceContainers = Game.rooms[room].find(FIND_STRUCTURES, {
-                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
-                    structure.pos.findInRange(FIND_SOURCES, 1).length > 0});
-
-                var mineralContainers = Game.rooms[room].find(FIND_STRUCTURES, {
-                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
-                    structure.pos.findInRange(FIND_MINERALS, 1).length > 0});
+                var containers = Game.rooms[room].find(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER});
     
                 var towers = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_TOWER});
@@ -214,7 +209,7 @@ var systemMemory = {
                 var links = Game.rooms[room].find(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType == STRUCTURE_LINK});
                 
-                    var spawns = Game.rooms[room].find(FIND_MY_SPAWNS);
+                var spawns = Game.rooms[room].find(FIND_MY_SPAWNS);
                 
                 if (!currentRoom["walls"]) {
                     currentRoom["walls"] = [];
@@ -235,21 +230,6 @@ var systemMemory = {
                 }
                 for (var i in ramparts) {
                     currentRoom["ramparts"].push(ramparts[i].id);
-                }
-                
-                //TODO: change this to be nested in a containers object like links
-                if (!currentRoom["sourceContainers"]) {
-                    currentRoom["sourceContainers"] = [];
-                }
-                for (var i in sourceContainers) {
-                    currentRoom["sourceContainers"].push(sourceContainers[i].id);
-                }
-
-                if (!currentRoom["mineralContainers"]) {
-                    currentRoom["mineralContainers"] = [];
-                }
-                for (var i in mineralContainers) {
-                    currentRoom["mineralContainers"].push(mineralContainers[i].id);
                 }
                 
                 if (!currentRoom["towers"]) {
@@ -276,34 +256,66 @@ var systemMemory = {
                     currentRoom["links"]["none"] = [];
                     currentRoom["links"]["all"] = {};
                 }
-                for (var i in links) {
-                    if (!currentRoom["links"]["all"][links[i].id]) {
-                        currentRoom["links"]["all"][links[i].id] = {};
+
+                //init the different types of containers
+                if (!currentRoom["containers"]) {
+                    currentRoom["containers"] = {};
+                }
+                if (!currentRoom["containers"]["mineral"]) {
+                    currentRoom["containers"]["mineral"] = [];
+                    currentRoom["containers"]["source"] = [];
+                    currentRoom["containers"]["storage"] = [];
+                    currentRoom["containers"]["all"] = {};
+                }
+                for (var container of containers) {
+                    if (!currentRoom["containers"]["all"][container.id]) {
+                        currentRoom["containers"]["all"][container.id] = {};
+                    }
+                    //define what the type of container this is
+                    if (container.pos.findInRange(FIND_MINERALS, 1).length > 0) {
+                        currentRoom["containers"]["mineral"].push(container.id);
+                        currentRoom["containers"]["all"][container.id]["type"] = "mineral";
+                        continue;
+                    }
+                    if (container.pos.findInRange(FIND_SOURCES, 1).length > 0) {
+                        currentRoom["containers"]["source"].push(container.id);
+                        currentRoom["containers"]["all"][container.id]["type"] = "source";
+                        continue;
+                    }
+
+                    //else
+                    currentRoom["containers"]["storage"].push(container.id);
+                    currentRoom["containers"]["all"][container.id]["type"] = "storage";           
+                }
+
+                for (var link of links) {
+                    if (!currentRoom["links"]["all"][link.id]) {
+                        currentRoom["links"]["all"][link.id] = {};
                     }
                     //define what the behavior of the link should be
-                    let nearestBuilding = links[i].pos.findClosestByRange(FIND_STRUCTURES, {
+                    let nearestBuilding = link.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => { return structure.structureType != STRUCTURE_LINK 
                             && [STRUCTURE_STORAGE, STRUCTURE_CONTROLLER].includes(structure.structureType)
-                            && links[i].pos.inRangeTo(structure, 4)
+                            && link.pos.inRangeTo(structure, 4)
                         }});
                     if (nearestBuilding) {
                         switch(nearestBuilding.structureType) {
                             case STRUCTURE_STORAGE:
-                                currentRoom["links"]["storage"].push(links[i].id);
-                                currentRoom["links"]["all"][links[i].id]["type"] = "storage";
+                                currentRoom["links"]["storage"].push(link.id);
+                                currentRoom["links"]["all"][link.id]["type"] = "storage";
                                 break;
                             case STRUCTURE_CONTROLLER:
-                                currentRoom["links"]["controller"].push(links[i].id);
-                                currentRoom["links"]["all"][links[i].id]["type"] = "controller";
+                                currentRoom["links"]["controller"].push(link.id);
+                                currentRoom["links"]["all"][link.id]["type"] = "controller";
                                 break;
                         }
                     } else {
-                        if (links[i].pos.findInRange(FIND_SOURCES, 3).length > 0) {
-                            currentRoom["links"]["container"].push(links[i].id);
-                            currentRoom["links"]["all"][links[i].id]["type"] = "container";
+                        if (link.pos.findInRange(FIND_SOURCES, 3).length > 0) {
+                            currentRoom["links"]["container"].push(link.id);
+                            currentRoom["links"]["all"][link.id]["type"] = "container";
                         } else {
-                            currentRoom["links"]["none"].push(links[i].id);
-                            currentRoom["links"]["all"][links[i].id]["type"] = "none"; 
+                            currentRoom["links"]["none"].push(link.id);
+                            currentRoom["links"]["all"][link.id]["type"] = "none"; 
                         }
                         
                     }
