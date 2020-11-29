@@ -13,7 +13,7 @@ var systemGlobals = {
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
             //REMOVE E42N22 when terminal is moved!
-            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => room != "E42N21" && Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
+            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //CREEP PROTOTYPES
             prototypeWork.run();
