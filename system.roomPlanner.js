@@ -66,7 +66,7 @@ var systemRoomPlanner2 = {
                         //find all the things we want to be close to
                         var POVs = [];
                         var sources = Game.rooms[room].find(FIND_SOURCES);
-                        for (var source of sources) {
+                        for (let source of sources) {
                             POVs.push(source.pos);
                         }
                         POVs.push(Game.rooms[room].controller.pos);
@@ -127,12 +127,12 @@ var systemRoomPlanner2 = {
                     //build containers
                     if (!Memory.roomsPersistent[room].roomPlanning.containersBuilt) {
                         let closest = []
-                        for (var source of Game.rooms[room].find(FIND_SOURCES)) {
+                        for (let source of Game.rooms[room].find(FIND_SOURCES)) {
                             let pathToSource = roomAnchor.findPathTo(source.pos, {range: 1, ignoreCreeps: true})
                             let closestPosition = new RoomPosition(pathToSource[pathToSource.length - 1]["x"], pathToSource[pathToSource.length - 1]["y"], room);
                             closest.push(closestPosition); 
                         }
-                        for (var close of closest) {
+                        for (let close of closest) {
                             close.createConstructionSite(STRUCTURE_CONTAINER);
                         }
                         Memory.roomsPersistent[room].roomPlanning.containersBuilt = true;
@@ -147,19 +147,26 @@ var systemRoomPlanner2 = {
                         let topLeft = roomAnchor;
                         let bottomLeft = new RoomPosition(roomAnchor.x, roomAnchor.y + 10, room);
                         let bottomRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 10, room);
-                        let corners = [topRight, topLeft, bottomLeft, bottomRight];
+
+                        let topMiddle = new RoomPosition(roomAnchor.x + 5, roomAnchor.y, room);
+                        let bottomMiddle = new RoomPosition(roomAnchor.x + 5, roomAnchor.y + 10, room);
+                        let leftMiddle = new RoomPosition(roomAnchor.x, roomAnchor.y + 5, room);
+                        let rightMiddle = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 5, room);
+                        let corners = [topRight, topLeft, bottomLeft, bottomRight, topMiddle, bottomMiddle, leftMiddle, rightMiddle];
 
                         let roadSites = [];
+                        let selectedCorner;
 
                         var travelSources = Game.rooms[room].find(FIND_SOURCES);
-                        
                         //build roads from the closest corner to the source
                         for (var source of travelSources) {
-                            let selectedCorner = source.pos.findClosestByPath(corners);
+                            console.log(corners);
+                            selectedCorner = source.pos.findClosestByPath(corners, {ignoreCreeps: true});
+                            console.log(JSON.stringify(selectedCorner));
                             roadSites.push(selectedCorner.findPathTo(source, {range: 1, ignoreCreeps: true}));
                         }
 
-                        let selectedCorner = roomController.pos.findClosestByPath(corners);
+                        selectedCorner = roomController.pos.findClosestByPath(corners, {ignoreCreeps: true});
                         roadSites.push(selectedCorner.findPathTo(roomController, {range: 1, ignoreCreeps: true}));
 
                         for (var sites of roadSites) {
@@ -178,9 +185,9 @@ var systemRoomPlanner2 = {
                         Memory.roomsPersistent[room].roomPlanning.bunkerRoads= true;
                         for (var pos of BUNKER["road"]["pos"]) {
                             //do not build tunnels
-                            if (Game.rooms[room].lookAt(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], LOOK_TERRAIN)["terrain"] != "wall") {
+                            let look = Game.rooms[room].lookAt(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], LOOK_TERRAIN);
+                            if (look[look.length - 1]["terrain"] != "wall") {
                                 Game.rooms[room].createConstructionSite(new RoomPosition(roomAnchor.x + pos["x"], roomAnchor.y + pos["y"], room), STRUCTURE_ROAD);
-                                
                             }
                         }
                     }
@@ -269,6 +276,46 @@ var systemRoomPlanner2 = {
                         }
                     }
                 }
+
+                //TODO: too tired to make this any good.
+                if (roomController.level >= 6) {
+                    if (!Memory.roomsPersistent[room].roomPlanning.mineralRoadsBuilt) {
+                        Memory.roomsPersistent[room].roomPlanning.mineralRoadsBuilt = true;
+
+                        //define corners of the bunker
+                        let topRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y, room);
+                        let topLeft = roomAnchor;
+                        let bottomLeft = new RoomPosition(roomAnchor.x, roomAnchor.y + 10, room);
+                        let bottomRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 10, room);
+
+                        let topMiddle = new RoomPosition(roomAnchor.x + 5, roomAnchor.y, room);
+                        let bottomMiddle = new RoomPosition(roomAnchor.x + 5, roomAnchor.y + 10, room);
+                        let leftMiddle = new RoomPosition(roomAnchor.x, roomAnchor.y + 5, room);
+                        let rightMiddle = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 5, room);
+                        let corners = [topRight, topLeft, bottomLeft, bottomRight, topMiddle, bottomMiddle, leftMiddle, rightMiddle];
+
+                        let roadSites = [];
+
+                        var travelMineral = Game.rooms[room].find(FIND_MINERALS);
+                        
+                        //build roads from the closest corner to the mineral
+                        for (var min of travelMineral) {
+                            let selectedCorner = min.pos.findClosestByPath(corners, {ignoreCreeps: true});
+                            let pathToMin = selectedCorner.findPathTo(min, {range: 1, ignoreCreeps: true});
+                            let containerPos = new RoomPosition(pathToMin[pathToMin.length - 1]["x"], pathToMin[pathToMin.length - 1]["y"], room);
+                            containerPos.createConstructionSite(STRUCTURE_CONTAINER);
+                            roadSites.push(pathToMin);
+                        }
+
+                        for (var sites of roadSites) {
+                            for (var site of sites) {
+                                Game.rooms[room].createConstructionSite(site.x, site.y, STRUCTURE_ROAD);
+                            }
+                        }
+                    }
+                    
+                }
+
                 Memory.roomsPersistent[room].roomPlanning.rank = Game.rooms[room].controller.level;
             }  
         }

@@ -55,7 +55,7 @@ var systemPrototypes = {
         if (!Creep.prototype._upgradeController) {
             //store the original version of the function
             Creep.prototype._upgradeController = Creep.prototype.upgradeController;
-
+            //TODO: fix link upgrading. creeps will first stop by a storage, hugely inefficient
             Creep.prototype.upgradeController = function () {
                 var creepController = this.room.controller;
                 
@@ -78,13 +78,13 @@ var systemPrototypes = {
                 }
                 //set state only if it has link mining
                 if (this.memory.tasks.includes(TASK_UPGRADE_LINK) && this.memory.assignedControllerLink != "none") {
-                    if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
-                        this.memory.harvesting = true;
+                    if (this.store.getUsedCapacity(RESOURCE_ENERGY) - this.countBodyType(WORK) <= 0) {
+                        this.memory.linkHarvesting = true;
                     } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                        this.memory.harvesting = false;
+                        this.memory.linkHarvesting = false;
                     }
                 }
-                if (!this.memory.harvesting) {
+                if (!this.memory.harvesting && !this.memory.linkHarvesting) {
                     if (this.pos.inRangeTo(creepController, 3)) {
                         let success = this._upgradeController(creepController);
                         if (success == 0) {
@@ -244,7 +244,7 @@ var systemPrototypes = {
                         checkList.push(STRUCTURE_RAMPART);
                     }
                     if (this.memory.tasks.includes(TASK_REPAIR)) {
-                        checkList.push(STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_WALL);
+                        checkList.push(STRUCTURE_ROAD, STRUCTURE_CONTAINER);
                     }
                     //find the closest of all the structures you are searching for
                     var targets = this.room.find(FIND_STRUCTURES, {

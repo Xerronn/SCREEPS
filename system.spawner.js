@@ -41,7 +41,7 @@ var systemSpawner2 = {
 
         //handles the automatic creation of remote workers in case of a new territory being claimed
         //first find any rooms that the bot owns that do not have spawns
-        var newRooms = _.filter(Game.rooms, room => room.controller && room.controller.my && Memory.roomsCache[room.name].structures["spawns"].length == 0);
+        var newRooms = _.filter(Game.rooms, room => room.controller && room.controller.my && Memory.roomsCache[room.name] && Memory.roomsCache[room.name].structures["spawns"].length == 0);
         for (var newRoom of newRooms) {
             //check to make sure that I have spawns to spawn helpers from
             if (Object.keys(Game.spawns).length > 0) { 
@@ -52,7 +52,7 @@ var systemSpawner2 = {
                 }
                 var remoteBuilders = _.filter(Game.creeps, (creep) => creep.memory.role == 'remoteBuilder' && creep.memory.assignedRoom == newRoom.name);
                 if (remoteBuilders.length < 3) {
-                    let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
+                    let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && 
                     Memory.roomsCache[room].structures["spawns"].length > 0 && room != "sim" && room != newRoom.name && Game.rooms[room].energyCapacityAvailable > 700);
                     var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(newRoom.name, room))[0];
                     let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
@@ -74,12 +74,13 @@ var systemSpawner2 = {
                         return liveObj
                     } else {
                         //if a spawn no longer exists, delete it from memory
-                        let array = Memory.roomsCache[room].structures["spawns"];
-                        let index = array.indexOf(spawnID);
-                        if (index > -1) {
-                            array.splice(index, 1);
-                            let array = Memory.roomsCache[room].structures["spawns"] = array;
-                        }
+                        //TODO: array is not defined?
+                        // let array = Memory.rooms[room].structures["spawns"];
+                        // let index = array.indexOf(spawnID);
+                        // if (index > -1) {
+                        //     array.splice(index, 1);
+                        //     let array = Memory.roomsCache[room].structures["spawns"] = array;
+                        // }
                     }
                 }
                 
@@ -93,13 +94,11 @@ var systemSpawner2 = {
             //TODO: improve this system with something better. maybe alternate spawns on different ticks
             var currentlySpawning = [];
             for (var spawn of roomSpawns) {
-                if (spawn) {
+                if (spawn && spawn.spawning) {
                     if (!Memory.roomsPersistent[room].spawns) {
                         Memory.roomsPersistent[room].spawns = {};
                     }
                     currentlySpawning.push(Memory.roomsPersistent[room].spawns[spawn.name]);
-                } else {
-                    console.log(spawn);
                 }
             }
             //list to hold everything that needs to spawn at different priorities. avoids sorting
@@ -128,12 +127,26 @@ var systemSpawner2 = {
             }
             var numCreeps = Object.values(Memory.roomsPersistent[room].creepCounts);
             numCreeps = numCreeps.reduce((a,b) => a+b, 0);
-            if (numCreeps < 2) {
+            if (numCreeps < 2 && roomController.level > 2) {
                 let panicTasks = TASK_LIST_PANIC;
-                if (Game.rooms[room].storage.store.getUsedCapacity > 50000) panicTasks.unshift(TASK_WITHDRAW_STORAGE);
+                if (Game.rooms[room].storage && Game.rooms[room].storage.store.getUsedCapacity > 50000) panicTasks.unshift(TASK_WITHDRAW_STORAGE);
                 let memory = {type: "worker", role: 'panic', tasks: panicTasks};
                 spawnCreep(roomSpawns[0], "panic", memory, hasRoads);
                 break;
+            }
+
+            //TEMPORARY
+            //TODO REMOVE
+            if (!Memory.roomsPersistent[room].creepCounts["mover"]) {
+                Memory.roomsPersistent[room].creepCounts["mover"] = 0;
+            }
+            let numMovers = Memory.roomsPersistent[room].creepCounts["mover"];
+            if (room == "E69N69" && Game.rooms[room].storage && Game.rooms[room].terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 20000 && numMovers < 1 && !currentlySpawning.includes("mover")) {      
+                spawnQueue[1].push({
+                    creepName: "mover",
+                    creepMemory: {type: "worker", role: "mover", tasks: [TASK_WITHDRAW_TERMINAL, TASK_FILL_STORAGE]},
+                    creepHasRoads: hasRoads
+                });  
             }
 
             //transporter spawning
@@ -193,8 +206,7 @@ var systemSpawner2 = {
             let numUpgraders = Memory.roomsPersistent[room].creepCounts["upgrader"];
             let numToSpawn = 1;
             if (roomController.level < 4) numToSpawn = 3;
-            //TEMPORARY DISABLE UPGRADING IN E42N22
-            if (numUpgraders < numToSpawn && !currentlySpawning.includes("upgrader") && room != "E42N22") {
+            if (numUpgraders < numToSpawn && !currentlySpawning.includes("upgrader")) {
                 spawnQueue[5].push({
                     creepName: "upgrader",
                     creepMemory: {type: "worker", role: "upgrader", tasks: TASK_LIST_UPGRADER},
@@ -204,25 +216,26 @@ var systemSpawner2 = {
 
             //remote defender spawning
             var numTowers = Memory.roomsCache[room].structures.towers.length;
-            if (numTowers == 0) {
-                if (!Memory.roomsPersistent[room].creepCounts["remoteDefender"]) {
-                    Memory.roomsPersistent[room].creepCounts["remoteDefender"] = 0;
-                }
-                let numRemoteDefenders = Memory.roomsPersistent[room].creepCounts["remoteDefender"];
-                if (numRemoteDefenders < 1) {
-                    let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
-                    Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
-                    if (expanderRooms.length > 0) {
-                        var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
-                        let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
-                        let memory = {type: 'attacker', role: "remoteDefender", assignedRoom: room, tasks: TASK_LIST_REMOTE_DEFENDER};
-                        if (spawnCreep(chosenSpawn, "remoteDefender", memory, hasRoads) == true) {
-                            Memory.roomsPersistent[room].creepCounts["remoteDefender"] ++;
-                        }
-                        break;
-                    }
-                }
-            }
+            //TODO: controller is not defined
+            // if (numTowers == 0) {
+            //     if (!Memory.roomsPersistent[room].creepCounts["remoteDefender"]) {
+            //         Memory.roomsPersistent[room].creepCounts["remoteDefender"] = 0;
+            //     }
+            //     let numRemoteDefenders = Memory.roomsPersistent[room].creepCounts["remoteDefender"];
+            //     if (numRemoteDefenders < 1) {
+            //         let expanderRooms = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller.my && 
+            //         Game.rooms[room].find(FIND_MY_SPAWNS)[0] && room != "sim" && Game.rooms[room].energyCapacityAvailable > 700);
+            //         if (expanderRooms.length > 0) {
+            //             var expanderRoom = _.sortBy(expanderRooms, (room) => Game.map.getRoomLinearDistance(controller.pos.roomName, room))[0];
+            //             let chosenSpawn = Game.rooms[expanderRoom].find(FIND_MY_SPAWNS)[0];
+            //             let memory = {type: 'attacker', role: "remoteDefender", assignedRoom: room, tasks: TASK_LIST_REMOTE_DEFENDER};
+            //             if (spawnCreep(chosenSpawn, "remoteDefender", memory, hasRoads) == true) {
+            //                 Memory.roomsPersistent[room].creepCounts["remoteDefender"] ++;
+            //             }
+            //             break;
+            //         }
+            //     }
+            // }
 
             //repairer spawning
             if (!Memory.roomsPersistent[room].creepCounts["repairer"]) {
@@ -309,7 +322,7 @@ var systemSpawner2 = {
                         Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
                     }
                     let numQuarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
-                    if (numQuarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time && !currentlySpawning.includes("quarrier") && room != "E42N22") {
+                    if (numQuarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time && !currentlySpawning.includes("quarrier")) {
                         spawnQueue[5].push({
                             creepName: "quarrier",
                             creepMemory: {type: "worker", role: "quarrier", tasks: TASK_LIST_QUARRIER},
@@ -325,7 +338,7 @@ var systemSpawner2 = {
                                 Memory.roomsPersistent[room].creepCounts["mineralTransporter"] = 0;
                             }
                             let numMineralTransporters = Memory.roomsPersistent[room].creepCounts["mineralTransporter"];
-                            if (numMineralTransporters < 1 && !currentlySpawning.includes("mineralTransporter") && room != "E42N22") {
+                            if (numMineralTransporters < 1 && !currentlySpawning.includes("mineralTransporter")) {
                                 spawnQueue[5].push({
                                     creepName: "mineralTransporter",
                                     creepMemory: {type: "worker", role: "mineralTransporter", tasks: TASK_LIST_TRANSPORTER_MINERAL},
@@ -354,10 +367,10 @@ var systemSpawner2 = {
                 for (var i = 0; i < 6; i++) {
                     if (spawnQueue[i].length > 0) {
                         //if the spawn is successful, remove the spawned creep from the queue then move to next spawn.
-                        if (spawnCreep(spawn, spawnQueue[i][0]["creepName"], spawnQueue[i][0]["creepMemory"], spawnQueue[i][0]["creepHasRoads"])) {
+                        if (spawnCreep(spawn, spawnQueue[i][0]["creepName"], spawnQueue[i][0]["creepMemory"], spawnQueue[i][0]["creepHasRoads"]) == 0) {
                             spawnQueue[i].shift();
-                            break;
                         }
+                        break;
                     }
                 }         
             }
@@ -369,6 +382,10 @@ var systemSpawner2 = {
             let body;
             let spawnRoom = spawn.room.name;
             switch (role) {
+                case "mover":
+                    body = addMoves([CARRY], hasRoads);
+                    body = buildComposition(spawnRoom, body, true);
+                    break;
                 case "remoteBuilder":
                     //always assume no roads
                     body = buildComposition(spawnRoom, [WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], false);
@@ -412,6 +429,7 @@ var systemSpawner2 = {
                     body = buildComposition(spawnRoom, body, true, 2000);
                     break;
                 case "upgrader":
+                    //TODO: CAP IT AT 15 FOR RCL 8
                     if (Memory.roomsCache[spawnRoom].structures.links.controller && Memory.roomsCache[spawnRoom].structures.links.controller.length > 0) {
                         body = addMoves([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY], hasRoads);
                     } else {
@@ -455,14 +473,14 @@ var systemSpawner2 = {
 
                 //if the spawn is successful, increment the number of creeps of that role in the room
                 Memory.roomsPersistent[spawnRoom].creepCounts[role]++;
-                Memory.roomsPersistent[room].stats.creepsSpawned++;
+                Memory.roomsPersistent[spawnRoom].stats.creepsSpawned++;
                 
                 //keep track of energy spent on creeps
                 let totalCost = 0;
                 for (let part of body) {
                     totalCost += BODYPART_COST[part];
                 }
-                Memory.roomsPersistent[room].stats.energySpentSpawning += totalCost;
+                Memory.roomsPersistent[spawnRoom].stats.energySpentSpawning += totalCost;
                 
                 
                 //this code keeps two spawns from spawning the same creep

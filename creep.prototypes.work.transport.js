@@ -101,7 +101,7 @@ var systemPrototypes = {
 
                 //assign creep to source that has the least transporters
                 if (!this.memory.assignedContainer) {
-                    let creepContainer = Memory.roomsCache[this.room.name].structures.mineralContainers[0];
+                    let creepContainer = Memory.roomsCache[this.room.name].structures.containers.mineral[0];
                     if (creepContainer) {
                         this.memory.assignedContainer = creepContainer;
                     } else {
@@ -138,7 +138,7 @@ var systemPrototypes = {
                 if (!Memory.roomsPersistent[this.pos.roomName].extensionsFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
                     //find the closest extensions
                     //TODO: optimize this somehow more
-                    if (this.memory.fillTarget && this.memory.fillTarget != "none") {
+                    if (this.memory.fillTarget && this.memory.fillTarget != "none" && Game.getObjectById(this.memory.fillTarget)) {
                         let creepFillTarget = Game.getObjectById(this.memory.fillTarget);
 
                         //set the memory to none if it is full

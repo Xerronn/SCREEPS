@@ -137,7 +137,8 @@ var systemPrototypesHarvest = {
                         Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     }
                 } else {
-                    this.travelTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    //TODO travelTo was causing huge cpu spikes
+                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -305,8 +306,8 @@ var systemPrototypesHarvest = {
                 );
                 //all containers that have energy in them
                 var creepContainers = allContainers.filter(
-                    container => container.store.getUsedCapacity(RESOURCE_ENERGY) > 0
-                )
+                    container => container.store.getUsedCapacity(RESOURCE_ENERGY) > this.store.getFreeCapacity(RESOURCE_ENERGY)
+                );
                 if (creepContainers.length == 0 || !this.memory.harvesting) {
                     //remove this task if there is no containers
                     if (allContainers.length == 0) {
@@ -325,16 +326,22 @@ var systemPrototypesHarvest = {
                     let creepContainerTarget = Game.getObjectById(this.memory.containerTarget);
 
                     //set the memory to none if it is empty
-                    if (creepContainerTarget.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    if (!creepContainerTarget || creepContainerTarget.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                         this.memory.containerTarget = "none";
                     }
                 }
 
                 //assign a new object that needs filling to be the target
                 if (!this.memory.containerTarget || this.memory.containerTarget == "none") {
-                    this.memory.containerTarget = this.pos.findClosestByPath(creepContainers, {
+                    let closestFull = this.pos.findClosestByPath(creepContainers, {
                         filter: (structure) => {
-                            return structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0}}).id;
+                            return structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0}});
+                    if (closestFull) {        
+                        this.memory.containerTarget = closestFull.id;
+                    } else {
+                        this.memory.containerTarget = "none";
+                        return false; //move to next task if there is no containers with something in them
+                    }
                 }
 
                 var creepContainerTarget = Game.getObjectById(this.memory.containerTarget);

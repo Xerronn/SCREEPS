@@ -275,18 +275,17 @@ var systemMemory = {
                     if (container.pos.findInRange(FIND_MINERALS, 1).length > 0) {
                         currentRoom["containers"]["mineral"].push(container.id);
                         currentRoom["containers"]["all"][container.id]["type"] = "mineral";
-                        break;
+                        continue;
                     }
                     if (container.pos.findInRange(FIND_SOURCES, 1).length > 0) {
                         currentRoom["containers"]["source"].push(container.id);
                         currentRoom["containers"]["all"][container.id]["type"] = "source";
-                        break;
+                        continue;
                     }
 
+                    //else
                     currentRoom["containers"]["storage"].push(container.id);
-                    currentRoom["containers"]["all"][container.id]["type"] = "storage";
-                    break;
-                   
+                    currentRoom["containers"]["all"][container.id]["type"] = "storage";           
                 }
 
                 for (var link of links) {
