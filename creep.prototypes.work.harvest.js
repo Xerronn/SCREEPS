@@ -12,7 +12,7 @@ var systemPrototypesHarvest = {
 
         //task to distribute to different sources and harvest them
         if (!Creep.prototype.harvestEnergy) {
-            Creep.prototype.harvestEnergy = function() {    
+            Creep.prototype.harvestEnergy = function() {
                 //set state
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
@@ -114,7 +114,7 @@ var systemPrototypesHarvest = {
                     if (this.pos.inRangeTo(creepLink, 1)) {
                         this.transfer(creepLink, RESOURCE_ENERGY);
                     } else {
-                        this.travelTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.moveTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }
@@ -137,7 +137,7 @@ var systemPrototypesHarvest = {
                         Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     }
                 } else {
-                    //TODO travelTo was causing huge cpu spikes
+                    //TODO moveTo was causing huge cpu spikes
                     this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
@@ -242,7 +242,7 @@ var systemPrototypesHarvest = {
                     //     Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     // }
                 } else {
-                    this.travelTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -277,7 +277,7 @@ var systemPrototypesHarvest = {
                 if (this.pos.inRangeTo(creepStorage, 1)) {
                     this.withdraw(creepStorage, RESOURCE_ENERGY);
                 } else {
-                    this.travelTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -349,7 +349,7 @@ var systemPrototypesHarvest = {
                     if (this.pos.inRangeTo(creepContainerTarget, 1)) {
                         this.withdraw(creepContainerTarget, RESOURCE_ENERGY);
                     } else {
-                        this.travelTo(creepContainerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                        this.moveTo(creepContainerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -390,7 +390,7 @@ var systemPrototypesHarvest = {
                 if (this.pos.inRangeTo(creepTerminal, 1)) {
                     this.withdraw(creepTerminal, RESOURCE_ENERGY);
                 } else {
-                    this.travelTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -441,7 +441,7 @@ var systemPrototypesHarvest = {
                         this.pickup(assignedSalvage);
                         //TODO: Track this in stats
                     } else {
-                        this.travelTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                        this.moveTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }

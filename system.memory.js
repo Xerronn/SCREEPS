@@ -224,13 +224,6 @@ var systemMemory = {
                 for (var i in roads) {
                     currentRoom["roads"].push(roads[i].id);
                 }
-
-                if (!currentRoom["ramparts"]) {
-                    currentRoom["ramparts"] = [];
-                }
-                for (var i in ramparts) {
-                    currentRoom["ramparts"].push(ramparts[i].id);
-                }
                 
                 if (!currentRoom["towers"]) {
                     currentRoom["towers"] = [];
@@ -244,6 +237,26 @@ var systemMemory = {
                 }
                 for (var i in extractors) {
                     currentRoom["extractors"].push(extractors[i].id);
+                }
+
+                if (!currentRoom["ramparts"]) {
+                    currentRoom["ramparts"] = {};
+                }
+                if (!currentRoom["ramparts"]["outer"]) {
+                    currentRoom["ramparts"]["outer"] = [];
+                    currentRoom["ramparts"]["bunker"] = [];
+                    //currentRoom["ramparts"]["all"] = [];
+                }
+                for (var ramp of ramparts) {
+                    if (Memory.roomsPersistent[room].roomPlanning) {
+                        let roomAnchor = Memory.roomsPersistent[room].roomPlanning.anchor;
+                        if (ramp.pos.x < roomAnchor.x - 1 || ramp.pos.x > roomAnchor.x + 11 || ramp.pos.y < roomAnchor.y - 1 || ramp.pos.y > roomAnchor.y + 11) {
+                            currentRoom["ramparts"]["outer"].push(ramp.id);
+                        } else {
+                            currentRoom["ramparts"]["bunker"].push(ramp.id);
+                        }
+                    }
+                    //currentRoom["ramparts"]["all"].push(ramp[i].id);
                 }
 
                 if (!currentRoom["links"]) {

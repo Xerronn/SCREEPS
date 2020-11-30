@@ -281,26 +281,25 @@ var systemSpawner2 = {
                         creepHasRoads: hasRoads
                     });
                 }
+
+                //if there is a storage, create dedicated filler role
+                if (Game.rooms[room].storage) {
+                    //filler spawning
+                    if (!Memory.roomsPersistent[room].creepCounts["filler"]) {
+                        Memory.roomsPersistent[room].creepCounts["filler"] = 0;
+                    }
+                    let numFillers = Memory.roomsPersistent[room].creepCounts["filler"];
+                    if (numFillers < 1 && !currentlySpawning.includes("filler")) {      
+                        spawnQueue[1].push({
+                            creepName: "filler",
+                            creepMemory: {type: "worker", role: "filler", tasks: TASK_LIST_FILLER},
+                            creepHasRoads: hasRoads
+                        });  
+                    }
+                }
                 
                 //once the room can have links
                 if (roomController.level > 4) {
-
-                    //if there is a storage, create dedicated filler role
-                    if (Game.rooms[room].storage) {
-                        //filler spawning
-                        if (!Memory.roomsPersistent[room].creepCounts["filler"]) {
-                            Memory.roomsPersistent[room].creepCounts["filler"] = 0;
-                        }
-                        let numFillers = Memory.roomsPersistent[room].creepCounts["filler"];
-                        if (numFillers < 1 && !currentlySpawning.includes("filler")) {      
-                            spawnQueue[1].push({
-                                creepName: "filler",
-                                creepMemory: {type: "worker", role: "filler", tasks: TASK_LIST_FILLER},
-                                creepHasRoads: hasRoads
-                            });  
-                        }
-                    }
-
                     //linker spawning
                     if (!Memory.roomsPersistent[room].creepCounts["linker"]) {
                         Memory.roomsPersistent[room].creepCounts["linker"] = 0;

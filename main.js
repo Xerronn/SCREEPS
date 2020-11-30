@@ -42,27 +42,19 @@ module.exports.loop = function () {
         
         //memory cleanup
         garbageCollection.run();
-        
-        //check if the bot actually has anything to do
-        var spawns = Object.keys(Game.spawns);
-        var creeps = Object.keys(Game.creeps);
-        if (spawns.length == 0 && creeps.length == 0) {
-            //if there is nothing to control, do nothing
-            return;
-        }
-        
-        //memory init
-        memoryHandler.run();
 
+        //memory init 
+        memoryHandler.run();
+        
         //other system stuff
-        if (Memory.roomsCache) {        
-            populationControl.run(); //optimize!! using 1-3 CPU
+        if (Memory.roomsCache) {         
+            populationControl.run();
             renderUI.run();
             roomPlanner.run();
         } else {
             console.log("System tasks skipped due to absence of memory");
         }
-        //terminal logistics 
+        //terminal logistics
         logistics.run();
         
         //execute creep code

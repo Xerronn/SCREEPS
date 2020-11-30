@@ -17,7 +17,7 @@ var systemCombatPrototypes = {
                     if (this.pos.inRangeTo(closestHostile, 1)) {
                         this.attack(closestHostile);
                     } else {
-                        this.travelTo(closestHostile, {visualizePathStyle: {stroke: COLOR_ATTACK}});
+                        this.moveTo(closestHostile, {visualizePathStyle: {stroke: COLOR_ATTACK}});
                     }
                     return true;//move to next tick
                 }
@@ -26,7 +26,7 @@ var systemCombatPrototypes = {
                     if (this.pos.inRangeTo(target, 1)) {
                         this.heal(target);
                     } else {
-                        this.travelTo(target, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                        this.moveTo(target, {visualizePathStyle: {stroke: COLOR_MOVE}});
                     }
                     return true; //move to next tick
                 } else {
@@ -34,14 +34,14 @@ var systemCombatPrototypes = {
                             if (this.pos.inRangeTo(closestHostileBuilding, 1)) {
                                 this.attack(closestHostileBuilding);
                             } else {
-                                this.travelTo(closestHostileBuilding, {visualizePathStyle: {stroke: COLOR_ATTACK}});
+                                this.moveTo(closestHostileBuilding, {visualizePathStyle: {stroke: COLOR_ATTACK}});
                             }
                             return true; //move to next tick
                     } else {
                         //TODO: THIS WILL MAKE IT ALWAYs MOVE THERE. ADD A TASK FOR THIS PROBABLY
                         let restingPoint = new RoomPosition(35,31, this.room.name);
                         if (!this.pos.inRangeTo(restingPoint, 5)) {
-                            this.travelTo(restingPoint);
+                            this.moveTo(restingPoint);
                         } else {
                             return false; //move to next task
                         }
@@ -58,12 +58,12 @@ var systemCombatPrototypes = {
             Creep.prototype.drainTurret = function() {
                 //if hits are less than half, move out of assigned room
                 if (this.hits < this.hitsMax/3 && this.room.name == this.memory.assignedRoom) {
-                    this.travelTo(this.pos.findClosestByRange(FIND_EXIT));
+                    this.moveTo(this.pos.findClosestByRange(FIND_EXIT));
                 }
 
                 //move off the edge
                 if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                    this.travelTo(new RoomPosition(25,25, this.room.name));
+                    this.moveTo(new RoomPosition(25,25, this.room.name));
                 }
 
             }
@@ -103,7 +103,7 @@ var systemCombatPrototypes = {
                         if (this.pos.inRangeTo(target, 1)) {
                             this.attack(target);
                         } else {
-                            this.travelTo(target, {visualizePathStyle: {stroke: COLOR_ATTACK}});
+                            this.moveTo(target, {visualizePathStyle: {stroke: COLOR_ATTACK}});
                         }
 
                         return true; //move to next tick

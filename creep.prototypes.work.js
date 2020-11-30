@@ -16,6 +16,25 @@ var systemPrototypes = {
         global.TASK_ROOM_CLAIM = "claim";
         global.TASK_ROOM_RESERVE = "reserve";
 
+        //wrapper for moveTo to hopefully improve efficiency
+        if (!Creep.prototype._moveTo) {
+            Creep.prototype._moveTo = Creep.prototype.moveTo;
+
+            Creep.prototype.moveTo = function(destination, options = {}) {
+                if (this.pos.inRangeTo(destination, 4)) {
+                    options.maxOps = 100;
+                    this.travelTo(destination, options); 
+                } else {
+                    options.range = 4;
+                    this.travelTo(destination, options);
+                }
+            }
+        }
+
+
+
+        //task to manage a terminal and keep it at 20k energy
+        //TODO: everything
         if (!Creep.prototype.manageTerminal) {
             Creep.prototype.manageTerminal = function () {
                 var creepTerminal = this.room.terminal;
@@ -43,7 +62,7 @@ var systemPrototypes = {
                 if (this.pos.inRangeTo(creepTerminal, 1)) {
                     this.transfer(creepTerminal, RESOURCE_ENERGY);
                 } else {
-                    this.travelTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
@@ -92,7 +111,7 @@ var systemPrototypes = {
                             Memory.roomsPersistent[this.room.name].stats.energySpentUpgrading += numWork;
                         }
                     } else {
-                        this.travelTo(creepController, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.moveTo(creepController, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 } else {
@@ -101,7 +120,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.withdraw(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.travelTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                            this.moveTo(creepLink, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                         }
                         return true; //move to next tick
                     } else {
@@ -157,7 +176,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepSiteTarget, 1)) {
                         this._build(creepSiteTarget, RESOURCE_ENERGY);
                     } else {
-                        this.travelTo(creepSiteTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                 }
                 return true; //move to next tick
@@ -195,7 +214,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.withdraw(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.travelTo(creepLink);
+                            this.moveTo(creepLink);
                         }
                         return true; //move to next tick
                     }
@@ -204,7 +223,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepStorage, 1)) {
                         this.withdraw(creepStorage, RESOURCE_ENERGY);
                     } else {
-                        this.travelTo(creepStorage);
+                        this.moveTo(creepStorage);
                     }
                     return true; //move to next tick     
                 } else {
@@ -213,7 +232,7 @@ var systemPrototypes = {
                         if (this.pos.inRangeTo(creepLink, 1)) {
                             this.transfer(creepLink, RESOURCE_ENERGY);
                         } else {
-                            this.travelTo(creepLink);
+                            this.moveTo(creepLink);
                         }
                         return true; //move to next tick
                     }
@@ -222,7 +241,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(creepStorage, 1)) {
                         this.transfer(creepStorage, RESOURCE_ENERGY);
                     } else {
-                        this.travelTo(creepStorage);
+                        this.moveTo(creepStorage);
                     }
                     return true; //move to next tick
                 }
@@ -272,7 +291,7 @@ var systemPrototypes = {
                     if (target.hits == target.hitsMax) {
                         this.memory.repairTarget = "none";
                     }
-                    if (this.pos.inRangeTo(target, 1)) {
+                    if (this.pos.inRangeTo(target, 4)) {
                         let success = this._repair(target, RESOURCE_ENERGY);
                         if (success == 0) {
                             let numWork = this.countBodyType(WORK);
@@ -287,7 +306,7 @@ var systemPrototypes = {
                             }
                         }
                     } else {
-                        this.travelTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                        this.moveTo(target, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }
@@ -308,7 +327,7 @@ var systemPrototypes = {
                     if (this.memory.tasks.includes(TASK_COMBAT_ATTACK_DRAIN) && this.hits < this.hitsMax) {
                         //move off the edge
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                            this.travelTo(new RoomPosition(25,25, this.room.name));
+                            this.moveTo(new RoomPosition(25,25, this.room.name));
                         }
                         return false; //move to next task if it is a drainer
                     }
@@ -317,9 +336,9 @@ var systemPrototypes = {
                         (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49)) {
                         //avoid annoying bug where they get stuck on room edges
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                            this.travelTo(new RoomPosition(25,25, this.room.name));
+                            this.moveTo(new RoomPosition(25,25, this.room.name));
                         } else {
-                            this.travelTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
+                            this.moveTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
                         }
                         return true; //move to next tick
                     } else {
@@ -357,7 +376,7 @@ var systemPrototypes = {
                         let selectedMessage = hollowKnightSigns[Math.floor(Math.random() * hollowKnightSigns.length)];
                         this.signController(controller, selectedMessage);
                     } else {
-                        this.travelTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
                     }
                     return true; //move to next tick
                 }
@@ -375,7 +394,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(controller, 1)) {
                         this.claimController(controller);
                     } else {
-                        this.travelTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
                     }
                     return true; //move to next tick
                 }
@@ -425,7 +444,7 @@ var systemPrototypes = {
                             this.memory.renewSpawn = "none";
                         }
                     } else {
-                        this.travelTo(creepSpawn, {visualizePathStyle: {stroke: COLOR_MOVE}})
+                        this.moveTo(creepSpawn, {visualizePathStyle: {stroke: COLOR_MOVE}})
                     }
                     return true; // move to next tick
                 } else {

@@ -144,7 +144,7 @@ var systemRoomPlanner2 = {
 
                         //define corners of the bunker
                         let topRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y, room);
-                        let topLeft = roomAnchor;
+                        let topLeft = new RoomPosition(roomAnchor.x, roomAnchor.y, room);
                         let bottomLeft = new RoomPosition(roomAnchor.x, roomAnchor.y + 10, room);
                         let bottomRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 10, room);
 
@@ -153,6 +153,14 @@ var systemRoomPlanner2 = {
                         let leftMiddle = new RoomPosition(roomAnchor.x, roomAnchor.y + 5, room);
                         let rightMiddle = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 5, room);
                         let corners = [topRight, topLeft, bottomLeft, bottomRight, topMiddle, bottomMiddle, leftMiddle, rightMiddle];
+
+                        //ignore if the position is a wall
+                        for (let i in corners) {
+                            let look = corners[i].lookFor(LOOK_TERRAIN);
+                            if (look == "wall") {
+                                corners.splice(i, 1);
+                            }
+                        }
 
                         let roadSites = [];
                         let selectedCorner;
@@ -284,7 +292,7 @@ var systemRoomPlanner2 = {
 
                         //define corners of the bunker
                         let topRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y, room);
-                        let topLeft = roomAnchor;
+                        let topLeft = new RoomPosition(roomAnchor.x, roomAnchor.y, room);
                         let bottomLeft = new RoomPosition(roomAnchor.x, roomAnchor.y + 10, room);
                         let bottomRight = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 10, room);
 
@@ -293,6 +301,14 @@ var systemRoomPlanner2 = {
                         let leftMiddle = new RoomPosition(roomAnchor.x, roomAnchor.y + 5, room);
                         let rightMiddle = new RoomPosition(roomAnchor.x + 10, roomAnchor.y + 5, room);
                         let corners = [topRight, topLeft, bottomLeft, bottomRight, topMiddle, bottomMiddle, leftMiddle, rightMiddle];
+
+                        //don't path there if it is a wall
+                        for (let i in corners) {
+                            let look = corners[i].lookFor(LOOK_TERRAIN);
+                            if (look == "wall") {
+                                corners.splice(i, 1);
+                            }
+                        }
 
                         let roadSites = [];
 
