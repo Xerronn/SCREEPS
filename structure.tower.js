@@ -62,7 +62,7 @@ var structureTower = {
         
         var target;
         for (let targ of targets) {
-            if (targ.hits < hitsMax) {
+            if (targ.hits < targ.hitsMax) {
                 target = targ;
             }
         }

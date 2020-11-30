@@ -259,17 +259,6 @@ var systemMemory = {
                     //currentRoom["ramparts"]["all"].push(ramp[i].id);
                 }
 
-                if (!currentRoom["links"]) {
-                    currentRoom["links"] = {};
-                }
-                if (!currentRoom["links"]["storage"]) {
-                    currentRoom["links"]["storage"] = [];
-                    currentRoom["links"]["controller"] = [];
-                    currentRoom["links"]["container"] = [];
-                    currentRoom["links"]["none"] = [];
-                    currentRoom["links"]["all"] = {};
-                }
-
                 //init the different types of containers
                 if (!currentRoom["containers"]) {
                     currentRoom["containers"] = {};
@@ -299,6 +288,17 @@ var systemMemory = {
                     //else
                     currentRoom["containers"]["storage"].push(container.id);
                     currentRoom["containers"]["all"][container.id]["type"] = "storage";           
+                }
+
+                if (!currentRoom["links"]) {
+                    currentRoom["links"] = {};
+                }
+                if (!currentRoom["links"]["storage"]) {
+                    currentRoom["links"]["storage"] = [];
+                    currentRoom["links"]["controller"] = [];
+                    currentRoom["links"]["container"] = [];
+                    currentRoom["links"]["none"] = [];
+                    currentRoom["links"]["all"] = {};
                 }
 
                 for (var link of links) {

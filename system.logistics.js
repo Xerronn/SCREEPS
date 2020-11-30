@@ -24,6 +24,10 @@ var systemLogistics = {
             Memory.roomsPersistent[room].logistics.selling = {};
             for (order of roomOrders) {
                 //set it back to zero, then increment it to cover cases where there are multiple orders
+                if (!Memory.roomsPersistent[room].logistics.selling[order.resourceType]) {
+                    //avoids it from being null
+                    Memory.roomsPersistent[room].logistics.selling[order.resourceType] = 0;
+                }
                 Memory.roomsPersistent[room].logistics.selling[order.resourceType] += order.remainingAmount;
                 if (order.remainingAmount == 0) {
                     Game.market.cancelOrder(order.id);
@@ -33,6 +37,7 @@ var systemLogistics = {
             //mineral demand and excess
 
             //loop through contents and append resources that are in excess
+
             for (var mineral of MINERALS) {
                 //set the selling memory to zero if it doesn't exist
                 if (!Object.keys(Memory.roomsPersistent[room].logistics.selling).includes(mineral)) {
@@ -74,9 +79,10 @@ var systemLogistics = {
             }
 
             //check if other terminals need resources this one has
+            //TODO: change from brute iteration into placing orders in memory
             let sentResource = false;
-            outerLoop:
-            for (var otherRoom of MY_ROOMS_TERMINAL) {
+            
+            outerLoop: for (var otherRoom of MY_ROOMS_TERMINAL) {
                 for (var extra of Object.keys(Memory.roomsPersistent[room].logistics.haves)) {
                     let extrasAmount = Memory.roomsPersistent[room].logistics.haves[extra];
                     let needAmount = Memory.roomsPersistent[otherRoom].logistics.needs[extra];

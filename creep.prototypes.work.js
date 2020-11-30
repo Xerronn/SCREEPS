@@ -21,6 +21,7 @@ var systemPrototypes = {
             Creep.prototype._moveTo = Creep.prototype.moveTo;
 
             Creep.prototype.moveTo = function(destination, options = {}) {
+                options.maxOps = 2000;
                 if (this.pos.inRangeTo(destination, 4)) {
                     options.maxOps = 100;
                     this.travelTo(destination, options); 
@@ -291,7 +292,7 @@ var systemPrototypes = {
                     if (target.hits == target.hitsMax) {
                         this.memory.repairTarget = "none";
                     }
-                    if (this.pos.inRangeTo(target, 4)) {
+                    if (this.pos.inRangeTo(target, 3)) {
                         let success = this._repair(target, RESOURCE_ENERGY);
                         if (success == 0) {
                             let numWork = this.countBodyType(WORK);

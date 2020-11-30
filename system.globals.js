@@ -12,7 +12,6 @@ var systemGlobals = {
             
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
-            //REMOVE E42N22 when terminal is moved!
             global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //CREEP PROTOTYPES
@@ -310,7 +309,7 @@ var systemGlobals = {
                     let maxToBuild = CONTROLLER_STRUCTURES[action][Game.rooms[room].controller.level];
                     if (maxToBuild > BUNKER[action]["pos"].length) maxToBuild = BUNKER[action]["pos"].length;
 
-                    if (numExist + numBuilding == maxToBuild) {
+                    if (numExist + numBuilding >= maxToBuild) {
                         let counter = 0;
                         for (struc of exist) {
                             if (counter > numRebuild - 1) {
