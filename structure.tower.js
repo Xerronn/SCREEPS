@@ -40,14 +40,14 @@ var structureTower = {
 
             //append outer ramparts if their hp is less than 45k. dont want waller walking all the way out there
             for (let ramp of outerRamparts) {
-                if (ramp.hits < 45000) {
+                if (ramp && ramp.hits < 45000) {
                     targets.push(ramp);
                 }
             }
 
             //help the bunker ramparts get started
             for (let ramp of bunkerRamparts) {
-                if (ramp.hits < 5000) {
+                if (ramp && ramp.hits < 5000) {
                     targets.push(ramp);
                 }
             }
@@ -55,15 +55,17 @@ var structureTower = {
             targets =  _.sortBy(targets, (struc) => struc.hits/struc.hitsMax);
 
             Memory.roomsPersistent[tower.room.name].towerRepairTargets = targets.map(struc => struc.id);
-            Memory.roomsPersistent[tower.room.name].towerRepairTargetsRefresh = Game.time + 300;
+            Memory.roomsPersistent[tower.room.name].towerRepairTargetsRefresh = Game.time + 80;
         } else {
             targets = Memory.roomsPersistent[tower.room.name].towerRepairTargets.map(struc => Game.getObjectById(struc));
         }
         
         var target;
         for (let targ of targets) {
-            if (targ.hits < targ.hitsMax) {
-                target = targ;
+            if (targ) {
+                if (targ.hits < targ.hitsMax) {
+                    target = targ;
+                }
             }
         }
 

@@ -73,14 +73,9 @@ var systemSpawner2 = {
                     if (liveObj) {
                         return liveObj
                     } else {
-                        //if a spawn no longer exists, delete it from memory
-                        //TODO: array is not defined?
-                        // let array = Memory.rooms[room].structures["spawns"];
-                        // let index = array.indexOf(spawnID);
-                        // if (index > -1) {
-                        //     array.splice(index, 1);
-                        //     let array = Memory.roomsCache[room].structures["spawns"] = array;
-                        // }
+                        //remove the spawn id if it no longer exists
+                        let index = Memory.roomsCache[room].structures["spawns"].indexOf(spawnID);
+                        Memory.roomsCache[room].structures["spawns"].splice(index, 1);
                     }
                 }
                 
@@ -141,10 +136,10 @@ var systemSpawner2 = {
                 Memory.roomsPersistent[room].creepCounts["mover"] = 0;
             }
             let numMovers = Memory.roomsPersistent[room].creepCounts["mover"];
-            if (room == "E69N69" && Game.rooms[room].storage && Game.rooms[room].terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 20000 && numMovers < 1 && !currentlySpawning.includes("mover")) {      
+            if (room == "E45N22" && Game.rooms[room].storage && Game.rooms[room].storage.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && numMovers < 1 && !currentlySpawning.includes("mover")) {      
                 spawnQueue[1].push({
                     creepName: "mover",
-                    creepMemory: {type: "worker", role: "mover", tasks: [TASK_WITHDRAW_TERMINAL, TASK_FILL_STORAGE]},
+                    creepMemory: {type: "worker", role: "mover", tasks: [TASK_WITHDRAW_STORAGE, TASK_FILL_TERMINAL]},
                     creepHasRoads: hasRoads
                 });  
             }
@@ -156,7 +151,7 @@ var systemSpawner2 = {
             var containers = Memory.roomsCache[room].structures.containers.source;
             for (var container of containers) {
                 let numTransporters = _.filter(Game.creeps, (creep) => creep.memory.role == 'transporter' && creep.memory.assignedContainer == container).length;
-                if (numTransporters < 1 && !currentlySpawning.includes("transporter")) {
+                if (room != "E45N22" && numTransporters < 1 && !currentlySpawning.includes("transporter")) {
                     let memory = {type: 'worker', role: 'transporter', tasks: TASK_LIST_TRANSPORTER}
                     spawnQueue[3].push({
                         creepName: "transporter",
@@ -170,18 +165,15 @@ var systemSpawner2 = {
             if (!Memory.roomsPersistent[room].creepCounts["miner"]) {
                 Memory.roomsPersistent[room].creepCounts["miner"] = 0;
             }
-            var sources = Object.keys(Memory.roomsPersistent[room].sources);
-            for (var source of sources) {
-                //TODO: FIGURE OUT HOW TO HANDLE creep.ticksToLive > 100 with my new source assignment
-                let numWorker = _.filter(Game.creeps, (creep) => creep.memory.role == 'miner' && creep.memory.assignedSource == source).length;
-                if (numWorker < 1 && !currentlySpawning.includes("miner")) {   
-                    let memory = {type: "worker", role: 'miner', tasks: TASK_LIST_HARVESTER};
-                    spawnQueue[3].push({
-                        creepName: "miner",
-                        creepMemory: memory,
-                        creepHasRoads: hasRoads
-                    });
-                }
+            //TODO: FIGURE OUT HOW TO HANDLE creep.ticksToLive > 100 with my new source assignment
+            let numWorker = Memory.roomsPersistent[room].creepCounts["miner"]; 
+            if (room != "E45N22" && numWorker < 2 && !currentlySpawning.includes("miner")) {   
+                let memory = {type: "worker", role: 'miner', tasks: TASK_LIST_HARVESTER};
+                spawnQueue[3].push({
+                    creepName: "miner",
+                    creepMemory: memory,
+                    creepHasRoads: hasRoads
+                });
             }
             
             //builder spawning
@@ -206,7 +198,7 @@ var systemSpawner2 = {
             let numUpgraders = Memory.roomsPersistent[room].creepCounts["upgrader"];
             let numToSpawn = 1;
             if (roomController.level < 4) numToSpawn = 3;
-            if (numUpgraders < numToSpawn && !currentlySpawning.includes("upgrader")) {
+            if (room != "E45N22" && numUpgraders < numToSpawn && !currentlySpawning.includes("upgrader")) {
                 spawnQueue[5].push({
                     creepName: "upgrader",
                     creepMemory: {type: "worker", role: "upgrader", tasks: TASK_LIST_UPGRADER},
@@ -274,7 +266,7 @@ var systemSpawner2 = {
                     Memory.roomsPersistent[room].creepCounts["waller"] = 0;
                 }
                 let numWallers = Memory.roomsPersistent[room].creepCounts["waller"];
-                if (numWallers < 1 && !currentlySpawning.includes("waller")) {
+                if (room != "E45N22" && numWallers < 1 && !currentlySpawning.includes("waller")) {
                     spawnQueue[4].push({
                         creepName: "waller",
                         creepMemory: {type: "worker", role: "waller", tasks: TASK_LIST_WALLER},
@@ -306,7 +298,7 @@ var systemSpawner2 = {
                     }
                     let numLinkers = Memory.roomsPersistent[room].creepCounts["linker"];
                     let numStorageLinks = Memory.roomsCache[room].structures.links.storage.length;
-                    if (numLinkers < 1 && numStorageLinks > 0 && !currentlySpawning.includes("linker")) {
+                    if (room != "E45N22" && numLinkers < 1 && numStorageLinks > 0 && !currentlySpawning.includes("linker")) {
                         spawnQueue[2].push({
                             creepName: "linker",
                             creepMemory: {type: "worker", role: "linker", tasks: [TASK_MANAGE_LINK]},
@@ -321,7 +313,7 @@ var systemSpawner2 = {
                         Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
                     }
                     let numQuarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
-                    if (numQuarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time && !currentlySpawning.includes("quarrier")) {
+                    if (room != "E45N22" && numQuarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time && !currentlySpawning.includes("quarrier")) {
                         spawnQueue[5].push({
                             creepName: "quarrier",
                             creepMemory: {type: "worker", role: "quarrier", tasks: TASK_LIST_QUARRIER},
@@ -332,7 +324,7 @@ var systemSpawner2 = {
                     if (Memory.roomsCache[room].structures.containers.mineral.length > 0) {
                         //spawn mineral transporter once the container is mostly full
                         let container = Game.getObjectById(Memory.roomsCache[room].structures.containers.mineral[0]);
-                        if (container && container.store.getUsedCapacity() > 1100) {
+                        if (room != "E45N22" && container && container.store.getUsedCapacity() > 1100) {
                             if (!Memory.roomsPersistent[room].creepCounts["mineralTransporter"]) {
                                 Memory.roomsPersistent[room].creepCounts["mineralTransporter"] = 0;
                             }

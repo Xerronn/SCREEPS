@@ -13,50 +13,76 @@ var systemPrototypesHarvest = {
         //task to distribute to different sources and harvest them
         if (!Creep.prototype.harvestEnergy) {
             Creep.prototype.harvestEnergy = function() {
-                //set state
+
+                //set the state of the creep
                 if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     this.memory.harvesting = true;
-                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) < (this.countBodyType(WORK) * 2)) {
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) < (this.getActiveBodyparts(WORK) * 2)) {
                     this.memory.harvesting = false;
                 }
+                
 
-                //skip all this if its already full from another task
-                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP) && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK)) {
+                //a few definitions first
+                var isLinkMiner = this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK);
+                var isDropMiner = this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP);
+
+
+                //move to the next task if the creep is no longer harvesting and doesn't have the tasks for a container or a link
+                if (!this.memory.harvesting && !isDropMiner && !isLinkMiner) {
                     return false; //move to next task
                 }
 
+
                 //assign creep to source that has the least miners
                 if (!this.memory.assignedSource) {
+                    //find all sources in the room
                     var sourceList = Memory.roomsPersistent[this.room.name].sources;
                     var leastAttended = "none";
                     //find the source with the least number of miners
                     for (var source of Object.keys(sourceList)) {
+                        //get the data from memory about this source
                         let sourceMemory = Memory.roomsPersistent[this.room.name].sources[source]
-                        if (!sourceMemory.miners) {
-                            sourceMemory.miners = [];
-                        }
-                        if (leastAttended == "none" || sourceMemory.miners.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].miners.length) {
-                            leastAttended = source;
+                        //if the creep is a dedicated miner, increment the miner list
+                        if (isDropMiner || isLinkMiner) {
+                            if (!sourceMemory.miners) {
+                                sourceMemory.miners = [];
+                            }
+                            if (leastAttended == "none" || sourceMemory.miners.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].miners.length) {
+                                leastAttended = source;
+                            }
+                        } else { //otherwise increment worker list
+                            if (!sourceMemory.workers) {
+                                sourceMemory.workers = [];
+                            }
+                            if (leastAttended == "none" || sourceMemory.workers.length < Memory.roomsPersistent[this.room.name].sources[leastAttended].workers.length) {
+                                leastAttended = source;
+                            }
                         }
                     }
                     //set the creep memory to that least attended source so we never have to do this again
                     this.memory.assignedSource = leastAttended;
-                    Memory.roomsPersistent[this.room.name].sources[leastAttended].miners.push(this.name);
+                    if (isDropMiner || isLinkMiner) {
+                        Memory.roomsPersistent[this.room.name].sources[leastAttended].miners.push(this.name);
+                    } else {
+                        Memory.roomsPersistent[this.room.name].sources[leastAttended].workers.push(this.name);
+                    }
                 }
 
                 //once the creep definitely has an assigned source, we can use a variable to reference the game object
                 var creepSource = Game.getObjectById(this.memory.assignedSource);
+                
 
-                //skip all this if the source is empty
+                //skip extra work if the source is empty
                 if (creepSource.energy == 0) {
-                    if (this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP) || this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK)) {
+                    if (isDropMiner || isLinkMiner) {
                         return true; //move to next tick
                     }
                     return false; //move to next task
-                } 
+                }
+
 
                 //now we check for containers for drop mining
-                if (!this.memory.assignedContainer) {
+                if (isDropMiner && !this.memory.assignedContainer) {
                     //find any containers within range 1
                     let sourceContainers = creepSource.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}})
                     if (sourceContainers.length > 0) {
@@ -79,9 +105,10 @@ var systemPrototypesHarvest = {
                     creepContainer = Game.getObjectById(this.memory.assignedContainer);
                 }
 
+
                 //now we do the final check for links
-                if (!this.memory.assignedSourceLink) {
-                    //find any links within range 1
+                if (isLinkMiner && !this.memory.assignedSourceLink) {
+                    //find any links within range 2
                     let allSourceLinks = Memory.roomsCache[this.room.name].structures.links.container.map(container => Game.getObjectById(container));
                     var sourceLinks = creepSource.pos.findInRange(allSourceLinks, 2);
                     if (sourceLinks.length > 0) {
@@ -103,9 +130,10 @@ var systemPrototypesHarvest = {
                 if (this.memory.assignedSourceLink != "none") { 
                     creepLink = Game.getObjectById(this.memory.assignedSourceLink);
                 }
-                
+
+
                 //ends the harvesting task if it doesn't need to harvest
-                if (!this.memory.harvesting && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP) && !this.memory.tasks.includes(TASK_HARVEST_ENERGY_LINK)) {
+                if (!this.memory.harvesting && !isDropMiner && !isLinkMiner) {
                     return false; //move to next task
                 }
 
@@ -119,11 +147,12 @@ var systemPrototypesHarvest = {
                     return true; //move to next tick
                 }
 
+
                 //at this point the creep either has to be harvesting or drop harvesting
                 var distanceToTarget = 1;
                 var moveTarget = creepSource;
                 //if there is a container and no link we need to move to on top of it instead of the source, so that drop mining can occur
-                if (this.memory.assignedContainer != "none" && this.memory.assignedSourceLink == "none" && this.memory.tasks.includes(TASK_HARVEST_ENERGY_DROP)) {
+                if (this.memory.assignedContainer != "none" && this.memory.assignedSourceLink == "none" && isDropMiner) {
                     distanceToTarget = 0;
                     moveTarget = creepContainer;
                 }
@@ -132,12 +161,11 @@ var systemPrototypesHarvest = {
                 if (this.pos.inRangeTo(moveTarget, distanceToTarget)) {
                     let success = this.harvest(creepSource);
                     if (success == 0) {
-                        let numWork = this.countBodyType(WORK);
+                        let numWork = this.getActiveBodyparts(WORK);
                         //TODO: rework this when boosting is possible
                         Memory.roomsPersistent[this.room.name].stats.energyHarvested += numWork * 2;
                     }
                 } else {
-                    //TODO moveTo was causing huge cpu spikes
                     this.moveTo(moveTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick

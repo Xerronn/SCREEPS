@@ -12,7 +12,7 @@ var systemGlobals = {
             
             //CONSTANTS
             global.MY_ROOMS = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].controller.level > 0);
-            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
+            global.MY_ROOMS_TERMINAL = _.filter(Object.keys(Game.rooms), (room) => room != "E45N22" && Game.rooms[room].controller && Game.rooms[room].controller.my && Game.rooms[room].terminal);
 
             //CREEP PROTOTYPES
             prototypeWork.run();
@@ -177,6 +177,36 @@ var systemGlobals = {
                 }
 
                 return "Deleted " + roomOrders.length + " orders from " + room + "!";
+            }
+
+            global.syncSourceCounts = function () {
+                for (var room of Object.keys(Memory.roomsPersistent)) {
+                    var creeps = Game.rooms[room].find(FIND_MY_CREEPS);
+
+                    for (var source of Game.rooms[room].find(FIND_SOURCES)) {
+                        //reset the value to 0 for each source in memory
+                        Memory.roomsPersistent[room].sources[source.id].miners = [];
+                        Memory.roomsPersistent[room].sources[source.id].transporters = [];
+                        Memory.roomsPersistent[room].sources[source.id].workers = [];
+                    }
+                    for (var creep of creeps) {
+                        if (creep.memory.role == "miner" || creep.memory.role == "transporter") {
+                            if (creep.memory.assignedSource || creep.memory.assignedContainerSource) {
+                                if (creep.memory.assignedSource) {
+                                    Memory.roomsPersistent[room].sources[creep.memory.assignedSource].miners.push(creep.name);
+                                }
+                                if (creep.memory.assignedContainerSource) {
+                                    Memory.roomsPersistent[room].sources[creep.memory.assignedContainerSource].transporters.push(creep.name);
+                                }
+                            }
+                        } else {
+                            if (creep.memory.assignedSource) {
+                                Memory.roomsPersistent[room].sources[creep.memory.assignedSource].workers.push(creep.name);
+                            }
+                        }
+                    }
+                }
+                return "Synced source worker counts!";
             }
 
             /**

@@ -3,9 +3,17 @@ var roleWorker = {
     /** @param {Creep} creep **/
     run: function(creep) {
         try {
+            //store the cpu used per task over the last ticks
+            if (!creep.memory.cpuLog) {
+                creep.memory.cpuLog = {};
+            }
+            creep.memory.cpuLog[(Game.time % 5) + 1] = [];
+
             //TODO: change this so the try is in the prototypes instead of here
             //iterate through tasks in order of importance(order)
             for (var task of creep.memory.tasks) {
+                let taskCpu = Game.cpu.getUsed();
+
                 //if this variable gets set to true, it will stop the iteration through tasks
                 var taskCompleted = false;
                 switch(task) {
@@ -120,6 +128,9 @@ var roleWorker = {
                         }
                         break;
                 }
+                //push the cpu used during the task to the list
+                creep.memory.cpuLog[(Game.time % 5) + 1].push(Game.cpu.getUsed() - taskCpu);
+
                 //break the loop if it finds what it needs to do
                 if (taskCompleted) break;
             }

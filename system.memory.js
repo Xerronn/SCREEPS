@@ -67,6 +67,9 @@ var systemMemory = {
                 let sources = Game.rooms[room].find(FIND_SOURCES).map(source => source.id);
                 for (let source of sources) {
                     Memory.roomsPersistent[room].sources[source] = {};
+                    Memory.roomsPersistent[room].sources[source].miners = [];
+                    Memory.roomsPersistent[room].sources[source].workers = [];
+                    Memory.roomsPersistent[room].sources[source].transporters = [];
                 }
             }
 
@@ -309,7 +312,7 @@ var systemMemory = {
                     let nearestBuilding = link.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => { return structure.structureType != STRUCTURE_LINK 
                             && [STRUCTURE_STORAGE, STRUCTURE_CONTROLLER].includes(structure.structureType)
-                            && link.pos.inRangeTo(structure, 4)
+                            && link.pos.inRangeTo(structure, 3)
                         }});
                     if (nearestBuilding) {
                         switch(nearestBuilding.structureType) {
