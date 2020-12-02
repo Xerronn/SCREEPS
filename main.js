@@ -47,7 +47,7 @@ module.exports.loop = function () {
         memoryHandler.run();
         
         //other system stuff
-        if (Memory.roomsCache) {         
+        if (Memory.roomsCache) {
             populationControl.run();
             renderUI.run();
             roomPlanner.run();

@@ -20,7 +20,12 @@ var systemPrototypes = {
         if (!Creep.prototype._moveTo) {
             Creep.prototype._moveTo = Creep.prototype.moveTo;
 
+            //TODO: fix for remote. 500 not enough
             Creep.prototype.moveTo = function(destination, options = {}) {
+                if (!this.memory.tasks.includes(TASK_MANAGE_LINK)) {
+                    let linkerPos = Memory.roomsPersistent[this.room.name].roomPlanning.linkerSpot;
+                    options.obstacles = [{pos: new RoomPosition(linkerPos.x, linkerPos.y, this.room.name)}];
+                }
                 options.maxOps = 500;
                 if (this.pos.inRangeTo(destination, 4)) {
                     options.maxOps = 100;

@@ -272,7 +272,7 @@ var systemPrototypes = {
                     //remove this task if there is no storage
                     if (!creepContainer) {
                         let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_FILL_CONTAINER);
+                        let index = array.indexOf(TASK_FILL_STORAGE_CONTAINER);
                         if (index > -1) {
                             array.splice(index, 1);
                             this.memory.tasks = array;

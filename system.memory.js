@@ -187,7 +187,7 @@ var systemMemory = {
             }
 
             //STRUCTURE MEMORY
-            if (!Memory.roomsCache[room]["structures"] || Memory.roomsCache[room].structureRefresh + 100 < Game.time) {
+            if (!Memory.roomsCache[room]["structures"] || Memory.roomsCache[room].structureRefresh + 20 < Game.time) {
                 Memory.roomsCache[room].structureRefresh = Game.time;
                 Memory.roomsCache[room]["structures"] = {};
                 var currentRoom = Memory.roomsCache[room]["structures"];
