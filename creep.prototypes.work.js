@@ -21,7 +21,7 @@ var systemPrototypes = {
             Creep.prototype._moveTo = Creep.prototype.moveTo;
 
             Creep.prototype.moveTo = function(destination, options = {}) {
-                options.maxOps = 2000;
+                options.maxOps = 500;
                 if (this.pos.inRangeTo(destination, 4)) {
                     options.maxOps = 100;
                     this.travelTo(destination, options); 
@@ -174,7 +174,7 @@ var systemPrototypes = {
                 //if there is a target, move towards it and transfer
                 var creepSiteTarget = Game.getObjectById(this.memory.siteTarget);
                 if(creepSiteTarget) {
-                    if (this.pos.inRangeTo(creepSiteTarget, 1)) {
+                    if (this.pos.inRangeTo(creepSiteTarget, 3)) {
                         this._build(creepSiteTarget, RESOURCE_ENERGY);
                     } else {
                         this.moveTo(creepSiteTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
@@ -190,8 +190,18 @@ var systemPrototypes = {
         if (!Creep.prototype.manageLink) {
             Creep.prototype.manageLink = function() {
                 //assign the room storage and storage link to memory
+                let testCpu = Game.cpu.getUsed();
                 var creepStorage = this.room.storage;
                 var creepLink = Game.getObjectById(Memory.roomsCache[this.room.name].structures.links.storage[0]);
+                var linkerSpot = Memory.roomsPersistent[this.room.name].roomPlanning.linkerSpot;
+                var creepPos = new RoomPosition(linkerSpot.x, linkerSpot.y, this.room.name);
+                
+                
+                if (!this.pos.isEqualTo(creepPos)) {
+                    this.moveTo(creepPos);
+                    return true; //move to next tick while we move
+                }
+                
                 
                 //move to next task if there isn't one of these
                 if (!creepStorage || !creepLink) {
@@ -212,38 +222,24 @@ var systemPrototypes = {
                 if (this.memory.harvesting) {
                     //pull from the creepStorage creepLink if it is higher than the sweet spot
                     if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 400) {
-                        if (this.pos.inRangeTo(creepLink, 1)) {
-                            this.withdraw(creepLink, RESOURCE_ENERGY);
-                        } else {
-                            this.moveTo(creepLink);
-                        }
+                        
+                        this.withdraw(creepLink, RESOURCE_ENERGY);
                         return true; //move to next tick
                     }
-                    
-                    //pull from creepStorage itself if the creepLink is lower than the good spot
-                    if (this.pos.inRangeTo(creepStorage, 1)) {
-                        this.withdraw(creepStorage, RESOURCE_ENERGY);
-                    } else {
-                        this.moveTo(creepStorage);
-                    }
+                    //else pull from creepStorage itself if the creepLink is lower than the good spot
+
+                    this.withdraw(creepStorage, RESOURCE_ENERGY);
                     return true; //move to next tick     
                 } else {
                     //transfer to the creepLink if it is less than the sweet spot
                     if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 400) {
-                        if (this.pos.inRangeTo(creepLink, 1)) {
-                            this.transfer(creepLink, RESOURCE_ENERGY);
-                        } else {
-                            this.moveTo(creepLink);
-                        }
+                        
+                        this.transfer(creepLink, RESOURCE_ENERGY);
                         return true; //move to next tick
                     }
 
                     //otherwise transfer to the creepStorage
-                    if (this.pos.inRangeTo(creepStorage, 1)) {
-                        this.transfer(creepStorage, RESOURCE_ENERGY);
-                    } else {
-                        this.moveTo(creepStorage);
-                    }
+                    this.transfer(creepStorage, RESOURCE_ENERGY);
                     return true; //move to next tick
                 }
             }

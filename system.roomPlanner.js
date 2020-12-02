@@ -104,14 +104,15 @@ var systemRoomPlanner2 = {
                 //once you have an anchor make a live position of it
                 //TODO: factory is not building for some reason
                 var roomAnchor = new RoomPosition(Memory.roomsPersistent[room].roomPlanning.anchor["x"], Memory.roomsPersistent[room].roomPlanning.anchor["y"],room);
-                var typesToBuild = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_STORAGE, STRUCTURE_LINK, STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_TERMINAL];
+                var typesToBuild = [STRUCTURE_CONTAINER, STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_LAB, 
+                    STRUCTURE_STORAGE, STRUCTURE_LINK, STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_TERMINAL];
 
                 //store specific tiles for the linker and treasurer to stand
                 if (!Memory.roomsPersistent[room].roomPlanning.linkerSpot) {
                     Memory.roomsPersistent[room].roomPlanning.linkerSpot = {"x": roomAnchor.x + 4, "y": roomAnchor.y + 4};
                     Memory.roomsPersistent[room].roomPlanning.treasurerSpot = {"x": roomAnchor.x + 5, "y": roomAnchor.y + 5};
                 }
-                return
+                
                 //hande reliable first spawn building
                 if (Game.rooms[room].find(FIND_MY_SPAWNS).length < 1) {
                     for (var i =0; i < 10; i++) { 
