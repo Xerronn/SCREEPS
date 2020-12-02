@@ -6,6 +6,7 @@ var systemPrototypesHarvest = {
         global.TASK_HARVEST_MINERAL = "harvest_mineral";
         global.TASK_HARVEST_MINERAL_DROP = "harvest_mineral_drop";
         global.TASK_WITHDRAW_STORAGE = "withdraw_storage";
+        global.TASK_WITHDRAW_STORAGE_CONTAINER = "withdraw_storage_container";
         global.TASK_WITHDRAW_CONTAINER = "withdraw_container";
         global.TASK_WITHDRAW_TERMINAL = "withdraw_terminal";
         global.TASK_SALVAGE = "salvage";
@@ -306,6 +307,46 @@ var systemPrototypesHarvest = {
                     this.withdraw(creepStorage, RESOURCE_ENERGY);
                 } else {
                     this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to withdraw from a storage container
+        if (!Creep.prototype.withdrawStorageContainer) {
+            Creep.prototype.withdrawStorageContainer = function() {
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //get container into a live object if it exists
+                var creepContainer;
+                if (Memory.roomsCache[this.room.name].structures.containers.storage && Memory.roomsCache[this.room.name].structures.containers.storage.length > 0) {
+                    creepContainer = Game.getObjectById(Memory.roomsCache[this.room.name].structures.containers.storage[0]);
+                }
+
+                if (!creepContainer || !this.memory.harvesting || creepContainer.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    //remove this task if there is no storage
+                    if (!creepContainer) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_WITHDRAW_STORAGE_CONTAINER);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is full or if there is no storage
+                }
+                //withdraw from the storage
+                if (this.pos.inRangeTo(creepContainer, 1)) {
+                    this.withdraw(creepContainer, RESOURCE_ENERGY);
+                } else {
+                    this.moveTo(creepContainer, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }

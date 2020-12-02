@@ -11,9 +11,10 @@ var systemSpawner2 = {
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT_ENERGY, TASK_FILL_STORAGE, TASK_FILL_TERMINAL, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER_MINERAL = [TASK_TRANSPORT_MINERALS, TASK_FILL_TERMINAL];
-        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_FILL_EXTENSION, TASK_RENEW, TASK_FILL_TOWER, TASK_MANAGE_TERMINAL]; //TODO: potential terminal manager?
+        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE_CONTAINER, TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_FILL_EXTENSION, TASK_RENEW, TASK_FILL_TOWER, TASK_MANAGE_TERMINAL]; //TODO: potential terminal manager?
         const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_EXTENSION];
         const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
+        const TASK_LIST_LINKER = [TASK_MANAGE_LINK, TASK_WITHDRAW_STORAGE, TASK_FILL_STORAGE_CONTAINER]
 
         const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
         //TODO: REDO THIS... AGAIN creeps have too many move parts for some reason. except for wallers...
@@ -288,7 +289,7 @@ var systemSpawner2 = {
                     if (numLinkers < 1 && numStorageLinks > 0 && !currentlySpawning.includes("linker")) {
                         spawnQueue[2].push({
                             creepName: "linker",
-                            creepMemory: {type: "worker", role: "linker", tasks: [TASK_MANAGE_LINK]},
+                            creepMemory: {type: "worker", role: "linker", tasks: TASK_LIST_LINKER},
                             creepHasRoads: hasRoads
                         });
                     } 

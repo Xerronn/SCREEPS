@@ -35,6 +35,11 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_WITHDRAW_STORAGE_CONTAINER:
+                        if (creep.withdrawStorageContainer() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_WITHDRAW_CONTAINER:
                         if (creep.withdrawContainer() == true) {
                             taskCompleted = true;
@@ -72,6 +77,11 @@ var roleWorker = {
                         break;
                     case TASK_FILL_STORAGE:
                         if (creep.fillStorage() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_FILL_STORAGE_CONTAINER:
+                        if (creep.fillStorageContainer() == true) {
                             taskCompleted = true;
                         }
                         break;

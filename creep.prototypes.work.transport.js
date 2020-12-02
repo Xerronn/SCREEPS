@@ -6,7 +6,7 @@ var systemPrototypes = {
         global.TASK_FILL_TOWER = "fill_tower"; 
         global.TASK_FILL_STORAGE = "fill_storage"; 
         global.TASK_FILL_TERMINAL = "fill_terminal";
-        global.TASK_FILL_CONTAINER = "fill_container";//TODO
+        global.TASK_FILL_STORAGE_CONTAINER = "fill_storage_container";
 
         //task to withdraw from assigned source container
         //TODO: check for energy to pick up along its path?
@@ -251,6 +251,42 @@ var systemPrototypes = {
                     }
                 } else {
                     this.moveTo(creepStorage, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to fill a storage container
+        if (!Creep.prototype.fillStorageContainer) {
+            Creep.prototype.fillStorageContainer = function() {
+                //get container into a live object if it exists
+                var creepContainer;
+                if (Memory.roomsCache[this.room.name].structures.containers.storage && Memory.roomsCache[this.room.name].structures.containers.storage.length > 0) {
+                    creepContainer = Game.getObjectById(Memory.roomsCache[this.room.name].structures.containers.storage[0]);
+                }
+                
+                //skip the task if there is no storage container, the creep is harvesting or the creep has no energy
+                if (!creepContainer || this.memory.harvesting || !this.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                    //remove this task if there is no storage
+                    if (!creepContainer) {
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_FILL_CONTAINER);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                    }
+                    return false; //move to next task if creep is harvesting
+                }
+                //fill the storage
+                if (this.pos.inRangeTo(creepContainer, 1)) {
+                    for(var resourceType in this.store) {
+                        this.transfer(creepContainer, resourceType);
+                    }
+                } else {
+                    this.moveTo(creepContainer, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                 }
                 return true; //move to next tick
             }
