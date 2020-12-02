@@ -149,7 +149,7 @@ var systemPrototypes = {
 
                     //assign a new object that needs filling to be the target
                     if (!this.memory.fillTarget || this.memory.fillTarget == "none") {
-                        let closestFillTarget = this.pos.findClosestByPath(FIND_STRUCTURES, {
+                        let closestFillTarget = this.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
                                     structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
@@ -195,7 +195,7 @@ var systemPrototypes = {
 
                     //assign a new object that needs towering to be the target
                     if (!this.memory.towerTarget || this.memory.towerTarget == "none") {
-                        var towerTarget = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                        var towerTarget = this.pos.findClosestByRange(FIND_MY_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_TOWER) &&
                                     structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0}
@@ -451,7 +451,7 @@ var systemPrototypes = {
                         );
                         //if there are any sites
                         if (siteList.length > 0) {
-                            this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
+                            this.memory.siteTarget = this.pos.findClosestByRange(siteList).id;
                         } else {
                             return false; //move to next task if the last construction site is finished
                         }

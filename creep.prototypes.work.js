@@ -166,7 +166,7 @@ var systemPrototypes = {
                         );
                         //if there are any sites
                         if (siteList.length > 0) {
-                            this.memory.siteTarget = this.pos.findClosestByPath(siteList).id;
+                            this.memory.siteTarget = this.pos.findClosestByRange(siteList).id;
                         } else {
                             return false; //move to next task if the last construction site is finished
                         }

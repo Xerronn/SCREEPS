@@ -402,7 +402,7 @@ var systemPrototypesHarvest = {
 
                 //assign a new object that needs filling to be the target
                 if (!this.memory.containerTarget || this.memory.containerTarget == "none") {
-                    let closestFull = this.pos.findClosestByPath(creepContainers, {
+                    let closestFull = this.pos.findClosestByRange(creepContainers, {
                         filter: (structure) => {
                             return structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0}});
                     if (closestFull) {        
@@ -485,7 +485,7 @@ var systemPrototypesHarvest = {
 
                 //assign closest resource to creep
                 if (!this.memory.assignedSalvage || this.memory.assignedSalvage == "none") {
-                    let assignedSalvage = this.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {filter : resource => resource.resourceType == RESOURCE_ENERGY});
+                    let assignedSalvage = this.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {filter : resource => resource.resourceType == RESOURCE_ENERGY});
                     if (assignedSalvage) {
                         this.memory.assignedSalvage = assignedSalvage.id;
                     } else {
