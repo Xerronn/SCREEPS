@@ -10,11 +10,11 @@ const taskExecution = require('system.taskManager');
 const garbageCollection = require('system.garbageCollection');
 
 const initializeGlobals = require('system.globals');
-const initializeWorkPrototypes = require('creep.prototypes.work');
-const initializeCombatPrototypes = require('creep.prototypes.combat');
 
 
 profiler.enable();
+profiler.registerObject(StructureLink, 'Link');
+profiler.registerObject(StructureTower, 'Tower');
 module.exports.loop = function () {
     //memhack
     if(Game.time != global.memhack_lastTime) {
@@ -34,7 +34,7 @@ module.exports.loop = function () {
         global.memhack_LastMemory = RawMemory._parsed;
         global.memhack_lastTime = Game.time;
     }
-    
+
     profiler.wrap(function() {
         //TODO: make code CPU aware
         //initialization

@@ -72,7 +72,7 @@ var systemGlobals = {
                 "lab":{"pos":[{"x":8,"y":7},{"x":9,"y":7},{"x":7,"y":8},{"x":9,"y":8},{"x":10,"y":8},{"x":7,"y":9},{"x":8,"y":9},{"x":10,"y":9},{"x":8,"y":10},{"x":9,"y":10}]}
             };
 
-
+            
             //global functions
             global.help = function () {
                 let functions = ["claimRoom", "synchCreepCounts", "removeConstructionSites", 
