@@ -9,6 +9,7 @@ var systemTaskManager = {
         //task assignment:
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
+            if (creep.spawning) continue;
             let startCpu = Game.cpu.getUsed();
             switch (creep.memory.type) {
                 case 'worker':

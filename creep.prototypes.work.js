@@ -37,6 +37,112 @@ var systemPrototypes = {
             }
         }
 
+        //MY ATTEMPT AT CUSTOM MOVE CODE
+        // if (!Creep.prototype._moveTo) {
+        //     Creep.prototype._moveTo = Creep.prototype.moveTo;
+
+        //     //TODO: fix for remote. 500 not enough
+        //     Creep.prototype.moveTo = function(destination, options = {maxOps: 500}) {
+        //         let startCpu = Game.cpu.getUsed();
+        //         options = {"maxOps": 500, "costCallback": getCostMatrix, "reusePath": 10, "range": 1};
+
+        //         //check if the creep is stuck
+        //         if (!this.memory.moveData || !this.memory.moveData.lastCoords) {
+        //             if (!this.memory.moveData) {
+        //                 this.memory.moveData = {};
+        //             }
+        //             this.memory.moveData.lastCoords = this.pos;
+        //         }
+        //         if (this.pos.isEqualTo(this.memory.moveData.lastCoords.x, this.memory.moveData.lastCoords.y)) {
+        //             if (!this.memory.moveData.stuckCount) {
+        //                 this.memory.moveData.stuckCount = 1;
+        //             } else {
+        //                 this.memory.moveData.stuckCount++;
+        //             }
+        //         } else {
+        //             this.memory.moveData.stuckCount = 0;
+        //             this.memory.moveData.lastCoords = this.pos;
+        //         }
+
+        //         if (this.memory.moveData.stuckCount >= 3) {
+        //             if (this.memory.moveData.stuckCount >= 6) {
+        //                 console.log(this.name + " STUCK!");
+        //             }
+        //             options.costCallback = getCreepMatrix;
+        //             options.maxOps = 500;
+        //             this._moveTo(destination, options);
+        //             return;
+        //         }
+
+        //         if (this.pos.inRangeTo(destination, 4)) {
+        //             // options.maxOps = 100;
+        //             this._moveTo(destination, options); 
+        //         } else {
+        //             // options.range = 4;
+        //             this._moveTo(destination, options);
+        //         }
+        //     }
+
+        //     function getCostMatrix (room, mat) {
+        //         let matrix;
+        //         if (!Memory.roomsPersistent[room].costMatrix || !Memory.roomsPersistent[room].costMatrixRefresh || Memory.roomsPersistent[room].costMatrixRefresh < Game.time) {
+        //             matrix = generateCostMatrix(room);
+        //             Memory.roomsPersistent[room].costMatrix = matrix.serialize();
+        //             Memory.roomsPersistent[room].costMatrixRefresh = Game.time + 1500;
+        //             return matrix;
+        //         } else {
+        //             matrix = PathFinder.CostMatrix.deserialize(Memory.roomsPersistent[room].costMatrix);
+        //             return matrix;
+        //         }
+        //     }
+
+        //     function generateCostMatrix (room) {
+        //         let impassibleStructures = [];
+        //         let matrix = new PathFinder.CostMatrix();
+        //         room = Game.rooms[room];
+        //         //dissuade creeps from pathing across the linker position
+        //         let roomAnchor = Memory.roomsPersistent[room.name].roomPlanning.anchor; 
+        //         matrix.set(roomAnchor.x, roomAnchor.y, 100);
+        //         for (let structure of room.find(FIND_STRUCTURES)) {
+        //             if (structure instanceof StructureRampart) {
+        //                 if (!structure.my && !structure.isPublic) {
+        //                     impassibleStructures.push(structure);
+        //                 }
+        //             }
+        //             else if (structure instanceof StructureRoad) {
+        //                 matrix.set(structure.pos.x, structure.pos.y, 1);
+        //             }
+        //             else if (structure instanceof StructureContainer) {
+        //                 matrix.set(structure.pos.x, structure.pos.y, 5);
+        //             }
+        //             else {
+        //                 impassibleStructures.push(structure);
+        //             }
+        //         }
+        //         for (let site of room.find(FIND_MY_CONSTRUCTION_SITES)) {
+        //             if (site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_ROAD
+        //                 || site.structureType === STRUCTURE_RAMPART) {
+        //                 continue;
+        //             }
+        //             matrix.set(site.pos.x, site.pos.y, 0xff);
+        //         }
+        //         for (let structure of impassibleStructures) {
+        //             matrix.set(structure.pos.x, structure.pos.y, 0xff);
+        //         }
+        //         return matrix;
+        //     }
+
+        //     function getCreepMatrix(room) {
+        //         return addCreepsToMatrix(room, generateCostMatrix(room));
+        //     }
+
+        //     function addCreepsToMatrix(room, matrix) {
+        //         room = Game.rooms[room];
+        //         room.find(FIND_CREEPS).forEach((creep) => matrix.set(creep.pos.x, creep.pos.y, 0xff));
+        //         return matrix;
+        //     }
+        // }
+
 
 
         //task to manage a terminal and keep it at 20k energy
