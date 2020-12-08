@@ -9,7 +9,8 @@ var systemLogistics = {
         for (var room of MY_ROOMS_TERMINAL) {
             var roomObject = Game.rooms[room];
             var roomTerminal = roomObject.terminal;
-            var roomOrders = _.filter(Game.market.orders, order => order.roomName == room);
+            var roomSellOrders = _.filter(Game.market.orders, order => order.roomName == room && order.type == ORDER_SELL);
+            var roomBuyOrders = _.filter(Game.market.orders, order => order.roomName == room && order.type == ORDER_BUY);
 
             //init memory
             if (!Memory.roomsPersistent[room].logistics) {
@@ -18,17 +19,32 @@ var systemLogistics = {
                 Memory.roomsPersistent[room].logistics.needs = {};
                 Memory.roomsPersistent[room].logistics.haves = {};
                 Memory.roomsPersistent[room].logistics.selling = {};
+                Memory.roomsPersistent[room].logistics.buying = {};
             }
 
             //loop through sell orders
             Memory.roomsPersistent[room].logistics.selling = {};
-            for (order of roomOrders) {
+            for (order of roomSellOrders) {
                 //set it back to zero, then increment it to cover cases where there are multiple orders
                 if (!Memory.roomsPersistent[room].logistics.selling[order.resourceType]) {
                     //avoids it from being null
                     Memory.roomsPersistent[room].logistics.selling[order.resourceType] = 0;
                 }
                 Memory.roomsPersistent[room].logistics.selling[order.resourceType] += order.remainingAmount;
+                if (order.remainingAmount == 0) {
+                    Game.market.cancelOrder(order.id);
+                }
+            }
+
+            //loop through buy orders
+            Memory.roomsPersistent[room].logistics.buying = {};
+            for (order of roomBuyOrders) {
+                //set it back to zero, then increment it to cover cases where there are multiple orders
+                if (!Memory.roomsPersistent[room].logistics.buying[order.resourceType]) {
+                    //avoids it from being null
+                    Memory.roomsPersistent[room].logistics.buying[order.resourceType] = 0;
+                }
+                Memory.roomsPersistent[room].logistics.buying[order.resourceType] += order.remainingAmount;
                 if (order.remainingAmount == 0) {
                     Game.market.cancelOrder(order.id);
                 }
@@ -56,8 +72,30 @@ var systemLogistics = {
                 }
             }
 
-            //Energy demand and excess
+            //buying
+            for (var need of Object.keys(Memory.roomsPersistent[room].logistics.needs)) {
+                if (need == RESOURCE_ENERGY) continue; //skip energy for now
+                if (Memory.roomsPersistent[room].logistics.needs[need] - (Memory.roomsPersistent[room].logistics.buying[need] || 0) > 7500) {
+                    let mineralInfo = Game.market.getHistory(need);
+                    let mineralInfoToday = mineralInfo[mineralInfo.length - 1];
+                    let amountToBuy = Memory.roomsPersistent[room].logistics.needs[need];
+                    let price = (mineralInfoToday["avgPrice"] * 1.15).toFixed(3);
+                    let success = Game.market.createOrder({
+                        type: ORDER_BUY,
+                        resourceType: need,
+                        price: price,
+                        totalAmount: amountToBuy,
+                        roomName: room   
+                    });
 
+                    if (success == 0) {
+                        Memory.roomsPersistent[room].logistics.buying[need] += amountToBuy;
+                    }
+                    break;
+                }
+            }
+
+            //Energy demand and excess
             //init memory object for selling energy TODO: actually sell energy?
             if (!Object.keys(Memory.roomsPersistent[room].logistics.selling).includes(RESOURCE_ENERGY)) {
                 Memory.roomsPersistent[room].logistics.selling[RESOURCE_ENERGY] = 0;

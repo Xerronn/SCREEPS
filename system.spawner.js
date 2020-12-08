@@ -227,7 +227,12 @@ var systemSpawner2 = {
             if (numUpgraders < numToSpawn) {
 
                 let memory = {type: "worker", role: "upgrader", tasks: TASK_LIST_UPGRADER};
-                let baseBody = {WORK: 25, CARRY: 7};
+                let baseBody;
+                if (roomController.level < 8) {
+                    baseBody = {WORK: 25, CARRY: 7};
+                } else {
+                    baseBody = {WORK: 15, CARRY: 7};
+                }
                 let body = buildBody(room, baseBody, hasRoads);
 
                 spawnQueue[5].push({
