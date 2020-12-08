@@ -3,13 +3,11 @@ const traveler = require('imports.traveler');
 
 const renderUI = require('system.ui');
 const memoryHandler = require('system.memory');
-const populationControl = require('system.spawner.new');
+const populationControl = require('system.spawner');
 const roomPlanner = require('system.roomPlanner');
 const logistics = require('system.logistics');
 const taskExecution = require('system.taskManager');
 const garbageCollection = require('system.garbageCollection');
-
-const testSpawn = require("system.spawner.new");
 
 const roomPrototypes = require("room.prototypes");
 const initializeGlobals = require('system.globals');
@@ -46,8 +44,6 @@ module.exports.loop = function () {
 
         //memory init 
         memoryHandler.run();
-
-        //testSpawn.run();
 
         //other system stuff
         if (Memory.roomsCache) {
