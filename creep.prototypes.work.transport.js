@@ -4,6 +4,7 @@ var systemPrototypes = {
         global.TASK_TRANSPORT_MINERALS = "transport_minerals";
         global.TASK_FILL_EXTENSION = "fill_extension"; 
         global.TASK_FILL_TOWER = "fill_tower"; 
+        global.TASK_FILL_TOWER_STATIC = "fill_tower_static"; 
         global.TASK_FILL_STORAGE = "fill_storage"; 
         global.TASK_FILL_TERMINAL = "fill_terminal";
         global.TASK_FILL_STORAGE_CONTAINER = "fill_storage_container";
@@ -219,6 +220,54 @@ var systemPrototypes = {
                     } else {
                         this.moveTo(creepTowerTarget, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
                     }
+                }
+                return true; //move to next tick
+            }
+        }
+
+
+
+        //task to fill tower
+        if (!Creep.prototype.fillTowersStatic) {
+            Creep.prototype.fillTowersStatic = function() {
+                //check memory if the room needs to be filled
+                if (!Memory.roomsPersistent[this.pos.roomName].towersFilled && this.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && !this.memory.harvesting) {
+                    //find the closest extensions
+                    //TODO: optimize this somehow more
+                    if (this.memory.towerTarget && this.memory.towerTarget != "none") {
+                        let creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
+
+                        //set the memory to none if it is full
+                        if (!creepTowerTarget || creepTowerTarget.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                            this.memory.towerTarget = "none";
+                        }
+                    }
+
+                    //assign a new object that needs towering to be the target
+                    if (!this.memory.towerTarget || this.memory.towerTarget == "none") {
+                        var towers = Memory.roomsCache[this.room.name].structures.towers.map(id => Game.getObjectById(id));
+                        let towerTarget;
+                        for (tower of towers) {
+                            if (tower && this.pos.isNearTo(tower) && tower.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                                towerTarget = tower;
+                                break;
+                            }
+                        }
+                        if (towerTarget) {
+                            this.memory.towerTarget = towerTarget.id;
+                        } else {
+                            return false; //move to next task
+                        }
+                    }
+                    
+                } else {
+                    return false; //move to next task
+                }
+
+                //if there is a target, move towards it and transfer
+                var creepTowerTarget = Game.getObjectById(this.memory.towerTarget);
+                if(creepTowerTarget) {
+                    this.transfer(creepTowerTarget, RESOURCE_ENERGY);
                 }
                 return true; //move to next tick
             }

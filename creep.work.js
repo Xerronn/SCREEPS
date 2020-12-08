@@ -65,6 +65,11 @@ var roleWorker = {
                             taskCompleted = true;
                         }
                         break;
+                    case TASK_PILLAGE:
+                        if (creep.pillage() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
                     case TASK_FILL_EXTENSION:
                         if (creep.fillExtensions() == true) {
                             taskCompleted = true;
@@ -72,6 +77,11 @@ var roleWorker = {
                         break;
                     case TASK_FILL_TOWER:
                         if (creep.fillTowers() == true) {
+                            taskCompleted = true;
+                        }
+                        break;
+                    case TASK_FILL_TOWER_STATIC:
+                        if (creep.fillTowersStatic() == true) {
                             taskCompleted = true;
                         }
                         break;

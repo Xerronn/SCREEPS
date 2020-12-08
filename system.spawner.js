@@ -13,8 +13,8 @@ var systemSpawner2 = {
         const TASK_LIST_TRANSPORTER_MINERAL = [TASK_TRANSPORT_MINERALS, TASK_FILL_TERMINAL];
         const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE_CONTAINER, TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_FILL_EXTENSION, TASK_RENEW, TASK_FILL_TOWER, TASK_MANAGE_TERMINAL]; //TODO: potential terminal manager?
         const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_EXTENSION];
-        const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
-        const TASK_LIST_LINKER = [TASK_MANAGE_LINK, TASK_WITHDRAW_STORAGE, TASK_FILL_STORAGE_CONTAINER]
+        const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_SALVAGE, TASK_PILLAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
+        const TASK_LIST_LINKER = [TASK_MANAGE_LINK, TASK_WITHDRAW_STORAGE, TASK_FILL_TOWER_STATIC, TASK_FILL_STORAGE_CONTAINER]
 
         const TASK_LIST_REMOTE_DEFENDER = [TASK_REMOTE, TASK_COMBAT_MELEE_DEFEND];
         //TODO: REDO THIS... AGAIN creeps have too many move parts for some reason. except for wallers...
@@ -367,7 +367,7 @@ var systemSpawner2 = {
                     break;
                 case "remoteBuilder":
                     //always assume no roads
-                    body = buildComposition(spawnRoom, [WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], false);
+                    body = buildComposition(spawnRoom, [WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], false);
                     break;
                 case "claimer":
                     //always assume no roads
@@ -428,7 +428,7 @@ var systemSpawner2 = {
                     break;
                 case "linker":
                     //doesn't matter if roads or not
-                    body = buildComposition(spawnRoom, [CARRY, CARRY, MOVE], false);
+                    body = buildComposition(spawnRoom, [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE], false);
                     break;
                 case "waller":
                     body = addMoves([WORK, CARRY], hasRoads);

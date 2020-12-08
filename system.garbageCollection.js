@@ -5,6 +5,7 @@ var systemGarbageCollection = {
                 try {
                     //decrement the creep count
                     Memory.roomsPersistent[Memory.creeps[name].spawnRoom].creepCounts[Memory.creeps[name].role]--;
+                    Memory.roomsPersistent[Memory.creeps[name].spawnRoom].needsSpawning = true;
                     //remove the assigned worker from assignedSource memory
                     if (Memory.creeps[name].assignedSource) {
                         let assignedSource = Game.getObjectById(Memory.creeps[name].assignedSource);

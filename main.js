@@ -3,13 +3,17 @@ const traveler = require('imports.traveler');
 
 const renderUI = require('system.ui');
 const memoryHandler = require('system.memory');
-const populationControl = require('system.spawner');
+const populationControl = require('system.spawner.new');
 const roomPlanner = require('system.roomPlanner');
 const logistics = require('system.logistics');
 const taskExecution = require('system.taskManager');
 const garbageCollection = require('system.garbageCollection');
 
+const testSpawn = require("system.spawner.new");
+
+const roomPrototypes = require("room.prototypes");
 const initializeGlobals = require('system.globals');
+console.log("[Global Reset]");
 
 
 profiler.enable();
@@ -37,15 +41,14 @@ module.exports.loop = function () {
 
     profiler.wrap(function() {
         //TODO: make code CPU aware
-        //initialization
-        initializeGlobals.run();
-        
         //memory cleanup
         garbageCollection.run();
 
         //memory init 
         memoryHandler.run();
-        
+
+        //testSpawn.run();
+
         //other system stuff
         if (Memory.roomsCache) {
             populationControl.run();

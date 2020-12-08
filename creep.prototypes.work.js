@@ -22,7 +22,7 @@ var systemPrototypes = {
 
             //TODO: fix for remote. 500 not enough
             Creep.prototype.moveTo = function(destination, options = {}) {
-                if (!this.memory.tasks.includes(TASK_MANAGE_LINK)) {
+                if (!this.memory.tasks.includes(TASK_MANAGE_LINK) && Object.keys(Memory.roomsPersistent).includes(this.room.name)) {
                     let linkerPos = Memory.roomsPersistent[this.room.name].roomPlanning.linkerSpot;
                     options.obstacles = [{pos: new RoomPosition(linkerPos.x, linkerPos.y, this.room.name)}];
                 }
@@ -333,8 +333,9 @@ var systemPrototypes = {
                 if (this.memory.harvesting) {
                     //pull from the creepStorage creepLink if it is higher than the sweet spot
                     if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 400) {
-                        
-                        this.withdraw(creepLink, RESOURCE_ENERGY);
+                        let amountWithdraw = creepLink.store.getUsedCapacity(RESOURCE_ENERGY) - 400;
+                        if (amountWithdraw > this.store.getCapacity()) amountWithdraw = this.store.getCapacity();
+                        this.withdraw(creepLink, RESOURCE_ENERGY, amountWithdraw);
                         return true; //move to next tick
                     }
                     //else pull from creepStorage itself if the creepLink is lower than the good spot
@@ -344,8 +345,9 @@ var systemPrototypes = {
                 } else {
                     //transfer to the creepLink if it is less than the sweet spot
                     if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) <= 400) {
-                        
-                        this.transfer(creepLink, RESOURCE_ENERGY);
+                        let amountNeeded = 400 - creepLink.store.getUsedCapacity(RESOURCE_ENERGY);
+                        if (amountNeeded > this.store.getUsedCapacity(RESOURCE_ENERGY)) amountNeeded = this.store.getUsedCapacity(RESOURCE_ENERGY);
+                        this.transfer(creepLink, RESOURCE_ENERGY, amountNeeded);
                         return true; //move to next tick
                     }
 
@@ -399,6 +401,7 @@ var systemPrototypes = {
                     if (target.hits == target.hitsMax) {
                         this.memory.repairTarget = "none";
                     }
+                    //TODO: figure out ways to keep wallers out of the way
                     if (this.pos.inRangeTo(target, 3)) {
                         let success = this._repair(target, RESOURCE_ENERGY);
                         if (success == 0) {
@@ -435,7 +438,7 @@ var systemPrototypes = {
                     if (this.memory.tasks.includes(TASK_COMBAT_ATTACK_DRAIN) && this.hits < this.hitsMax) {
                         //move off the edge
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                            this.moveTo(new RoomPosition(25,25, this.room.name));
+                            this.travelTo(new RoomPosition(25,25, this.room.name));
                         }
                         return false; //move to next task if it is a drainer
                     }
@@ -444,9 +447,9 @@ var systemPrototypes = {
                         (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49)) {
                         //avoid annoying bug where they get stuck on room edges
                         if (this.pos.x == 0 || this.pos.y == 0 || this.pos.x == 49 || this.pos.y == 49) {
-                            this.moveTo(new RoomPosition(25,25, this.room.name));
+                            this.travelTo(new RoomPosition(25,25, this.room.name));
                         } else {
-                            this.moveTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
+                            this.travelTo(new RoomPosition(25,25, this.memory.assignedRoom), {reusePath: 25, serializeMemory: true, maxOps: 2000, visualizePathStyle: {stroke: '#ffffff'}});
                         }
                         return true; //move to next tick
                     } else {
@@ -502,7 +505,7 @@ var systemPrototypes = {
                     if (this.pos.inRangeTo(controller, 1)) {
                         this.claimController(controller);
                     } else {
-                        this.moveTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
+                        this.travelTo(controller, {visualizePathStyle: {stroke: COLOR_MOVE}});
                     }
                     return true; //move to next tick
                 }

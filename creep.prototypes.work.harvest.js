@@ -10,6 +10,7 @@ var systemPrototypesHarvest = {
         global.TASK_WITHDRAW_CONTAINER = "withdraw_container";
         global.TASK_WITHDRAW_TERMINAL = "withdraw_terminal";
         global.TASK_SALVAGE = "salvage";
+        global.TASK_PILLAGE = "pillage";
 
         //task to distribute to different sources and harvest them
         if (!Creep.prototype.harvestEnergy) {
@@ -511,6 +512,58 @@ var systemPrototypesHarvest = {
                         //TODO: Track this in stats
                     } else {
                         this.moveTo(assignedSalvage, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
+                    }
+                    return true; //move to next tick
+                }
+            }
+        }
+
+
+
+        //task to pickup dropped energy
+        if (!Creep.prototype.pillage) {
+            Creep.prototype.pillage = function () {
+
+                //set state
+                if (this.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = true;
+                } else if (this.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.harvesting = false;
+                }
+
+                //skip all this if its already full from another task
+                if (!this.memory.harvesting) {
+                    return false; //move to next task
+                }
+
+                //assign closest resource to creep
+                if (!this.memory.assignedRuin || this.memory.assignedRuin == "none") {
+                    let assignedRuin = this.pos.findClosestByRange(FIND_RUINS, {filter : ruin => ruin.store.getUsedCapacity(RESOURCE_ENERGY) > 0});
+                    if (assignedRuin) {
+                        this.memory.assignedRuin = assignedRuin.id;
+                    } else {
+                        //if there is no salvage, remove this task
+                        let array = this.memory.tasks;
+                        let index = array.indexOf(TASK_PILLAGE);
+                        if (index > -1) {
+                            array.splice(index, 1);
+                            this.memory.tasks = array;
+                        }
+                        return false; //move to next task
+                    }
+                }
+                //fetch live object
+                var assignedRuin = Game.getObjectById(this.memory.assignedRuin);
+
+                if (!assignedRuin || assignedRuin.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    this.memory.assignedRuin = "none";
+                    return false; //move to next task
+                } else {
+                    if (this.pos.inRangeTo(assignedRuin, 1)) {
+                        this.withdraw(assignedRuin, RESOURCE_ENERGY);
+                        //TODO: Track this in stats
+                    } else {
+                        this.moveTo(assignedRuin, {visualizePathStyle: {stroke: COLOR_ENERGY_GET, lineStyle: 'undefined'}});
                     }
                     return true; //move to next tick
                 }

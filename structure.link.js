@@ -2,6 +2,7 @@ var structureLink = {
 
     /** @param {Turret} link **/
     run: function(link) {
+        if (link.cooldown > 0) return;
         try {
             let startCpu = Game.cpu.getUsed();
             var linkType = Memory.roomsCache[link.room.name]["structures"]["links"]["all"][link.id]["type"];
