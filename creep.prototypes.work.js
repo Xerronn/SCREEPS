@@ -22,9 +22,16 @@ var systemPrototypes = {
 
             //TODO: fix for remote. 500 not enough
             Creep.prototype.moveTo = function(destination, options = {}) {
-                if (!this.memory.tasks.includes(TASK_MANAGE_LINK) && Object.keys(Memory.roomsPersistent).includes(this.room.name)) {
-                    let linkerPos = Memory.roomsPersistent[this.room.name].roomPlanning.linkerSpot;
-                    options.obstacles = [{pos: new RoomPosition(linkerPos.x, linkerPos.y, this.room.name)}];
+                if (Object.keys(Memory.roomsPersistent).includes(this.room.name)) {
+                    options.obstacles = [];
+                    if (!this.memory.tasks.includes(TASK_MANAGE_LINK) && this.room.controller.level >= 5) {
+                        let linkerPos = Memory.roomsPersistent[this.room.name].roomPlanning.linkerSpot;
+                        options.obstacles.push({pos: new RoomPosition(linkerPos.x, linkerPos.y, this.room.name)});
+                    }
+                    if (!this.memory.tasks.includes(TASK_MANAGE_TERMINAL) && this.room.controller.level >= 6) {
+                        let alchPos = Memory.roomsPersistent[this.room.name].roomPlanning.treasurerSpot;
+                        options.obstacles.push({pos: new RoomPosition(alchPos.x, alchPos.y, this.room.name)});
+                    }
                 }
                 options.maxOps = 500;
                 if (this.pos.inRangeTo(destination, 4)) {
@@ -142,43 +149,6 @@ var systemPrototypes = {
         //         return matrix;
         //     }
         // }
-
-
-
-        //task to manage a terminal and keep it at 20k energy
-        //TODO: everything
-        if (!Creep.prototype.manageTerminal) {
-            Creep.prototype.manageTerminal = function () {
-                var creepTerminal = this.room.terminal;
-                //skip the task if there is no terminal, the creep is harvesting or the creep has no energy
-                if (!creepTerminal || this.memory.harvesting || !this.store.getUsedCapacity() > 0) {
-                    //remove this task if there is no terminal
-                    if (!creepTerminal) {
-                        let array = this.memory.tasks;
-                        let index = array.indexOf(TASK_MANAGE_TERMINAL);
-                        if (index > -1) {
-                            array.splice(index, 1);
-                            this.memory.tasks = array;
-                        }
-                    }
-                    return false; //move to next task if creep is harvesting
-                }
-
-                //fill the terminal
-                let fillAmount = 20000; //default amount
-                //amount to use if we are moving all contents to the terminal
-                if (Memory.roomsPersistent[this.room.name].rePlanning) filAmount = creepTerminal.store.getCapacity();
-                if (creepTerminal.store.getUsedCapacity(RESOURCE_ENERGY) > fillAmount) {
-                    return false; //move to next task
-                }
-                if (this.pos.inRangeTo(creepTerminal, 1)) {
-                    this.transfer(creepTerminal, RESOURCE_ENERGY);
-                } else {
-                    this.moveTo(creepTerminal, {visualizePathStyle: {stroke: COLOR_ENERGY_SPEND, lineStyle: 'undefined'}});
-                }
-                return true; //move to next tick
-            }
-        }
 
 
     
@@ -334,12 +304,11 @@ var systemPrototypes = {
                     //pull from the creepStorage creepLink if it is higher than the sweet spot
                     if (creepLink.store.getUsedCapacity(RESOURCE_ENERGY) >= 400) {
                         let amountWithdraw = creepLink.store.getUsedCapacity(RESOURCE_ENERGY) - 400;
-                        if (amountWithdraw > this.store.getCapacity()) amountWithdraw = this.store.getCapacity();
+                        if (amountWithdraw > this.store.getFreeCapacity()) amountWithdraw = this.store.getFreeCapacity();
                         this.withdraw(creepLink, RESOURCE_ENERGY, amountWithdraw);
                         return true; //move to next tick
                     }
                     //else pull from creepStorage itself if the creepLink is lower than the good spot
-
                     this.withdraw(creepStorage, RESOURCE_ENERGY);
                     return true; //move to next tick     
                 } else {
@@ -355,6 +324,34 @@ var systemPrototypes = {
                     this.transfer(creepStorage, RESOURCE_ENERGY);
                     return true; //move to next tick
                 }
+            }
+        }
+
+
+
+        //task to manage the terminal
+        if (!Creep.prototype.manageTerminal) {
+            Creep.prototype.manageTerminal = function () {
+
+                let roomTerminal = this.room.terminal;
+                let linkerPos = Memory.roomsPersistent[this.room.name].roomPlanning.treasurerSpot; //middle of bunker
+                linkerPos = new RoomPosition(linkerPos.x, linkerPos.y, this.room.name); //room pos obj of middle
+
+                if (!this.pos.isEqualTo(linkerPos)) {
+                    this.moveTo(linkerPos);
+                    return true; //next tick until we get to our position
+                }
+
+                let terminalEnergy = roomTerminal.store.getUsedCapacity(RESOURCE_ENERGY);
+                if (terminalEnergy < 30000) {
+                    let neededEnergy = 30000 - terminalEnergy;
+                    if (neededEnergy > this.store.getUsedCapacity(RESOURCE_ENERGY)) {
+                        neededEnergy = this.store.getUsedCapacity(RESOURCE_ENERGY);
+                    }
+                    this.transfer(roomTerminal, RESOURCE_ENERGY, neededEnergy);
+                    return true; //move to next tick if we transfer to terminal
+                }
+
             }
         }
 

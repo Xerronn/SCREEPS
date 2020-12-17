@@ -12,7 +12,8 @@ var systemSpawner2 = {
         const TASK_LIST_MAINTAINER = [TASK_WITHDRAW_STORAGE_CONTAINER, TASK_WITHDRAW_CONTAINER, TASK_FILL_TOWER, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER = [TASK_TRANSPORT_ENERGY, TASK_FILL_STORAGE, TASK_FILL_TERMINAL, TASK_FILL_STORAGE_CONTAINER, TASK_FILL_EXTENSION];
         const TASK_LIST_TRANSPORTER_MINERAL = [TASK_TRANSPORT_MINERALS, TASK_FILL_TERMINAL];
-        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE_CONTAINER, TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_FILL_EXTENSION, TASK_RENEW, TASK_FILL_TOWER, TASK_MANAGE_TERMINAL]; //TODO: potential terminal manager?
+        const TASK_LIST_FILLER = [TASK_WITHDRAW_STORAGE_CONTAINER, TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_FILL_EXTENSION];
+        const TASK_LIST_ALCHEMIST = [TASK_WITHDRAW_STORAGE, TASK_MANAGE_TERMINAL, TASK_FILL_TOWER_STATIC];
         const TASK_LIST_PANIC = [TASK_WITHDRAW_STORAGE, TASK_WITHDRAW_TERMINAL, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_FILL_EXTENSION];
         const TASK_LIST_REMOTE_BUILDER = [TASK_REMOTE, TASK_SALVAGE, TASK_PILLAGE, TASK_WITHDRAW_CONTAINER, TASK_HARVEST_ENERGY, TASK_BUILD, TASK_UPGRADE];
         const TASK_LIST_LINKER = [TASK_MANAGE_LINK, TASK_WITHDRAW_STORAGE, TASK_FILL_TOWER_STATIC, TASK_FILL_STORAGE_CONTAINER]
@@ -90,6 +91,7 @@ var systemSpawner2 = {
             let numTowers = Memory.roomsCache[room].structures.towers.length;
             let roomContainers = Memory.roomsCache[room].structures.containers.source;
             let roomExtractor = Game.getObjectById(Memory.roomsCache[room].structures.extractors[0]);
+            let roomTerminal = roomObj.terminal;
             let roomMineralContainer = Game.getObjectById(Memory.roomsCache[room].structures.containers.mineral[0]);
             let roomAttackStatus = Memory.roomsPersistent[room].attackStatus;
             let hasRoads = Memory.roomsPersistent[room].roomPlanning.bunkerRoads;
@@ -114,9 +116,8 @@ var systemSpawner2 = {
             }
             var numCreeps = Object.values(Memory.roomsPersistent[room].creepCounts);
             numCreeps = numCreeps.reduce((a,b) => a+b, 0);
-            if (numCreeps < 2 && roomController.level > 2) {
+            if (numCreeps < 2) {
                 let panicTasks = TASK_LIST_PANIC;
-
                 let body = [MOVE, MOVE, CARRY, CARRY, WORK];
 
                 //withdraw from storage if we can
@@ -125,7 +126,7 @@ var systemSpawner2 = {
                     body = [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE]; //no need for work if storage
                 }
                 let memory = {type: "worker", role: 'panic', tasks: panicTasks};
-                spawnCreep(selectedSpawn, "panic", memory);
+                spawnCreep(selectedSpawn, body, memory);
                 break; //this doesn't follow the priority system, so it skips the rest of the execution
             }
 
@@ -233,7 +234,13 @@ var systemSpawner2 = {
                 } else {
                     baseBody = {WORK: 15, CARRY: 7};
                 }
-                let body = buildBody(room, baseBody, hasRoads);
+
+                let body;
+                if (roomStorage && roomStorage.store.getUsedCapacity(RESOURCE_ENERGY) > 300000) {
+                    body = buildBody(room, baseBody, hasRoads);
+                } else {
+                    body = buildBody(room, baseBody, hasRoads, 800);
+                }
 
                 spawnQueue[5].push({
                     creepMemory: memory,
@@ -300,7 +307,7 @@ var systemSpawner2 = {
                 if (numFillers < 1) {      
 
                     let memory = {type: "worker", role: "filler", tasks: TASK_LIST_FILLER};
-                    let baseBody = {CARRY: 12};
+                    let baseBody = {CARRY: 6};
                     let body = buildBody(room, baseBody, hasRoads);
 
                     spawnQueue[1].push({
@@ -318,7 +325,7 @@ var systemSpawner2 = {
                 if (numWallers < 1) {
 
                     let memory = {type: "worker", role: "waller", tasks: TASK_LIST_WALLER};
-                    let baseBody = {WORK: 4, CARRY: 3};
+                    let baseBody = {WORK: 3, CARRY: 3};
                     let body = buildBody(room, baseBody, hasRoads);
 
                     spawnQueue[4].push({
@@ -337,7 +344,7 @@ var systemSpawner2 = {
                 if (numLinkers < 1 && numStorageLinks > 0) {
 
                     let memory = {type: "worker", role: "linker", tasks: TASK_LIST_LINKER};
-                    let baseBody = {CARRY: 10};
+                    let baseBody = {CARRY: 5};
                     let body = buildBody(room, baseBody, hasRoads);
 
                     spawnQueue[2].push({
@@ -358,7 +365,7 @@ var systemSpawner2 = {
                     Memory.roomsPersistent[room].creepCounts["quarrier"] = 0;
                 }
                 let numQuarriers = Memory.roomsPersistent[room].creepCounts["quarrier"];
-                if (numQuarriers < 1 && Memory.roomsPersistent[room].mineralTimer < Game.time) {
+                if (numQuarriers < 1 && (Memory.roomsPersistent[room].mineralTimer < Game.time || !Memory.roomsPersistent[room].mineralTimer)) {
                     
                     let memory = {type: "worker", role: "quarrier", tasks: TASK_LIST_QUARRIER};
                     let baseBody = {WORK: 15};
@@ -379,7 +386,7 @@ var systemSpawner2 = {
                     if (numMineralTransporters < 1) {
 
                         let memory = {type: "worker", role: "mineralTransporter", tasks: TASK_LIST_TRANSPORTER_MINERAL};
-                        let baseBody = {CARRY: 8};
+                        let baseBody = {CARRY: 6};
                         let body = buildBody(room, baseBody, hasRoads);
 
                         spawnQueue[5].push({
@@ -390,6 +397,27 @@ var systemSpawner2 = {
                 }
             }
 
+            ///////////////////
+            // POST TERMINAL //
+            ///////////////////
+
+            if (roomTerminal) {
+                if (!Memory.roomsPersistent[room].creepCounts["alchemist"]) {
+                    Memory.roomsPersistent[room].creepCounts["alchemist"] = 0;
+                }
+                let numAlchemists = Memory.roomsPersistent[room].creepCounts["alchemist"];
+                if (numAlchemists < 1) {
+                    
+                    let memory = {type: "worker", role: "alchemist", tasks: TASK_LIST_ALCHEMIST};
+                    let baseBody = {CARRY: 10};
+                    let body = buildBody(room, baseBody, hasRoads);
+
+                    spawnQueue[5].push({
+                        creepMemory: memory,
+                        creepBody: body
+                    });
+                }
+            }
 
 
             //spawn the creeps based of the queue

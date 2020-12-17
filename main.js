@@ -58,10 +58,5 @@ module.exports.loop = function () {
         
         //execute creep code
         taskExecution.run(); //optimize!! using 11-17 CPU!
-        
-        //pixelsss
-        if (Game.cpu["bucket"] > 9000) {
-            Game.cpu.generatePixel();
-        }
     });
 }

@@ -121,6 +121,7 @@ var systemLogistics = {
             let sentResource = false;
             
             outerLoop: for (var otherRoom of MY_ROOMS_TERMINAL) {
+                if (!Memory.roomsPersistent[otherRoom].logistics) continue;
                 for (var extra of Object.keys(Memory.roomsPersistent[room].logistics.haves)) {
                     let extrasAmount = Memory.roomsPersistent[room].logistics.haves[extra];
                     let needAmount = Memory.roomsPersistent[otherRoom].logistics.needs[extra];

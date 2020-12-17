@@ -33,8 +33,7 @@ if (!global.INITIALIZED) {
         RESOURCE_LEMERGIUM,
         RESOURCE_KEANIUM,
         RESOURCE_ZYNTHIUM,
-        RESOURCE_CATALYST,
-        RESOURCE_GHODIUM
+        RESOURCE_CATALYST
     ];
 
     global.BUNKER = {
@@ -181,6 +180,7 @@ if (!global.INITIALIZED) {
         return "Deleted " + roomOrders.length + " orders from " + room + "!";
     }
 
+    //TODO: I don't believe this works anymore. redo it
     global.syncSourceCounts = function () {
         for (var room of Object.keys(Memory.roomsPersistent)) {
             var creeps = Game.rooms[room].find(FIND_MY_CREEPS);
@@ -209,6 +209,18 @@ if (!global.INITIALIZED) {
             }
         }
         return "Synced source worker counts!";
+    }
+
+    global.runSpawner = function (room="all rooms") {
+        if (room == "all rooms") {
+            for (let myRoom of Object.keys(Memory.roomsPersistent)) {
+                Memory.roomsPersistent[myRoom].needsSpawning = true;
+            }
+            return "All rooms set to need spawning!"
+        } else {
+            Memory.roomsPersistent[room].needsSpawning = true;
+            return "Room " + room + " set to need spawning!"
+        }
     }
 }  
 
